@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -16,7 +17,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.smartfingers.smartlawyerplus.R
-import com.smartfingers.smartlawyerplus.ui.theme.Primary
 
 @Composable
 fun SplashScreen(
@@ -41,14 +41,14 @@ fun SplashScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Primary),
+            .background(MaterialTheme.colorScheme.background),
         contentAlignment = Alignment.Center,
     ) {
         Image(
             painter = painterResource(id = R.drawable.logo),
             contentDescription = null,
             contentScale = ContentScale.Fit,
-            modifier = Modifier.size(width = 200.dp, height = 120.dp),
+            modifier = Modifier.size(width = 300.dp, height = 180.dp),
         )
     }
 }

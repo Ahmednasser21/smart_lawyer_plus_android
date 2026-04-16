@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.smartfingers.smartlawyerplus.domain.repository.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -24,6 +25,7 @@ class SplashViewModel @Inject constructor(
 
     private fun resolve() {
         viewModelScope.launch {
+            delay(1500)
             val isOnboarding = !authRepository.isOnboardingComplete()
             if (isOnboarding) {
                 _destination.value = SplashDestination.Onboarding

@@ -53,14 +53,15 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.launch
-
 
 
 @Composable
 fun OnboardingScreen(
     onSkip: () -> Unit,
     onFinish: () -> Unit,
+    viewModel: OnboardingViewModel = hiltViewModel(),
 ) {
     val pages = listOf(
         OnboardingPage(
@@ -146,7 +147,10 @@ fun OnboardingScreen(
                 modifier = Modifier.align(Alignment.CenterStart),
             ) {
                 TextButton(
-                    onClick = onSkip,
+                    onClick = {
+                        viewModel.completeOnboarding()
+                        onSkip()
+                    },
                     modifier = Modifier
                         .clip(RoundedCornerShape(8.dp))
                         .background(AppGray.copy(alpha = 0.15f)),
@@ -162,6 +166,7 @@ fun OnboardingScreen(
             FloatingActionButton(
                 onClick = {
                     if (isLastPage) {
+                        viewModel.completeOnboarding()
                         onFinish()
                     } else {
                         scope.launch {

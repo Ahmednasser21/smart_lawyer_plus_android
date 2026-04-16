@@ -15,7 +15,6 @@ datastore = "1.1.1"
 coroutines = "1.9.0"
 ksp = "2.0.21-1.0.27"
 securityCrypto = "1.1.0-alpha06"
-splashscreen = "1.0.1"
 accompanist = "0.36.0"
 
 [libraries]
@@ -42,7 +41,6 @@ okhttp-logging = { group = "com.squareup.okhttp3", name = "logging-interceptor",
 datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
 coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
 security-crypto = { group = "androidx.security", name = "security-crypto", version.ref = "securityCrypto" }
-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "splashscreen" }
 accompanist-systemuicontroller = { group = "com.google.accompanist", name = "accompanist-systemuicontroller", version.ref = "accompanist" }
 
 [plugins]

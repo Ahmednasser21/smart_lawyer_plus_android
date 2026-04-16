@@ -66,7 +66,6 @@ dependencies {
     implementation(libs.datastore.preferences)
     implementation(libs.coroutines.android)
     implementation(libs.security.crypto)
-    implementation(libs.splashscreen)
     implementation(libs.accompanist.systemuicontroller)
     debugImplementation(libs.androidx.ui.tooling)
 }

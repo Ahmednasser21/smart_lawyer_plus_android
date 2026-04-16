@@ -18,7 +18,6 @@ import androidx.compose.ui.unit.dp
 import com.smartfingers.smartlawyerplus.ui.theme.Divider
 import com.smartfingers.smartlawyerplus.ui.theme.Primary
 import com.smartfingers.smartlawyerplus.ui.theme.TextOnPrimary
-import com.smartfingers.smartlawyerplus.ui.theme.TextPrimary
 
 @Composable
 fun SmartLawyerButton(
@@ -67,7 +66,7 @@ fun SmartLawyerOutlinedButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     borderColor: Color = Divider,
-    contentColor: Color = TextPrimary,
+    contentColor: Color = MaterialTheme.colorScheme.onBackground,
 ) {
     OutlinedButton(
         onClick = onClick,
