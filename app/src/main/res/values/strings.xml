@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Smart Lawyer Plus</string>
+
+    <!-- Onboarding -->
+    <string name="welcome">Welcome</string>
+    <string name="enter_link_message">Please add your link and code</string>
+    <string name="skip">SKIP</string>
+    <string name="onboarding_one_title">Establishing companies</string>
+    <string name="onboarding_one_description">The most important services that we provide are the establishment of new companies and the provision of legal services for those companies, including establishment procedures</string>
+
+    <!-- Auth -->
+    <string name="link">Link</string>
+    <string name="code">Code</string>
+    <string name="add">Add</string>
+    <string name="link_required">Please add the link and code to proceed</string>
+    <string name="login_message">Enter your data securely</string>
+    <string name="user_name">Username</string>
+    <string name="password">Password</string>
+    <string name="remember_me">Remember Me</string>
+    <string name="forget_password">Did you forget the Password?</string>
+    <string name="login">Login</string>
+    <string name="register">Request Service</string>
+    <string name="enter_username">Please enter your username</string>
+    <string name="enter_password">Please enter the password</string>
+    <string name="session_expired">Session has been expired</string>
+
+    <!-- Common -->
+    <string name="cancel">Cancel</string>
+    <string name="save">Save</string>
+    <string name="edit">Edit</string>
+    <string name="delete">Delete</string>
+    <string name="ok">OK</string>
+    <string name="done">Done</string>
+    <string name="search">Search</string>
+    <string name="apply">Search</string>
+    <string name="info">Info</string>
+    <string name="error_title">Error</string>
+    <string name="something_went_wrong">Something went wrong</string>
+    <string name="close">Close</string>
+    <string name="name">Name</string>
+    <string name="view">View</string>
+    <string name="download">Download</string>
+
+    <!-- Navigation -->
+    <string name="sessions">Sessions</string>
+    <string name="tasks">Tasks</string>
+    <string name="home">Home</string>
+    <string name="calendar">Calendar</string>
+    <string name="consultants">Consultants</string>
+    <string name="cases">Cases</string>
+    <string name="appointments">Appointments</string>
+    <string name="notifications">Notifications</string>
+
+    <!-- Password Reset -->
+    <string name="password_reset">Password Reset</string>
+    <string name="email">E-mail</string>
+    <string name="send">Send</string>
+    <string name="password_recovery_code">Password recovery code</string>
+    <string name="email_required">E-Mail required</string>
+    <string name="invalid_email">Invalid email address</string>
+    <string name="code_required">Code is required</string>
+    <string name="invalid_code">Invalid OTP code</string>
+    <string name="new_password">New Password</string>
+    <string name="repeat_password">Repeat password</string>
+    <string name="new_password_required">New password required</string>
+    <string name="passwords_mismatch">Passwords mismatch</string>
+</resources>

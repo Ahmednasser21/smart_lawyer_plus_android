@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Primary Brand Colors -->
+    <color name="primary">#1E5F9F</color>
+    <color name="primary_dark">#154580</color>
+    <color name="primary_light">#4A8AC4</color>
+
+    <!-- Secondary / Accent -->
+    <color name="secondary">#D6883A</color>
+    <color name="secondary_dark">#B5692A</color>
+
+    <!-- Background -->
+    <color name="background">#FFFFFF</color>
+    <color name="surface">#FFFFFF</color>
+    <color name="input_background">#F5F5F5</color>
+
+    <!-- Text Colors -->
+    <color name="text_primary">#1A1A1A</color>
+    <color name="text_secondary">#808080</color>
+    <color name="text_hint">#979797</color>
+    <color name="text_on_primary">#FFFFFF</color>
+
+    <!-- Status Colors -->
+    <color name="color_success">#4CAF50</color>
+    <color name="color_error">#F44336</color>
+    <color name="color_warning">#FF9800</color>
+    <color name="color_info">#2196F3</color>
+
+    <!-- Neutral -->
+    <color name="divider">#E0E0E0</color>
+    <color name="card_background">#FFFFFF</color>
+    <color name="shadow_color">#1A000000</color>
+
+    <!-- Month Header - matching iOS ThemeHelper.MonthHeaderColor -->
+    <color name="month_header">#1E5F9F</color>
+
+    <!-- App Gray -->
+    <color name="app_gray">#9E9E9E</color>
+    <color name="color_808080">#808080</color>
+    <color name="color_979797">#979797</color>
+</resources>

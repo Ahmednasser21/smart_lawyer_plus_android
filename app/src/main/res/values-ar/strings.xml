@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">المحامي الذكي بلس</string>
+
+    <!-- Onboarding -->
+    <string name="welcome">مرحباً بك</string>
+    <string name="enter_link_message">يرجى إضافة الرابط و الرمز الخاص بك</string>
+    <string name="skip">تخطي</string>
+    <string name="onboarding_one_title">تأسيس شركات</string>
+    <string name="onboarding_one_description">أهم الخدمات التى نقوم بها هى خدمة تأسيس الشركات الجديدة والقيام بالخدمات القانونية لتلك الشركات من أجراءات تأسيس</string>
+
+    <!-- Auth -->
+    <string name="link">الرابط</string>
+    <string name="code">الرمز</string>
+    <string name="add">إضافة</string>
+    <string name="link_required">يرجي إدخال الرابط و الرمز</string>
+    <string name="login_message">أدخل بياناتك بأمان</string>
+    <string name="user_name">إسم المستخدم</string>
+    <string name="password">الرقم السري</string>
+    <string name="remember_me">تذكرني</string>
+    <string name="forget_password">هل نسيت الرقم السري؟</string>
+    <string name="login">دخول</string>
+    <string name="register">طلب الخدمة</string>
+    <string name="enter_username">من فضلك أدخل إسم المستخدم</string>
+    <string name="enter_password">من فضلك أدخل الرقم السري</string>
+    <string name="session_expired">لقد انتهت صلاحية الجلسة</string>
+
+    <!-- Common -->
+    <string name="cancel">إلغاء</string>
+    <string name="save">حفظ</string>
+    <string name="edit">تعديل</string>
+    <string name="delete">حذف</string>
+    <string name="ok">حسنا</string>
+    <string name="done">تم</string>
+    <string name="search">البحث</string>
+    <string name="apply">بحث</string>
+    <string name="info">معلومات</string>
+    <string name="error_title">خطأ</string>
+    <string name="something_went_wrong">حدث خطأ ما</string>
+    <string name="close">اغلاق</string>
+    <string name="name">الإسم</string>
+    <string name="view">عرض</string>
+    <string name="download">تحميل</string>
+
+    <!-- Navigation -->
+    <string name="sessions">الجلسات</string>
+    <string name="tasks">المهام</string>
+    <string name="home">الرئيسية</string>
+    <string name="calendar">التقويم</string>
+    <string name="consultants">الاستشارات</string>
+    <string name="cases">القضايا</string>
+    <string name="appointments">المواعيد</string>
+    <string name="notifications">الاشعارات</string>
+
+    <!-- Password Reset -->
+    <string name="password_reset">اعادة تعيين كلمة المرور</string>
+    <string name="email">البريد الالكتروني</string>
+    <string name="send">ارسال</string>
+    <string name="password_recovery_code">رمز استعادة كلمة المرور</string>
+    <string name="email_required">البريد الإلكتروني مطلوب</string>
+    <string name="invalid_email">البريد الالكتروني غير صحيح</string>
+    <string name="code_required">رمز استعادة كلمة المرور مطلوب</string>
+    <string name="invalid_code">رمز استعادة كلمة المرور غير صحيح</string>
+    <string name="new_password">كلمة المرور الجديدة</string>
+    <string name="repeat_password">تكرار كلمة المرور</string>
+    <string name="new_password_required">كلمة المرور الجديدة مطلوبة</string>
+    <string name="passwords_mismatch">كلمات المرور غير متطابقة</string>
+</resources>
