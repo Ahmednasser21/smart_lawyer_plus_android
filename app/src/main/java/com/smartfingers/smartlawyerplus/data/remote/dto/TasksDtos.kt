@@ -10,10 +10,15 @@ data class TasksResponseDto(
 data class TaskItemDto(
     @SerializedName("id") val id: Int?,
     @SerializedName("name") val name: String?,
-    @SerializedName("taskStatusName") val taskStatusName: String?,
-    @SerializedName("priorityName") val priorityName: String?,
     @SerializedName("taskNumber") val taskNumber: String?,
+    @SerializedName("taskStatusName") val taskStatusName: String?,
+    @SerializedName("taskStatus") val taskStatus: Int?,
+    @SerializedName("priorityName") val priorityName: String?,
     @SerializedName("remainingTime") val remainingTime: RemainingTimeDto?,
+    @SerializedName("createdByUser") val createdByUser: String?,
+    @SerializedName("taskReplyApproveRequestsCount") val taskReplyApproveRequestsCount: Int?,
+    @SerializedName("taskReplyReviewRequestsCount") val taskReplyReviewRequestsCount: Int?,
+    @SerializedName("isSecret") val isSecret: Boolean?,
 )
 
 data class RemainingTimeDto(

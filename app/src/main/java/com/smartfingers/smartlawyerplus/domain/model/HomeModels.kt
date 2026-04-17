@@ -1,22 +1,28 @@
 package com.smartfingers.smartlawyerplus.domain.model
 
-data class HomeStats(
-    val tasksCount: Int,
-    val sessionsCount: Int,
-    val appointmentsCount: Int,
-    val casesCount: Int,
-    val pendingTasksCount: Int,
-    val upcomingSessionsCount: Int,
-)
-
-data class RecentTask(
+data class Task(
     val id: Int,
     val name: String,
-    val statusName: String,
+    val taskNumber: String?,
+    val statusName: String?,
+    val taskStatus: Int?,
     val priorityName: String?,
     val remainingDays: Int,
-    val taskNumber: String?,
+    val remainingHours: Int,
+    val createdByUser: String?,
+    val taskReplyApproveRequestsCount: Int,
+    val taskReplyReviewRequestsCount: Int,
+    val isSecret: Boolean,
 )
+
+data class TaskFilter(
+    val id: Int,
+    val name: String,
+    val type: TaskFilterType,
+    val isSelected: Boolean = false,
+)
+
+enum class TaskFilterType { FINISHED, UNFINISHED, REQUIRES_APPROVAL }
 
 data class RecentHearing(
     val id: Int,

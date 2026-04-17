@@ -66,8 +66,9 @@
     <string name="new_password_required">New password required</string>
     <string name="passwords_mismatch">Passwords mismatch</string>
 
-    <!--    Home    -->
-    <string name="sessions_title">Sessions</string>
-    <string name="upcoming_sessions">Upcoming</string>
-    <string name="waiting_for_approval">Pending</string>
+    <!--    Tasks    -->
+
+    <string name="tasks_responsible">Tasks I\'m Responsible For</string>
+    <string name="tasks_all">All Tasks</string>
+    <string name="tasks_i_created">Tasks I Created</string>
 </resources>

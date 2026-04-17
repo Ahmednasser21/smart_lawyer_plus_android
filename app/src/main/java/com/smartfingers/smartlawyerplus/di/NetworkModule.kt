@@ -1,7 +1,7 @@
 package com.smartfingers.smartlawyerplus.di
 
 import com.smartfingers.smartlawyerplus.data.remote.api.AuthApiService
-import com.smartfingers.smartlawyerplus.data.remote.api.HomeApiService
+import com.smartfingers.smartlawyerplus.data.remote.api.TasksApiService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -20,9 +20,6 @@ import javax.net.ssl.X509TrustManager
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
-
-    /* A fixed base URL is required by Retrofit; actual dynamic URLs are passed
-     per-request via @Url so this value is effectively a placeholder.*/
     private const val PLACEHOLDER_BASE_URL = "https://placeholder.smart-lawyer.net/"
 
     @Provides
@@ -66,6 +63,6 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideHomeApiService(retrofit: Retrofit): HomeApiService =
-        retrofit.create(HomeApiService::class.java)
+    fun provideTasksApiService(retrofit: Retrofit): TasksApiService =
+        retrofit.create(TasksApiService::class.java)
 }

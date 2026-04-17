@@ -6,7 +6,7 @@ import com.smartfingers.smartlawyerplus.data.remote.dto.TasksResponseDto
 import retrofit2.http.GET
 import retrofit2.http.Url
 
-interface HomeApiService {
+interface TasksApiService {
 
     @GET
     suspend fun getTasks(@Url url: String): AppResponseDto<TasksResponseDto>

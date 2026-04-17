@@ -81,16 +81,23 @@ fun LoginScreen(
         ) {
             Spacer(modifier = Modifier.height(16.dp))
 
-            if (logoBase64 != null) {
+            if (!logoBase64.isNullOrBlank()) {
                 val bitmap = remember(logoBase64) {
-                    val bytes = android.util.Base64.decode(logoBase64, android.util.Base64.DEFAULT)
-                    BitmapFactory.decodeByteArray(bytes, 0, bytes.size)?.asImageBitmap()
+                    try {
+                        val bytes = android.util.Base64.decode(logoBase64, android.util.Base64.DEFAULT)
+                        BitmapFactory.decodeByteArray(bytes, 0, bytes.size)?.asImageBitmap()
+                    } catch (e: Exception) {
+                        null
+                    }
                 }
+
                 if (bitmap != null) {
                     Image(
                         bitmap = bitmap,
                         contentDescription = "App Logo",
-                        modifier = Modifier.padding(24.dp).size(width = 240.dp, height = 140.dp),
+                        modifier = Modifier
+                            .padding(24.dp)
+                            .size(width = 240.dp, height = 140.dp),
                         contentScale = ContentScale.FillBounds,
                     )
                 } else {
