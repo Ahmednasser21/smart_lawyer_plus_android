@@ -23,7 +23,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -54,6 +56,7 @@ fun SmartLawyerTextField(
 ) {
     var passwordVisible by remember { mutableStateOf(false) }
     val isError = errorText.isNotEmpty()
+    val focusManager = LocalFocusManager.current
 
     val visualTransformation = when {
         isPassword && !passwordVisible -> PasswordVisualTransformation()
@@ -102,7 +105,13 @@ fun SmartLawyerTextField(
             ),
             keyboardActions = KeyboardActions(
                 onDone = { onImeAction() },
-                onNext = { onImeAction() },
+                onNext = {
+                    if (imeAction == ImeAction.Next) {
+                        focusManager.moveFocus(FocusDirection.Down)
+                    } else {
+                        onImeAction()
+                    }
+                },
                 onSearch = { onImeAction() },
             ),
             isError = isError,

@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.smartfingers.smartlawyerplus.ui.screens.home.HomeScreen
 import com.smartfingers.smartlawyerplus.ui.screens.linkentry.LinkEntryScreen
 import com.smartfingers.smartlawyerplus.ui.screens.login.ForgetPasswordScreen
 import com.smartfingers.smartlawyerplus.ui.screens.login.LoginScreen
@@ -91,7 +92,9 @@ fun AppNavGraph(navController: NavHostController) {
         }
 
         composable(NavRoutes.Main.route) {
-            androidx.compose.material3.Text("Main Screen — Coming Soon")
+            HomeScreen(
+                onNotificationsClick = { /* navigate to notifications */ },
+            )
         }
     }
 }

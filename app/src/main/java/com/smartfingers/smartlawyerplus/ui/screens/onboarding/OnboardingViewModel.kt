@@ -2,16 +2,16 @@ package com.smartfingers.smartlawyerplus.ui.screens.onboarding
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.smartfingers.smartlawyerplus.domain.repository.AuthRepository
+import com.smartfingers.smartlawyerplus.domain.usecase.auth.CompleteOnboardingUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class OnboardingViewModel @Inject constructor(
-    private val authRepository: AuthRepository,
+    private val completeOnboardingUseCase: CompleteOnboardingUseCase,
 ) : ViewModel() {
     fun completeOnboarding() {
-        viewModelScope.launch { authRepository.completeOnboarding() }
+        viewModelScope.launch { completeOnboardingUseCase() }
     }
 }

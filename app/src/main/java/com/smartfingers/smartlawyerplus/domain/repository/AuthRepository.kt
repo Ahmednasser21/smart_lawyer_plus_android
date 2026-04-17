@@ -6,6 +6,7 @@ import com.smartfingers.smartlawyerplus.domain.model.LoggedUser
 import com.smartfingers.smartlawyerplus.domain.model.LoginCredentials
 import com.smartfingers.smartlawyerplus.domain.model.PasswordResetRequest
 import com.smartfingers.smartlawyerplus.domain.model.Result
+import kotlinx.coroutines.flow.Flow
 
 
 interface AuthRepository {
@@ -33,4 +34,6 @@ interface AuthRepository {
     suspend fun completeOnboarding()
 
     suspend fun isAppConfigured(): Boolean
+
+    fun getLogo(): Flow<String>
 }

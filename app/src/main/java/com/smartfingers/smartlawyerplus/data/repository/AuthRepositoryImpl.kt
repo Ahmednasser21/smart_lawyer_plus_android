@@ -12,6 +12,7 @@ import com.smartfingers.smartlawyerplus.domain.model.LoginCredentials
 import com.smartfingers.smartlawyerplus.domain.model.PasswordResetRequest
 import com.smartfingers.smartlawyerplus.domain.model.Result
 import com.smartfingers.smartlawyerplus.domain.repository.AuthRepository
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
@@ -140,4 +141,6 @@ class AuthRepositoryImpl @Inject constructor(
     override suspend fun completeOnboarding() { prefs.setOnboarding(false) }
 
     override suspend fun isAppConfigured(): Boolean = prefs.getAppUrlOnce().isNotBlank()
+
+    override fun getLogo(): Flow<String> = prefs.logo
 }

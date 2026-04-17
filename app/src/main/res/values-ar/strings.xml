@@ -65,4 +65,9 @@
     <string name="repeat_password">تكرار كلمة المرور</string>
     <string name="new_password_required">كلمة المرور الجديدة مطلوبة</string>
     <string name="passwords_mismatch">كلمات المرور غير متطابقة</string>
+
+    <!--    Home    -->
+    <string name="sessions_title">الجلسات</string>
+    <string name="upcoming_sessions">القادمة</string>
+    <string name="waiting_for_approval">قيد الانتظار</string>
 </resources>

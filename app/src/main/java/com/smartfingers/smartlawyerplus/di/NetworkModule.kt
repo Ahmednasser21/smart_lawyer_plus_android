@@ -1,6 +1,7 @@
 package com.smartfingers.smartlawyerplus.di
 
 import com.smartfingers.smartlawyerplus.data.remote.api.AuthApiService
+import com.smartfingers.smartlawyerplus.data.remote.api.HomeApiService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -62,4 +63,9 @@ object NetworkModule {
     @Singleton
     fun provideAuthApiService(retrofit: Retrofit): AuthApiService =
         retrofit.create(AuthApiService::class.java)
+
+    @Provides
+    @Singleton
+    fun provideHomeApiService(retrofit: Retrofit): HomeApiService =
+        retrofit.create(HomeApiService::class.java)
 }

@@ -65,4 +65,9 @@
     <string name="repeat_password">Repeat password</string>
     <string name="new_password_required">New password required</string>
     <string name="passwords_mismatch">Passwords mismatch</string>
+
+    <!--    Home    -->
+    <string name="sessions_title">Sessions</string>
+    <string name="upcoming_sessions">Upcoming</string>
+    <string name="waiting_for_approval">Pending</string>
 </resources>

@@ -1,5 +1,7 @@
 package com.smartfingers.smartlawyerplus.ui.screens.login
 
+import android.graphics.BitmapFactory
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -29,8 +31,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -54,7 +59,7 @@ fun LoginScreen(
     viewModel: LoginViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
-
+    val logoBase64 = uiState.logo
     LaunchedEffect(uiState.isSuccess) {
         if (uiState.isSuccess) onNavigateToMain()
     }
@@ -76,7 +81,24 @@ fun LoginScreen(
         ) {
             Spacer(modifier = Modifier.height(16.dp))
 
-            AppLogo(modifier = Modifier.size(width = 200.dp, height = 120.dp))
+            if (logoBase64 != null) {
+                val bitmap = remember(logoBase64) {
+                    val bytes = android.util.Base64.decode(logoBase64, android.util.Base64.DEFAULT)
+                    BitmapFactory.decodeByteArray(bytes, 0, bytes.size)?.asImageBitmap()
+                }
+                if (bitmap != null) {
+                    Image(
+                        bitmap = bitmap,
+                        contentDescription = "App Logo",
+                        modifier = Modifier.padding(24.dp).size(width = 240.dp, height = 140.dp),
+                        contentScale = ContentScale.FillBounds,
+                    )
+                } else {
+                    AppLogo(modifier = Modifier.size(width = 200.dp, height = 120.dp))
+                }
+            } else {
+                AppLogo(modifier = Modifier.size(width = 200.dp, height = 120.dp))
+            }
 
             Spacer(modifier = Modifier.height(32.dp))
 
@@ -179,7 +201,7 @@ fun LoginScreen(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(end = 25.dp, bottom = 25.dp)
-                .size(width = 100.dp, height = 60.dp),
+                .size(width = 150.dp, height = 90.dp),
         )
     }
 }

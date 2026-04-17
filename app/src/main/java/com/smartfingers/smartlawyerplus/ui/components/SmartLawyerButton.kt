@@ -4,6 +4,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -48,7 +49,7 @@ fun SmartLawyerButton(
             CircularProgressIndicator(
                 color = contentColor,
                 strokeWidth = 2.dp,
-                modifier = Modifier.height(20.dp),
+                modifier = Modifier.size(20.dp),
             )
         } else {
             Text(

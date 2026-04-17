@@ -9,4 +9,5 @@ data class LoginUiState(
     val isLoading: Boolean = false,
     val isSuccess: Boolean = false,
     val generalError: String = "",
+    val logo: String? = null
 )

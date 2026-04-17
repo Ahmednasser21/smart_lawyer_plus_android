@@ -4,8 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.smartfingers.smartlawyerplus.domain.model.LoginCredentials
 import com.smartfingers.smartlawyerplus.domain.model.Result
-import com.smartfingers.smartlawyerplus.domain.repository.AuthRepository
+import com.smartfingers.smartlawyerplus.domain.usecase.auth.GetLogoUseCase
 import com.smartfingers.smartlawyerplus.domain.usecase.auth.LoginUseCase
+import com.smartfingers.smartlawyerplus.domain.usecase.auth.SaveSessionUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -16,12 +17,20 @@ import javax.inject.Inject
 @HiltViewModel
 class LoginViewModel @Inject constructor(
     private val loginUseCase: LoginUseCase,
-    private val authRepository: AuthRepository,
+    private val saveSessionUseCase: SaveSessionUseCase,
+    private val getLogoUseCase: GetLogoUseCase,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(LoginUiState())
     val uiState: StateFlow<LoginUiState> = _uiState
 
+    init {
+        viewModelScope.launch {
+            getLogoUseCase().collect { logo ->
+                _uiState.update { it.copy(logo = logo.ifEmpty { null }) }
+            }
+        }
+    }
     fun onUserNameChange(value: String) {
         _uiState.update { it.copy(userName = value, userNameError = "") }
     }
@@ -59,7 +68,7 @@ class LoginViewModel @Inject constructor(
                 ),
             )) {
                 is Result.Success -> {
-                    authRepository.saveSession(result.data, state.rememberMe)
+                    saveSessionUseCase(result.data, state.rememberMe)
                     _uiState.update { it.copy(isLoading = false, isSuccess = true) }
                 }
                 is Result.Error -> _uiState.update {
