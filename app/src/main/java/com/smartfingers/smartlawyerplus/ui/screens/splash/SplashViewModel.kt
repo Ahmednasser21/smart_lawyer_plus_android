@@ -3,6 +3,7 @@ package com.smartfingers.smartlawyerplus.ui.screens.splash
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.smartfingers.smartlawyerplus.domain.repository.AuthRepository
+import com.smartfingers.smartlawyerplus.domain.usecase.auth.GetCachedUserUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,6 +14,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SplashViewModel @Inject constructor(
+    private val getCachedUserUseCase: GetCachedUserUseCase,
     private val authRepository: AuthRepository,
 ) : ViewModel() {
 
@@ -38,7 +40,7 @@ class SplashViewModel @Inject constructor(
                 return@launch
             }
 
-            val user = authRepository.getCachedUser()
+            val user = getCachedUserUseCase()
             if (user == null) {
                 _destination.value = SplashDestination.Login
             } else {

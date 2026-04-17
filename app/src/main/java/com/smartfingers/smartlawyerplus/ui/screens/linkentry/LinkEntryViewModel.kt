@@ -3,7 +3,7 @@ package com.smartfingers.smartlawyerplus.ui.screens.linkentry
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.smartfingers.smartlawyerplus.domain.model.Result
-import com.smartfingers.smartlawyerplus.domain.repository.AuthRepository
+import com.smartfingers.smartlawyerplus.domain.usecase.auth.InitAppUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -13,7 +13,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LinkEntryViewModel @Inject constructor(
-    private val authRepository: AuthRepository,
+    private val initAppUseCase: InitAppUseCase,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(LinkEntryUiState())
@@ -43,10 +43,10 @@ class LinkEntryViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, generalError = "") }
 
-            when (val result = authRepository.initApp(
+            when (val result = initAppUseCase(
                 link = state.link.lowercase().trim(),
                 code = state.code.lowercase().trim(),
-            )) {
+            )){
                 is Result.Success -> _uiState.update {
                     it.copy(isLoading = false, isSuccess = true)
                 }

@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.smartfingers.smartlawyerplus.domain.model.LoginCredentials
 import com.smartfingers.smartlawyerplus.domain.model.Result
 import com.smartfingers.smartlawyerplus.domain.repository.AuthRepository
+import com.smartfingers.smartlawyerplus.domain.usecase.auth.LoginUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -14,6 +15,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
+    private val loginUseCase: LoginUseCase,
     private val authRepository: AuthRepository,
 ) : ViewModel() {
 
@@ -50,7 +52,7 @@ class LoginViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, generalError = "") }
 
-            when (val result = authRepository.login(
+            when (val result = loginUseCase(
                 LoginCredentials(
                     userName = state.userName.trim(),
                     password = state.password,

@@ -2,8 +2,8 @@ package com.smartfingers.smartlawyerplus.ui.screens.login
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.smartfingers.smartlawyerplus.domain.repository.AuthRepository
 import com.smartfingers.smartlawyerplus.domain.model.Result
+import com.smartfingers.smartlawyerplus.domain.usecase.auth.SendOtpUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -13,7 +13,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ForgetPasswordViewModel @Inject constructor(
-    private val authRepository: AuthRepository,
+    private val sendOtpUseCase: SendOtpUseCase,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ForgetPasswordUiState())
@@ -39,7 +39,7 @@ class ForgetPasswordViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, generalError = "") }
 
-            when (val result = authRepository.sendOtp(email)) {
+            when (val result = sendOtpUseCase(email)) {
                 is Result.Success -> {
                     if (result.data) {
                         _uiState.update { it.copy(isLoading = false, otpSentToEmail = email) }
