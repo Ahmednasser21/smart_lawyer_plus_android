@@ -125,7 +125,11 @@ class AuthRepositoryImpl @Inject constructor(
         prefs.setToken(session.authToken)
         prefs.setRefreshToken(session.refreshToken)
         prefs.setExpiresIn((System.currentTimeMillis() / 1000 + 3200).toInt())
-        session.picture?.let { prefs.setLogo(it) }
+        session.picture?.let { raw ->
+            val base64 = if (raw.contains(",")) raw.split(",")[1] else raw
+            prefs.setUserPicture(base64)
+            prefs.setLogo(base64)
+        }
         if (rememberMe) {
             val stub = LoggedUser(id = null, givenName = null, email = null, role = null)
             prefs.setLoggedUserJson(Gson().toJson(stub))
@@ -143,4 +147,7 @@ class AuthRepositoryImpl @Inject constructor(
     override suspend fun isAppConfigured(): Boolean = prefs.getAppUrlOnce().isNotBlank()
 
     override fun getLogo(): Flow<String> = prefs.logo
+
+    override fun getUserPicture(): Flow<String> = prefs.userPicture
+    override suspend fun getUserPictureOnce(): String = prefs.getUserPictureOnce()
 }

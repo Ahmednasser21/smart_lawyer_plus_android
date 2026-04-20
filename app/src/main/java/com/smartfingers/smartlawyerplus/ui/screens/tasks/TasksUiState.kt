@@ -14,6 +14,7 @@ data class TasksUiState(
     val hasMore: Boolean = false,
     val page: Int = 0,
     val userName: String = "",
+    val userPicture: String = "",
     val error: String = "",
 )
 

@@ -36,4 +36,7 @@ interface AuthRepository {
     suspend fun isAppConfigured(): Boolean
 
     fun getLogo(): Flow<String>
+
+    fun getUserPicture(): Flow<String>
+    suspend fun getUserPictureOnce(): String
 }

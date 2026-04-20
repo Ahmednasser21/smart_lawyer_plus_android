@@ -32,9 +32,11 @@ class TasksViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             val user = authRepository.getCachedUser()
+            val picture = authRepository.getUserPictureOnce()
             _uiState.update {
                 it.copy(
                     userName = user?.givenName ?: "",
+                    userPicture = picture,
                     filters = defaultFilters,
                     selectedFilter = defaultFilters.first { f -> f.isSelected },
                 )

@@ -1,5 +1,7 @@
 package com.smartfingers.smartlawyerplus.ui.screens.tasks
 
+import android.graphics.BitmapFactory
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -12,7 +14,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeContent
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
@@ -50,6 +54,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -76,11 +82,10 @@ fun TasksScreen(
     val uiState by viewModel.uiState.collectAsState()
     val listState = rememberLazyListState()
 
-    // Trigger load more when near the end
     val shouldLoadMore by remember {
         derivedStateOf {
             val lastVisible = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
-            lastVisible >= uiState.tasks.size - 2 && uiState.hasMore && !uiState.isLoadingMore
+            lastVisible >= uiState.tasks.size - 3 && uiState.hasMore && !uiState.isLoadingMore
         }
     }
     LaunchedEffect(shouldLoadMore) {
@@ -90,16 +95,17 @@ fun TasksScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
+            .background(MaterialTheme.colorScheme.background)
+            .statusBarsPadding()
+            .navigationBarsPadding(),
     ) {
-        // ── Top Bar ──────────────────────────────────────────────────────
         TasksTopBar(
             userName = uiState.userName,
+            userPicture = uiState.userPicture,
             onNotificationsClick = onNotificationsClick,
             onCalendarClick = onCalendarClick,
         )
 
-        // ── Filter Row ────────────────────────────────────────────────────
         FilterRow(
             filters = uiState.filters,
             selectedScope = uiState.selectedScope,
@@ -109,7 +115,6 @@ fun TasksScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // ── List ──────────────────────────────────────────────────────────
         PullToRefreshBox(
             isRefreshing = uiState.isLoading,
             onRefresh = viewModel::refresh,
@@ -129,8 +134,17 @@ fun TasksScreen(
                     }
                     if (uiState.isLoadingMore) {
                         item {
-                            Box(Modifier.fillMaxWidth().padding(12.dp), contentAlignment = Alignment.Center) {
-                                CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Primary, strokeWidth = 2.dp)
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(12.dp),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(24.dp),
+                                    color = Primary,
+                                    strokeWidth = 2.dp,
+                                )
                             }
                         }
                     }
@@ -145,25 +159,31 @@ fun TasksScreen(
 @Composable
 private fun TasksTopBar(
     userName: String,
+    userPicture: String,
     onNotificationsClick: () -> Unit,
     onCalendarClick: () -> Unit,
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .statusBarsPadding()
             .padding(horizontal = 12.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Start,
     ) {
-        // Notification + Calendar buttons (left side for RTL)
+        // Left: teal action buttons (notification + calendar)
         IconButton(
             onClick = onNotificationsClick,
             modifier = Modifier
-                .size(40.dp)
-                .clip(RoundedCornerShape(8.dp))
+                .size(42.dp)
+                .clip(RoundedCornerShape(10.dp))
                 .background(Primary),
         ) {
-            Icon(Icons.Default.Notifications, contentDescription = null, tint = TextOnPrimary, modifier = Modifier.size(20.dp))
+            Icon(
+                Icons.Default.Notifications,
+                contentDescription = "Notifications",
+                tint = TextOnPrimary,
+                modifier = Modifier.size(22.dp),
+            )
         }
 
         Spacer(modifier = Modifier.width(8.dp))
@@ -171,35 +191,75 @@ private fun TasksTopBar(
         IconButton(
             onClick = onCalendarClick,
             modifier = Modifier
-                .size(40.dp)
-                .clip(RoundedCornerShape(8.dp))
+                .size(42.dp)
+                .clip(RoundedCornerShape(10.dp))
                 .background(Primary),
         ) {
-            Icon(Icons.Default.CalendarMonth, contentDescription = null, tint = TextOnPrimary, modifier = Modifier.size(20.dp))
+            Icon(
+                Icons.Default.CalendarMonth,
+                contentDescription = "Calendar",
+                tint = TextOnPrimary,
+                modifier = Modifier.size(22.dp),
+            )
         }
 
         Spacer(modifier = Modifier.weight(1f))
 
+        // Right: username + avatar
         Text(
             text = if (userName.isNotBlank()) "المحامية: $userName" else "Smart Lawyer",
-            style = MaterialTheme.typography.titleSmall,
-            color = MaterialTheme.colorScheme.onBackground,
+            style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.Medium,
+            color = MaterialTheme.colorScheme.onBackground,
         )
 
-        Spacer(modifier = Modifier.width(8.dp))
+        Spacer(modifier = Modifier.width(10.dp))
 
-        Box(
-            modifier = Modifier
-                .size(36.dp)
-                .clip(CircleShape)
-                .background(Primary),
-            contentAlignment = Alignment.Center,
-        ) {
+        UserAvatar(
+            picture = userPicture,
+            userName = userName,
+            size = 38,
+        )
+    }
+}
+
+// ── User Avatar ───────────────────────────────────────────────────────────────
+
+@Composable
+private fun UserAvatar(
+    picture: String,
+    userName: String,
+    size: Int,
+) {
+    val bitmap = remember(picture) {
+        if (picture.isNotBlank()) {
+            try {
+                val bytes = android.util.Base64.decode(picture, android.util.Base64.DEFAULT)
+                BitmapFactory.decodeByteArray(bytes, 0, bytes.size)?.asImageBitmap()
+            } catch (_: Exception) { null }
+        } else null
+    }
+
+    Box(
+        modifier = Modifier
+            .size(size.dp)
+            .clip(CircleShape)
+            .background(Primary)
+            .border(2.dp, Primary, CircleShape),
+        contentAlignment = Alignment.Center,
+    ) {
+        if (bitmap != null) {
+            Image(
+                bitmap = bitmap,
+                contentDescription = "User avatar",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize(),
+            )
+        } else {
             Text(
-                text = userName.firstOrNull()?.uppercase() ?: "M",
+                text = userName.firstOrNull()?.uppercase() ?: "U",
                 color = TextOnPrimary,
-                style = MaterialTheme.typography.labelLarge,
+                style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold,
             )
         }
@@ -224,44 +284,47 @@ private fun FilterRow(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        // Scope dropdown chip (المهام + arrow)
+        // Scope dropdown chip
         Box {
-            FilterChipItem(
+            ScopeChip(
                 label = when (selectedScope) {
                     TaskScope.RESPONSIBLE -> "مهام مسؤول عنها"
-                    TaskScope.ALL -> "كل المهام"
-                    TaskScope.CREATED -> "مهام أنشأتها"
+                    TaskScope.ALL        -> "كل المهام"
+                    TaskScope.CREATED    -> "مهام أنشأتها"
                 },
-                isSelected = false,
-                isDropdown = true,
-                accentColor = Divider,
-                textColor = MaterialTheme.colorScheme.onBackground,
                 onClick = { showScopeMenu = true },
             )
-            DropdownMenu(expanded = showScopeMenu, onDismissRequest = { showScopeMenu = false }) {
+            DropdownMenu(
+                expanded = showScopeMenu,
+                onDismissRequest = { showScopeMenu = false },
+            ) {
                 TaskScope.entries.forEach { scope ->
                     DropdownMenuItem(
-                        text = { Text(when (scope) {
-                            TaskScope.RESPONSIBLE -> "مهام مسؤول عنها"
-                            TaskScope.ALL -> "كل المهام"
-                            TaskScope.CREATED -> "مهام أنشأتها"
-                        }) },
+                        text = {
+                            Text(
+                                when (scope) {
+                                    TaskScope.RESPONSIBLE -> "مهام مسؤول عنها"
+                                    TaskScope.ALL        -> "كل المهام"
+                                    TaskScope.CREATED    -> "مهام أنشأتها"
+                                }
+                            )
+                        },
                         onClick = { onScopeSelected(scope); showScopeMenu = false },
                     )
                 }
             }
         }
 
-        // Filter chips
+        // Status filter chips
         LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             items(filters) { filter ->
-                FilterChipItem(
+                StatusFilterChip(
                     label = filter.name,
                     isSelected = filter.isSelected,
                     accentColor = when (filter.id) {
-                        1 -> ColorSuccess
-                        4 -> Primary
-                        else -> Secondary
+                        1    -> ColorSuccess   // مهام منجزة  → green
+                        4    -> Primary        // بانتظار الاعتماد → teal
+                        else -> Secondary      // fallback
                     },
                     onClick = { onFilterSelected(filter) },
                 )
@@ -270,47 +333,71 @@ private fun FilterRow(
     }
 }
 
+// Scope dropdown chip — outlined, white bg, arrow icon
 @Composable
-private fun FilterChipItem(
+private fun ScopeChip(label: String, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .clip(RoundedCornerShape(8.dp))
+            .background(MaterialTheme.colorScheme.surface)
+            .border(1.dp, Divider, RoundedCornerShape(8.dp))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 10.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        Icon(
+            Icons.Default.KeyboardArrowDown,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onBackground,
+            modifier = Modifier.size(16.dp),
+        )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onBackground,
+        )
+    }
+}
+
+// Status filter chip — when selected shows colored left bar inside chip
+@Composable
+private fun StatusFilterChip(
     label: String,
     isSelected: Boolean,
-    accentColor: Color = Primary,
-    textColor: Color = if (isSelected) TextOnPrimary else MaterialTheme.colorScheme.onBackground,
-    isDropdown: Boolean = false,
+    accentColor: Color,
     onClick: () -> Unit,
 ) {
     Row(
         modifier = Modifier
             .clip(RoundedCornerShape(8.dp))
-            .background(if (isSelected) accentColor else MaterialTheme.colorScheme.surfaceVariant)
+            .background(MaterialTheme.colorScheme.surface)
             .border(
                 width = if (isSelected) 0.dp else 1.dp,
                 color = if (isSelected) Color.Transparent else Divider,
                 shape = RoundedCornerShape(8.dp),
             )
-            .clickable(onClick = onClick)
-            .padding(horizontal = 12.dp, vertical = 8.dp),
+            .clickable(onClick = onClick),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        if (isSelected) {
-            Box(
-                modifier = Modifier
-                    .width(4.dp)
-                    .height(16.dp)
-                    .clip(RoundedCornerShape(2.dp))
-                    .background(TextOnPrimary.copy(alpha = 0.6f)),
-            )
-        }
+        // Colored left bar (visible always, accent when selected, gray when not)
+        Box(
+            modifier = Modifier
+                .width(5.dp)
+                .height(36.dp)
+                .background(
+                    color = if (isSelected) accentColor else Divider,
+                    shape = RoundedCornerShape(topStart = 8.dp, bottomStart = 8.dp),
+                ),
+        )
         Text(
             text = label,
             style = MaterialTheme.typography.labelMedium,
-            color = textColor,
+            color = if (isSelected) MaterialTheme.colorScheme.onBackground
+            else TextSecondary,
             fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
         )
-        if (isDropdown) {
-            Icon(Icons.Default.KeyboardArrowDown, contentDescription = null, tint = textColor, modifier = Modifier.size(16.dp))
-        }
     }
 }
 
@@ -325,8 +412,10 @@ fun TaskCard(task: Task, onClick: () -> Unit) {
             .fillMaxWidth()
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(10.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface,
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
     ) {
         Row(
             modifier = Modifier
@@ -334,75 +423,72 @@ fun TaskCard(task: Task, onClick: () -> Unit) {
                 .padding(horizontal = 12.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            // Left: status color bar
+            // ── Employee avatar (right side in RTL = leading in LTR layout) ──
             Box(
                 modifier = Modifier
-                    .width(4.dp)
-                    .height(48.dp)
-                    .clip(RoundedCornerShape(2.dp))
-                    .background(taskStatusColor(task.taskStatus)),
+                    .size(32.dp)
+                    .clip(CircleShape)
+                    .background(Color(0xFFEEF4FB)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.icon_feather_user),
+                    contentDescription = null,
+                    tint = Color.Unspecified,
+                    modifier = Modifier.fillMaxSize(),
+                )
+            }
+
+            Spacer(modifier = Modifier.width(10.dp))
+
+
+            Text(
+                text = task.name.ifBlank { "-" },
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.weight(1f),
+                textAlign = TextAlign.End,
             )
 
             Spacer(modifier = Modifier.width(10.dp))
 
-            // Middle: task info
-            Column(modifier = Modifier.weight(1f)) {
-                // Top row: priority | pending badge | task name (-)
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = task.priorityName ?: "عادي",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = Primary,
-                    )
-                    if (pendingCount > 0) {
-                        Spacer(modifier = Modifier.width(6.dp))
-                        PendingBadge(count = pendingCount)
-                    }
-                    Spacer(modifier = Modifier.weight(1f))
-                    Text(
-                        text = task.name.ifBlank { "-" },
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        textAlign = TextAlign.End,
-                    )
+            Column(horizontalAlignment = Alignment.Start) {
+                // Priority label
+                Text(
+                    text = task.priorityName ?: "عادي",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Primary,
+                )
+
+                // Pending badge (if any)
+                if (pendingCount > 0) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    PendingBadge(count = pendingCount)
                 }
 
                 Spacer(modifier = Modifier.height(6.dp))
 
-                // Bottom row: status | remaining days
+                // Status + remaining days
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = task.statusName ?: "",
                         style = MaterialTheme.typography.labelSmall,
                         color = taskStatusColor(task.taskStatus),
                     )
-                    Spacer(modifier = Modifier.weight(1f))
-                    Icon(Icons.Default.Timer, contentDescription = null, tint = Primary, modifier = Modifier.size(14.dp))
-                    Spacer(modifier = Modifier.width(3.dp))
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Icon(
+                        Icons.Default.Timer,
+                        contentDescription = null,
+                        tint = TextSecondary,
+                        modifier = Modifier.size(13.dp),
+                    )
+                    Spacer(modifier = Modifier.width(2.dp))
                     Text(
                         text = "${task.remainingDays}- يوم",
                         style = MaterialTheme.typography.labelSmall,
                         color = TextSecondary,
                     )
                 }
-            }
-
-            Spacer(modifier = Modifier.width(10.dp))
-
-            // Right: employee avatar
-            Box(
-                modifier = Modifier
-                    .size(32.dp)
-                    .clip(CircleShape)
-                    .background(Primary.copy(alpha = 0.15f)),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.icons8_avatar_100),
-                    contentDescription = null,
-                    tint = Color.Unspecified,
-                    modifier = Modifier.size(28.dp),
-                )
             }
         }
     }
@@ -423,23 +509,36 @@ private fun PendingBadge(count: Int) {
                 .background(Secondary)
                 .padding(horizontal = 4.dp, vertical = 1.dp),
         ) {
-            Text(text = "$count", style = MaterialTheme.typography.labelSmall, color = TextOnPrimary, fontWeight = FontWeight.Bold)
+            Text(
+                text = "$count",
+                style = MaterialTheme.typography.labelSmall,
+                color = TextOnPrimary,
+                fontWeight = FontWeight.Bold,
+            )
         }
         Spacer(modifier = Modifier.width(4.dp))
-        Text(text = "طلبات للمراجعة", style = MaterialTheme.typography.labelSmall, color = TextOnPrimary)
+        Text(
+            text = "طلبات للمراجعة",
+            style = MaterialTheme.typography.labelSmall,
+            color = TextOnPrimary,
+        )
     }
 }
 
 @Composable
 private fun EmptyTasksState() {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text(text = "لا توجد مهام", style = MaterialTheme.typography.bodyMedium, color = TextSecondary)
+        Text(
+            text = "لا توجد مهام",
+            style = MaterialTheme.typography.bodyMedium,
+            color = TextSecondary,
+        )
     }
 }
 
 private fun taskStatusColor(status: Int?): Color = when (status) {
-    3 -> ColorSuccess          // active
-    5 -> Color(0xFFF44336)     // finished/closed
-    4 -> Color(0xFF9E9E9E)     // archived
-    else -> Color(0xFF1A1A1A)  // default
+    3    -> ColorSuccess
+    5    -> Color(0xFFF44336)
+    4    -> Color(0xFF9E9E9E)
+    else -> Color(0xFF1A1A1A)
 }

@@ -33,6 +33,7 @@ class AppPreferences @Inject constructor(
         val KEY_BASE_URL = stringPreferencesKey("base_url")
         val KEY_IS_ONBOARDING = booleanPreferencesKey("is_onboarding")
         val KEY_EXPIRES_IN = intPreferencesKey("expires_in")
+        val KEY_USER_PICTURE = stringPreferencesKey("user_picture")
     }
 
 
@@ -124,6 +125,15 @@ class AppPreferences @Inject constructor(
     suspend fun getExpiresInOnce(): Int =
         context.dataStore.data.first()[KEY_EXPIRES_IN] ?: 0
 
+    val userPicture: Flow<String> = context.dataStore.data.map { it[KEY_USER_PICTURE] ?: "" }
+
+    suspend fun setUserPicture(value: String) {
+        context.dataStore.edit { it[KEY_USER_PICTURE] = value }
+    }
+
+    suspend fun getUserPictureOnce(): String =
+        context.dataStore.data.first()[KEY_USER_PICTURE] ?: ""
+
 
     suspend fun clearSession() {
         context.dataStore.edit { prefs ->
@@ -131,6 +141,7 @@ class AppPreferences @Inject constructor(
             prefs.remove(KEY_REFRESH_TOKEN)
             prefs.remove(KEY_LOGGED_USER_JSON)
             prefs.remove(KEY_EXPIRES_IN)
+            prefs.remove(KEY_USER_PICTURE)
         }
     }
 }
