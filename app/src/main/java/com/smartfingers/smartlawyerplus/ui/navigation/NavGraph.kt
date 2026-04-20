@@ -7,6 +7,7 @@ import androidx.navigation.compose.composable
 import com.smartfingers.smartlawyerplus.ui.screens.linkentry.LinkEntryScreen
 import com.smartfingers.smartlawyerplus.ui.screens.login.ForgetPasswordScreen
 import com.smartfingers.smartlawyerplus.ui.screens.login.LoginScreen
+import com.smartfingers.smartlawyerplus.ui.screens.main.MainScreen
 import com.smartfingers.smartlawyerplus.ui.screens.onboarding.OnboardingScreen
 import com.smartfingers.smartlawyerplus.ui.screens.splash.SplashScreen
 import com.smartfingers.smartlawyerplus.ui.screens.tasks.TasksScreen
@@ -92,10 +93,9 @@ fun AppNavGraph(navController: NavHostController) {
         }
 
         composable(NavRoutes.Main.route) {
-            TasksScreen(
-                onNotificationsClick = { /* TODO: navigate to notifications */ },
-                onCalendarClick = { /* TODO: navigate to calendar */ },
-                onTaskClick = { taskId -> /* TODO: navigate to task details */ },
+            MainScreen(
+                onNotificationsClick = { /* TODO */ },
+                onCalendarClick = { /* TODO */ },
             )
         }
     }

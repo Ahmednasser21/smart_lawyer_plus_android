@@ -432,7 +432,7 @@ fun TaskCard(task: Task, onClick: () -> Unit) {
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
-                    painter = painterResource(R.drawable.icon_feather_user),
+                    painter = painterResource(R.drawable.icons8_avatar_100),
                     contentDescription = null,
                     tint = Color.Unspecified,
                     modifier = Modifier.fillMaxSize(),

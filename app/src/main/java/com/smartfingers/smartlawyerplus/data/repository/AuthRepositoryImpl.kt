@@ -131,8 +131,27 @@ class AuthRepositoryImpl @Inject constructor(
             prefs.setLogo(base64)
         }
         if (rememberMe) {
-            val stub = LoggedUser(id = null, givenName = null, email = null, role = null)
-            prefs.setLoggedUserJson(Gson().toJson(stub))
+            val user = decodeJwtUser(session.authToken)
+            prefs.setLoggedUserJson(Gson().toJson(user))
+        }
+    }
+
+    private fun decodeJwtUser(token: String): LoggedUser {
+        return try {
+            val parts = token.split(".")
+            if (parts.size < 2) return LoggedUser(null, null, null, null)
+            val payload = parts[1]
+            val padded = payload + "=".repeat((4 - payload.length % 4) % 4)
+            val decoded = String(android.util.Base64.decode(padded, android.util.Base64.URL_SAFE), Charsets.UTF_8)
+            val json = com.google.gson.JsonParser.parseString(decoded).asJsonObject
+            LoggedUser(
+                id = json.get("id")?.asString,
+                givenName = json.get("given_name")?.asString,
+                email = json.get("email")?.asString,
+                role = null,
+            )
+        } catch (_: Exception) {
+            LoggedUser(null, null, null, null)
         }
     }
 

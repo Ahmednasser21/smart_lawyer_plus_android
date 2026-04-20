@@ -1,5 +1,6 @@
 package com.smartfingers.smartlawyerplus.di
 
+import com.smartfingers.smartlawyerplus.data.local.AppPreferences
 import com.smartfingers.smartlawyerplus.data.remote.api.AuthApiService
 import com.smartfingers.smartlawyerplus.data.remote.api.TasksApiService
 import dagger.Module
@@ -24,7 +25,7 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideOkHttpClient(): OkHttpClient {
+    fun provideOkHttpClient(prefs: AppPreferences): OkHttpClient {
         val trustAllCerts = arrayOf<TrustManager>(object : X509TrustManager {
             override fun checkClientTrusted(chain: Array<X509Certificate>, authType: String) {}
             override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String) {}
@@ -40,6 +41,16 @@ object NetworkModule {
                     level = HttpLoggingInterceptor.Level.BODY
                 }
             )
+            .addInterceptor { chain ->
+                val token = kotlinx.coroutines.runBlocking { prefs.getTokenOnce() }
+                val language = kotlinx.coroutines.runBlocking { prefs.getLanguageOnce() }
+                val request = chain.request().newBuilder()
+                    .addHeader("Authorization", "Bearer $token")
+                    .addHeader("Accept-Language", language)
+                    .addHeader("Content-Type", "application/json")
+                    .build()
+                chain.proceed(request)
+            }
             .sslSocketFactory(sslContext.socketFactory, trustAllCerts[0] as X509TrustManager)
             .hostnameVerifier { _, _ -> true }
             .connectTimeout(30, TimeUnit.SECONDS)
