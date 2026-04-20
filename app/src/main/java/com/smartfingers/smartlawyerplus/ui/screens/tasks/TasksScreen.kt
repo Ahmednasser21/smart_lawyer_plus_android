@@ -1,7 +1,5 @@
 package com.smartfingers.smartlawyerplus.ui.screens.tasks
 
-import android.graphics.BitmapFactory
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -14,22 +12,20 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeContent
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.AvTimer
 import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -38,7 +34,6 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -54,17 +49,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.smartfingers.smartlawyerplus.R
 import com.smartfingers.smartlawyerplus.domain.model.Task
 import com.smartfingers.smartlawyerplus.domain.model.TaskFilter
 import com.smartfingers.smartlawyerplus.ui.theme.ColorSuccess
+import com.smartfingers.smartlawyerplus.ui.theme.ColorTask
 import com.smartfingers.smartlawyerplus.ui.theme.Divider
 import com.smartfingers.smartlawyerplus.ui.theme.Primary
 import com.smartfingers.smartlawyerplus.ui.theme.Secondary
@@ -74,8 +69,6 @@ import com.smartfingers.smartlawyerplus.ui.theme.TextSecondary
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TasksScreen(
-    onNotificationsClick: () -> Unit = {},
-    onCalendarClick: () -> Unit = {},
     onTaskClick: (Int) -> Unit = {},
     viewModel: TasksViewModel = hiltViewModel(),
 ) {
@@ -95,16 +88,8 @@ fun TasksScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .statusBarsPadding()
-            .navigationBarsPadding(),
+            .background(MaterialTheme.colorScheme.background),
     ) {
-        TasksTopBar(
-            userName = uiState.userName,
-            userPicture = uiState.userPicture,
-            onNotificationsClick = onNotificationsClick,
-            onCalendarClick = onCalendarClick,
-        )
 
         FilterRow(
             filters = uiState.filters,
@@ -129,7 +114,7 @@ fun TasksScreen(
                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    items(uiState.tasks, key = { it.id }) { task ->
+                    items(uiState.tasks.distinctBy { it.id }, key = { it.id }) { task ->
                         TaskCard(task = task, onClick = { onTaskClick(task.id) })
                     }
                     if (uiState.isLoadingMore) {
@@ -153,121 +138,6 @@ fun TasksScreen(
         }
     }
 }
-
-// ── Top Bar ───────────────────────────────────────────────────────────────────
-
-@Composable
-private fun TasksTopBar(
-    userName: String,
-    userPicture: String,
-    onNotificationsClick: () -> Unit,
-    onCalendarClick: () -> Unit,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Start,
-    ) {
-        // Left: teal action buttons (notification + calendar)
-        IconButton(
-            onClick = onNotificationsClick,
-            modifier = Modifier
-                .size(42.dp)
-                .clip(RoundedCornerShape(10.dp))
-                .background(Primary),
-        ) {
-            Icon(
-                Icons.Default.Notifications,
-                contentDescription = "Notifications",
-                tint = TextOnPrimary,
-                modifier = Modifier.size(22.dp),
-            )
-        }
-
-        Spacer(modifier = Modifier.width(8.dp))
-
-        IconButton(
-            onClick = onCalendarClick,
-            modifier = Modifier
-                .size(42.dp)
-                .clip(RoundedCornerShape(10.dp))
-                .background(Primary),
-        ) {
-            Icon(
-                Icons.Default.CalendarMonth,
-                contentDescription = "Calendar",
-                tint = TextOnPrimary,
-                modifier = Modifier.size(22.dp),
-            )
-        }
-
-        Spacer(modifier = Modifier.weight(1f))
-
-        // Right: username + avatar
-        Text(
-            text = if (userName.isNotBlank()) "المحامية: $userName" else "Smart Lawyer",
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.Medium,
-            color = MaterialTheme.colorScheme.onBackground,
-        )
-
-        Spacer(modifier = Modifier.width(10.dp))
-
-        UserAvatar(
-            picture = userPicture,
-            userName = userName,
-            size = 38,
-        )
-    }
-}
-
-// ── User Avatar ───────────────────────────────────────────────────────────────
-
-@Composable
-private fun UserAvatar(
-    picture: String,
-    userName: String,
-    size: Int,
-) {
-    val bitmap = remember(picture) {
-        if (picture.isNotBlank()) {
-            try {
-                val bytes = android.util.Base64.decode(picture, android.util.Base64.DEFAULT)
-                BitmapFactory.decodeByteArray(bytes, 0, bytes.size)?.asImageBitmap()
-            } catch (_: Exception) { null }
-        } else null
-    }
-
-    Box(
-        modifier = Modifier
-            .size(size.dp)
-            .clip(CircleShape)
-            .background(Primary)
-            .border(2.dp, Primary, CircleShape),
-        contentAlignment = Alignment.Center,
-    ) {
-        if (bitmap != null) {
-            Image(
-                bitmap = bitmap,
-                contentDescription = "User avatar",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize(),
-            )
-        } else {
-            Text(
-                text = userName.firstOrNull()?.uppercase() ?: "U",
-                color = TextOnPrimary,
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Bold,
-            )
-        }
-    }
-}
-
-// ── Filter Row ────────────────────────────────────────────────────────────────
-
 @Composable
 private fun FilterRow(
     filters: List<TaskFilter>,
@@ -276,6 +146,15 @@ private fun FilterRow(
     onScopeSelected: (TaskScope) -> Unit,
 ) {
     var showScopeMenu by remember { mutableStateOf(false) }
+    val selectedIndex = filters.indexOfFirst { it.isSelected }.coerceAtLeast(0)
+    val listState = rememberLazyListState()
+
+    LaunchedEffect(Unit) {
+        listState.scrollToItem(selectedIndex)
+    }
+    LaunchedEffect(selectedIndex) {
+        listState.animateScrollToItem(selectedIndex)
+    }
 
     Row(
         modifier = Modifier
@@ -284,7 +163,6 @@ private fun FilterRow(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        // Scope dropdown chip
         Box {
             ScopeChip(
                 label = when (selectedScope) {
@@ -315,25 +193,26 @@ private fun FilterRow(
             }
         }
 
-        // Status filter chips
-        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            items(filters) { filter ->
+        LazyRow(
+            state = listState,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.weight(1f),
+        ) {
+            itemsIndexed(filters) { _, filter ->
                 StatusFilterChip(
                     label = filter.name,
                     isSelected = filter.isSelected,
                     accentColor = when (filter.id) {
-                        1    -> ColorSuccess   // مهام منجزة  → green
-                        4    -> Primary        // بانتظار الاعتماد → teal
-                        else -> Secondary      // fallback
+                        1    -> Secondary
+                        4    -> ColorTask
+                        else -> Primary
                     },
-                    onClick = { onFilterSelected(filter) },
+                    onClick = { onFilterSelected(filter) }
                 )
             }
         }
     }
 }
-
-// Scope dropdown chip — outlined, white bg, arrow icon
 @Composable
 private fun ScopeChip(label: String, onClick: () -> Unit) {
     Row(
@@ -360,7 +239,6 @@ private fun ScopeChip(label: String, onClick: () -> Unit) {
     }
 }
 
-// Status filter chip — when selected shows colored left bar inside chip
 @Composable
 private fun StatusFilterChip(
     label: String,
@@ -380,7 +258,6 @@ private fun StatusFilterChip(
             .clickable(onClick = onClick),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        // Colored left bar (visible always, accent when selected, gray when not)
         Box(
             modifier = Modifier
                 .width(5.dp)
@@ -401,8 +278,6 @@ private fun StatusFilterChip(
     }
 }
 
-// ── Task Card ─────────────────────────────────────────────────────────────────
-
 @Composable
 fun TaskCard(task: Task, onClick: () -> Unit) {
     val pendingCount = task.taskReplyApproveRequestsCount + task.taskReplyReviewRequestsCount
@@ -422,72 +297,83 @@ fun TaskCard(task: Task, onClick: () -> Unit) {
                 .fillMaxWidth()
                 .padding(horizontal = 12.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.End,
         ) {
-            // ── Employee avatar (right side in RTL = leading in LTR layout) ──
-            Box(
-                modifier = Modifier
-                    .size(32.dp)
-                    .clip(CircleShape)
-                    .background(Color(0xFFEEF4FB)),
-                contentAlignment = Alignment.Center,
+            Column(
+                horizontalAlignment = Alignment.Start,
+                verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
-                Icon(
-                    painter = painterResource(R.drawable.icons8_avatar_100),
-                    contentDescription = null,
-                    tint = Color.Unspecified,
-                    modifier = Modifier.fillMaxSize(),
-                )
-            }
-
-            Spacer(modifier = Modifier.width(10.dp))
-
-
-            Text(
-                text = task.name.ifBlank { "-" },
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.weight(1f),
-                textAlign = TextAlign.End,
-            )
-
-            Spacer(modifier = Modifier.width(10.dp))
-
-            Column(horizontalAlignment = Alignment.Start) {
-                // Priority label
                 Text(
                     text = task.priorityName ?: "عادي",
                     style = MaterialTheme.typography.labelSmall,
-                    color = Primary,
+                    color = MaterialTheme.colorScheme.primary,
                 )
 
-                // Pending badge (if any)
+                Text(
+                    text = task.statusName ?: "",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = taskStatusColor(task.taskStatus),
+                )
+
                 if (pendingCount > 0) {
-                    Spacer(modifier = Modifier.height(4.dp))
                     PendingBadge(count = pendingCount)
                 }
+            }
 
-                Spacer(modifier = Modifier.height(6.dp))
+            Spacer(modifier = Modifier.weight(1f))
 
-                // Status + remaining days
-                Row(verticalAlignment = Alignment.CenterVertically) {
+
+            Column(
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
                     Text(
-                        text = task.statusName ?: "",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = taskStatusColor(task.taskStatus),
+                        text = task.name.ifBlank { "-" },
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        textAlign = TextAlign.End,
+                        modifier = Modifier.widthIn(max = 160.dp),
                     )
-                    Spacer(modifier = Modifier.width(12.dp))
+
+                    Box(
+                        modifier = Modifier
+                            .size(36.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primaryContainer),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.icons8_avatar_100),
+                            contentDescription = null,
+                            tint = Color.Unspecified,
+                            modifier = Modifier.fillMaxSize(),
+                        )
+                    }
+                }
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(2.dp),
+                    modifier = Modifier.align(Alignment.End),
+                ) {
+
+                    Text(
+                        text = "${task.remainingDays} يوم",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontSize = 10.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+
                     Icon(
-                        Icons.Default.Timer,
+                        Icons.Default.AvTimer,
                         contentDescription = null,
-                        tint = TextSecondary,
-                        modifier = Modifier.size(13.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(11.dp),
                     )
-                    Spacer(modifier = Modifier.width(2.dp))
-                    Text(
-                        text = "${task.remainingDays}- يوم",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = TextSecondary,
-                    )
+
                 }
             }
         }
@@ -499,28 +385,28 @@ private fun PendingBadge(count: Int) {
     Row(
         modifier = Modifier
             .clip(RoundedCornerShape(4.dp))
-            .background(Primary)
+            .background(MaterialTheme.colorScheme.primary)
             .padding(horizontal = 6.dp, vertical = 2.dp),
         verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         Box(
             modifier = Modifier
                 .clip(RoundedCornerShape(3.dp))
-                .background(Secondary)
+                .background(MaterialTheme.colorScheme.secondary)
                 .padding(horizontal = 4.dp, vertical = 1.dp),
         ) {
             Text(
                 text = "$count",
                 style = MaterialTheme.typography.labelSmall,
-                color = TextOnPrimary,
+                color = MaterialTheme.colorScheme.onPrimary,
                 fontWeight = FontWeight.Bold,
             )
         }
-        Spacer(modifier = Modifier.width(4.dp))
         Text(
             text = "طلبات للمراجعة",
             style = MaterialTheme.typography.labelSmall,
-            color = TextOnPrimary,
+            color = MaterialTheme.colorScheme.onPrimary,
         )
     }
 }
@@ -537,8 +423,8 @@ private fun EmptyTasksState() {
 }
 
 private fun taskStatusColor(status: Int?): Color = when (status) {
-    3    -> ColorSuccess
+    3    -> Color(0xFF3AAD66)
     5    -> Color(0xFFF44336)
     4    -> Color(0xFF9E9E9E)
-    else -> Color(0xFF1A1A1A)
+    else -> Color(0xFF27261B)
 }

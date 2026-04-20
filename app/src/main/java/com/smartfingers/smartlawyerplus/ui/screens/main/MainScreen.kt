@@ -1,9 +1,14 @@
 package com.smartfingers.smartlawyerplus.ui.screens.main
 
+import android.graphics.BitmapFactory
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -12,16 +17,18 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.smartfingers.smartlawyerplus.R
+import com.smartfingers.smartlawyerplus.ui.components.BottomNavCutoutShape
 import com.smartfingers.smartlawyerplus.ui.screens.tasks.TasksScreen
-import com.smartfingers.smartlawyerplus.ui.theme.Primary
-import com.smartfingers.smartlawyerplus.ui.theme.TextOnPrimary
+import com.smartfingers.smartlawyerplus.ui.screens.tasks.TasksViewModel
 import com.smartfingers.smartlawyerplus.ui.theme.TextSecondary
 
 enum class MainTab(val labelAr: String, val iconRes: Int) {
@@ -35,23 +42,30 @@ enum class MainTab(val labelAr: String, val iconRes: Int) {
 fun MainScreen(
     onNotificationsClick: () -> Unit = {},
     onCalendarClick: () -> Unit = {},
+    viewModel: TasksViewModel = hiltViewModel(),
 ) {
+    val uiState by viewModel.uiState.collectAsState()
     var selectedTab by remember { mutableStateOf(MainTab.TASKS) }
     var showFabMenu by remember { mutableStateOf(false) }
 
     Box(modifier = Modifier.fillMaxSize()) {
 
-        // Content area
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(bottom = 80.dp),
+                .padding(bottom = 64.dp),
         ) {
+            SharedTopBar(
+                userName = uiState.userName,
+                userPicture = uiState.userPicture,
+                onNotificationsClick = onNotificationsClick,
+                onCalendarClick = onCalendarClick,
+            )
+
             when (selectedTab) {
                 MainTab.TASKS -> TasksScreen(
-                    onNotificationsClick = onNotificationsClick,
-                    onCalendarClick = onCalendarClick,
                     onTaskClick = {},
+                    viewModel = viewModel,
                 )
                 MainTab.SESSIONS -> PlaceholderTabScreen("الجلسات")
                 MainTab.APPOINTMENTS -> PlaceholderTabScreen("المواعيد")
@@ -59,7 +73,6 @@ fun MainScreen(
             }
         }
 
-        // FAB overlay dimmer
         AnimatedVisibility(
             visible = showFabMenu,
             enter = fadeIn(),
@@ -70,7 +83,7 @@ fun MainScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(Color.Black.copy(alpha = 0.4f))
-                    .padding(bottom = 140.dp),
+                    .padding(bottom = 120.dp),
                 contentAlignment = Alignment.BottomCenter,
             ) {
                 FabMenuItems(
@@ -81,7 +94,6 @@ fun MainScreen(
             }
         }
 
-        // Bottom Navigation Bar
         SmartLawyerBottomBar(
             selectedTab = selectedTab,
             showFabMenu = showFabMenu,
@@ -96,6 +108,109 @@ fun MainScreen(
 }
 
 @Composable
+private fun SharedTopBar(
+    userName: String,
+    userPicture: String,
+    onNotificationsClick: () -> Unit,
+    onCalendarClick: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .statusBarsPadding()
+            .padding(horizontal = 12.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Start,
+    ) {
+        IconButton(
+            onClick = onNotificationsClick,
+            modifier = Modifier
+                .size(42.dp)
+                .clip(RoundedCornerShape(10.dp))
+                .background(MaterialTheme.colorScheme.primary),
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.icons8_notification_100),
+                contentDescription = "Notifications",
+                tint = MaterialTheme.colorScheme.onPrimary,
+                modifier = Modifier.size(22.dp),
+            )
+        }
+
+        Spacer(modifier = Modifier.width(8.dp))
+
+        IconButton(
+            onClick = onCalendarClick,
+            modifier = Modifier
+                .size(42.dp)
+                .clip(RoundedCornerShape(10.dp))
+                .background(MaterialTheme.colorScheme.primary),
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.gen014),
+                contentDescription = "Calendar",
+                tint = MaterialTheme.colorScheme.onPrimary,
+                modifier = Modifier.size(22.dp),
+            )
+        }
+
+        Spacer(modifier = Modifier.weight(1f))
+
+        Text(
+            text = userName.ifBlank { "Smart Lawyer" },
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Medium,
+            color = MaterialTheme.colorScheme.onBackground,
+        )
+
+        Spacer(modifier = Modifier.width(10.dp))
+
+        UserAvatar(picture = userPicture, userName = userName, size = 38)
+    }
+}
+
+@Composable
+fun UserAvatar(
+    picture: String,
+    userName: String,
+    size: Int,
+) {
+    val bitmap = remember(picture) {
+        if (picture.isNotBlank()) {
+            try {
+                val bytes = android.util.Base64.decode(picture, android.util.Base64.DEFAULT)
+                BitmapFactory.decodeByteArray(bytes, 0, bytes.size)?.asImageBitmap()
+            } catch (_: Exception) { null }
+        } else null
+    }
+
+    Box(
+        modifier = Modifier
+            .size(size.dp)
+            .clip(RoundedCornerShape(10.dp))
+            .background(MaterialTheme.colorScheme.primaryContainer)
+            .border(1.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(10.dp)),
+        contentAlignment = Alignment.Center,
+    ) {
+        if (bitmap != null) {
+            Image(
+                bitmap = bitmap,
+                contentDescription = "User avatar",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize(),
+            )
+        } else {
+            Text(
+                text = userName.firstOrNull()?.uppercase() ?: "U",
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold,
+            )
+        }
+    }
+}
+
+@Composable
 private fun SmartLawyerBottomBar(
     selectedTab: MainTab,
     showFabMenu: Boolean,
@@ -103,27 +218,30 @@ private fun SmartLawyerBottomBar(
     onFabClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val fabSize = 44.dp
+    val barHeight = 64.dp
+    val fabOverlap = 20.dp
+
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(80.dp),
+            .navigationBarsPadding()
+            .height(barHeight + fabOverlap),
+        contentAlignment = Alignment.BottomCenter,
     ) {
-        // Bar background
-        Surface(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(64.dp)
-                .align(Alignment.BottomCenter),
-            color = Primary,
-            shadowElevation = 12.dp,
+                .height(barHeight)
+                .align(Alignment.BottomCenter)
+                .clip(BottomNavCutoutShape(fabRadius = 85f))
+                .background(MaterialTheme.colorScheme.primary),
         ) {
             Row(
                 modifier = Modifier.fillMaxSize(),
-                horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                // Left tabs: Tasks, Sessions
-                listOf(MainTab.TASKS, MainTab.SESSIONS).forEach { tab ->
+                listOf(MainTab.CASES,MainTab.APPOINTMENTS).forEach { tab ->
                     BottomNavItem(
                         tab = tab,
                         isSelected = selectedTab == tab,
@@ -131,12 +249,9 @@ private fun SmartLawyerBottomBar(
                         modifier = Modifier.weight(1f),
                     )
                 }
+                Spacer(modifier = Modifier.width(fabSize + 8.dp))
 
-                // Center spacer for FAB
-                Spacer(modifier = Modifier.weight(1f))
-
-                // Right tabs: Appointments, Cases
-                listOf(MainTab.APPOINTMENTS, MainTab.CASES).forEach { tab ->
+                listOf( MainTab.SESSIONS, MainTab.TASKS).forEach { tab ->
                     BottomNavItem(
                         tab = tab,
                         isSelected = selectedTab == tab,
@@ -147,23 +262,22 @@ private fun SmartLawyerBottomBar(
             }
         }
 
-        // Center FAB
         FloatingActionButton(
             onClick = onFabClick,
-            containerColor = Primary,
-            contentColor = TextOnPrimary,
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
+            contentColor = MaterialTheme.colorScheme.onPrimary,
             shape = CircleShape,
             modifier = Modifier
-                .size(64.dp)
+                .size(fabSize)
+                .offset(y = (-6).dp)
                 .align(Alignment.TopCenter)
-                .shadow(8.dp, CircleShape),
         ) {
             Icon(
                 painter = painterResource(
                     if (showFabMenu) R.drawable.ic_close else R.drawable.icon_ionic_ios_add
                 ),
                 contentDescription = "Add",
-                modifier = Modifier.size(28.dp),
+                modifier = Modifier.size(24.dp),
             )
         }
     }
@@ -176,37 +290,46 @@ private fun BottomNavItem(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val alpha = if (isSelected) 1f else 0.6f
-
-    TextButton(
-        onClick = onClick,
-        modifier = modifier,
-        colors = ButtonDefaults.textButtonColors(contentColor = TextOnPrimary),
+    Box(
+        modifier = modifier
+            .fillMaxHeight()
+            .clickable(
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() },
+                onClick = onClick,
+            ),
+        contentAlignment = Alignment.Center,
     ) {
+        if (isSelected) {
+            Box(
+                modifier = Modifier
+                    .fillMaxHeight(0.95f)
+                    .fillMaxWidth(0.80f)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.primaryContainer),
+            )
+        }
+
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(2.dp),
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier.fillMaxHeight(),
         ) {
             Icon(
                 painter = painterResource(tab.iconRes),
                 contentDescription = tab.labelAr,
                 modifier = Modifier.size(22.dp),
-                tint = TextOnPrimary.copy(alpha = alpha),
+                tint = if (isSelected) MaterialTheme.colorScheme.onPrimary
+                else MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.50f),
             )
+            Spacer(modifier = Modifier.height(3.dp))
             Text(
                 text = tab.labelAr,
                 fontSize = 11.sp,
-                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
-                color = TextOnPrimary.copy(alpha = alpha),
+                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                color = if (isSelected) MaterialTheme.colorScheme.onPrimary
+                else MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.50f),
             )
-            if (isSelected) {
-                Box(
-                    modifier = Modifier
-                        .size(4.dp)
-                        .clip(CircleShape)
-                        .background(TextOnPrimary),
-                )
-            }
         }
     }
 }
@@ -229,7 +352,10 @@ private fun FabMenuItems(
             Button(
                 onClick = action,
                 shape = RoundedCornerShape(8.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Primary),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                ),
                 modifier = Modifier
                     .width(140.dp)
                     .height(44.dp),
@@ -237,7 +363,6 @@ private fun FabMenuItems(
             ) {
                 Text(
                     text = label,
-                    color = TextOnPrimary,
                     fontWeight = FontWeight.Medium,
                     fontSize = 14.sp,
                 )
