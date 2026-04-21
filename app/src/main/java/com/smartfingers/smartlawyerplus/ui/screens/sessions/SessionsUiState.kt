@@ -17,4 +17,6 @@ data class SessionsUiState(
     val page: Int = 0,
     val error: String = "",
     val filter: HearingFilter = HearingFilter(),
+    val showFilterSheet: Boolean = false,
+    val pendingFilter: HearingFilter = HearingFilter(),
 )

@@ -24,6 +24,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Timer
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -31,9 +33,13 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -54,6 +60,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.smartfingers.smartlawyerplus.R
+import com.smartfingers.smartlawyerplus.domain.model.HearingFilter
 import com.smartfingers.smartlawyerplus.domain.model.HearingPeriod
 import com.smartfingers.smartlawyerplus.domain.model.HearingStatus
 import com.smartfingers.smartlawyerplus.domain.model.Session
@@ -61,14 +68,22 @@ import com.smartfingers.smartlawyerplus.ui.theme.Divider
 import com.smartfingers.smartlawyerplus.ui.theme.Primary
 import com.smartfingers.smartlawyerplus.ui.theme.TextSecondary
 
+// Expose so MainScreen can wire the filter icon action
+typealias OnOpenSessionFilter = () -> Unit
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SessionsScreen(
     onSessionClick: (Int) -> Unit = {},
+    onFilterIconReady: (OnOpenSessionFilter) -> Unit = {},
     viewModel: SessionsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val listState = rememberLazyListState()
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    // Expose the open-filter callback to the parent (MainScreen) for the AppBar icon
+    LaunchedEffect(Unit) { onFilterIconReady(viewModel::openFilterSheet) }
 
     val shouldLoadMore by remember {
         derivedStateOf {
@@ -77,15 +92,14 @@ fun SessionsScreen(
         }
     }
 
-    LaunchedEffect(shouldLoadMore) {
-        if (shouldLoadMore) viewModel.loadMore()
-    }
+    LaunchedEffect(shouldLoadMore) { if (shouldLoadMore) viewModel.loadMore() }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background),
     ) {
+        // ── Period dropdown + status chips row ──
         SessionsFilterBar(
             statuses = uiState.statuses,
             periods = uiState.periods,
@@ -133,7 +147,26 @@ fun SessionsScreen(
             }
         }
     }
+
+    // ── Filter bottom sheet ──
+    if (uiState.showFilterSheet) {
+        ModalBottomSheet(
+            onDismissRequest = viewModel::dismissFilterSheet,
+            sheetState = sheetState,
+        ) {
+            SessionsFilterSheet(
+                periods = uiState.periods,
+                currentFilter = uiState.filter,
+                onApply = viewModel::applyFilter,
+                onCancel = viewModel::dismissFilterSheet,
+            )
+        }
+    }
 }
+
+// ─────────────────────────────────────────────
+// Filter bar (period dropdown + status chips)
+// ─────────────────────────────────────────────
 
 @Composable
 private fun SessionsFilterBar(
@@ -152,6 +185,7 @@ private fun SessionsFilterBar(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
+        // Scrollable status chips
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier.weight(1f),
@@ -166,6 +200,7 @@ private fun SessionsFilterBar(
             }
         }
 
+        // Period dropdown
         Box {
             Row(
                 modifier = Modifier
@@ -212,6 +247,232 @@ private fun SessionsFilterBar(
     }
 }
 
+// ─────────────────────────────────────────────
+// Filter bottom sheet (matches iOS filter sheet)
+// ─────────────────────────────────────────────
+
+@Composable
+private fun SessionsFilterSheet(
+    periods: List<HearingPeriod>,
+    currentFilter: HearingFilter,
+    onApply: (HearingFilter) -> Unit,
+    onCancel: () -> Unit,
+) {
+    var courtId by remember { mutableStateOf(currentFilter.courtId ?: "") }
+    var judgeName by remember { mutableStateOf(currentFilter.judgeName ?: "") }
+    var caseId by remember { mutableStateOf(currentFilter.caseId ?: "") }
+    var hearingTypeId by remember { mutableStateOf(currentFilter.hearingTypeId ?: "") }
+    var subHearingTypeId by remember { mutableStateOf(currentFilter.subHearingTypeId ?: "") }
+    var assignedUserId by remember { mutableStateOf(currentFilter.assignedUserId ?: "") }
+    var branchId by remember { mutableStateOf(currentFilter.branchId ?: "") }
+    var clientId by remember { mutableStateOf(currentFilter.clientId ?: "") }
+
+    var showResultsCountMenu by remember { mutableStateOf(false) }
+    var selectedResultsCount by remember { mutableStateOf<Int?>(null) }
+    val resultCountOptions = listOf(10, 20, 50, 100)
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Text(
+            text = "تصنيف الجلسات",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.fillMaxWidth(),
+            textAlign = TextAlign.Center,
+        )
+
+        // Row 1: عدد النتائج + المحكمة
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            // عدد النتائج dropdown
+            Box(modifier = Modifier.weight(1f)) {
+                OutlinedTextField(
+                    value = selectedResultsCount?.toString() ?: "",
+                    onValueChange = {},
+                    readOnly = true,
+                    placeholder = { Text("عدد النتائج") },
+                    trailingIcon = {
+                        IconButton(onClick = { showResultsCountMenu = true }) {
+                            Icon(Icons.Default.KeyboardArrowDown, contentDescription = null)
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                )
+                DropdownMenu(
+                    expanded = showResultsCountMenu,
+                    onDismissRequest = { showResultsCountMenu = false },
+                ) {
+                    resultCountOptions.forEach { count ->
+                        DropdownMenuItem(
+                            text = { Text(count.toString()) },
+                            onClick = { selectedResultsCount = count; showResultsCountMenu = false },
+                        )
+                    }
+                }
+            }
+
+            // المحكمة
+            OutlinedTextField(
+                value = courtId,
+                onValueChange = { courtId = it },
+                placeholder = { Text("المحكمة") },
+                modifier = Modifier.weight(1f),
+                singleLine = true,
+            )
+        }
+
+        // Row 2: القضية + نوع الجلسة
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            OutlinedTextField(
+                value = caseId,
+                onValueChange = { caseId = it },
+                placeholder = { Text("القضية") },
+                modifier = Modifier.weight(1f),
+                singleLine = true,
+            )
+            OutlinedTextField(
+                value = hearingTypeId,
+                onValueChange = { hearingTypeId = it },
+                placeholder = { Text("نوع الجلسة") },
+                modifier = Modifier.weight(1f),
+                singleLine = true,
+            )
+        }
+
+        // Row 3: نوع الجلسة الفرعي + اسم القاضي
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            OutlinedTextField(
+                value = judgeName,
+                onValueChange = { judgeName = it },
+                placeholder = { Text("اسم القاضي") },
+                modifier = Modifier.weight(1f),
+                singleLine = true,
+            )
+            OutlinedTextField(
+                value = subHearingTypeId,
+                onValueChange = { subHearingTypeId = it },
+                placeholder = { Text("نوع الجلسة الفرعي") },
+                modifier = Modifier.weight(1f),
+                singleLine = true,
+            )
+        }
+
+        // Row 4: المكلف بالجلسة + الفترة (dropdown)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            OutlinedTextField(
+                value = assignedUserId,
+                onValueChange = { assignedUserId = it },
+                placeholder = { Text("المكلف بالجلسة") },
+                modifier = Modifier.weight(1f),
+                singleLine = true,
+            )
+            OutlinedTextField(
+                value = branchId,
+                onValueChange = { branchId = it },
+                placeholder = { Text("الفرع") },
+                modifier = Modifier.weight(1f),
+                singleLine = true,
+            )
+        }
+
+        // Row 5: عميل + رقم جوال العميل
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            OutlinedTextField(
+                value = clientId,
+                onValueChange = { clientId = it },
+                placeholder = { Text("عميل") },
+                modifier = Modifier.weight(1f),
+                singleLine = true,
+            )
+            OutlinedTextField(
+                value = "",
+                onValueChange = {},
+                placeholder = { Text("رقم جوال العميل") },
+                modifier = Modifier.weight(1f),
+                singleLine = true,
+            )
+        }
+
+        // Row 6: رقم العميل (single field, half width)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            OutlinedTextField(
+                value = "",
+                onValueChange = {},
+                placeholder = { Text("رقم العميل") },
+                modifier = Modifier.weight(1f),
+                singleLine = true,
+            )
+            Spacer(modifier = Modifier.weight(1f))
+        }
+
+        // Action buttons
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Button(
+                onClick = onCancel,
+                modifier = Modifier.weight(1f),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    containerColor = Color.Transparent,
+                    contentColor = MaterialTheme.colorScheme.onBackground,
+                ),
+            ) {
+                Text("إلغاء")
+            }
+            Button(
+                onClick = {
+                    onApply(
+                        currentFilter.copy(
+                            courtId = courtId.ifBlank { null },
+                            judgeName = judgeName.ifBlank { null },
+                            caseId = caseId.ifBlank { null },
+                            hearingTypeId = hearingTypeId.ifBlank { null },
+                            subHearingTypeId = subHearingTypeId.ifBlank { null },
+                            assignedUserId = assignedUserId.ifBlank { null },
+                            branchId = branchId.ifBlank { null },
+                            clientId = clientId.ifBlank { null },
+                            pageSize = selectedResultsCount ?: currentFilter.pageSize,
+                        )
+                    )
+                },
+                modifier = Modifier.weight(1f),
+                colors = ButtonDefaults.buttonColors(containerColor = Primary),
+            ) {
+                Text("بحث")
+            }
+        }
+    }
+}
+
+// ─────────────────────────────────────────────
+// Status chip
+// ─────────────────────────────────────────────
+
 @Composable
 private fun SessionStatusChip(
     label: String,
@@ -250,6 +511,10 @@ private fun SessionStatusChip(
     }
 }
 
+// ─────────────────────────────────────────────
+// Session card
+// ─────────────────────────────────────────────
+
 @Composable
 fun SessionCard(session: Session, onClick: () -> Unit) {
     Card(
@@ -272,135 +537,49 @@ fun SessionCard(session: Session, onClick: () -> Unit) {
                 verticalArrangement = Arrangement.spacedBy(6.dp),
                 modifier = Modifier.weight(1f),
             ) {
-                session.hearingTypeName?.let { typeName ->
-                    Text(
-                        text = typeName,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = Primary,
-                        fontWeight = FontWeight.SemiBold,
-                    )
+                session.hearingTypeName?.let {
+                    Text(it, style = MaterialTheme.typography.labelSmall, color = Primary, fontWeight = FontWeight.SemiBold)
                 }
-
-                session.courtName?.let { court ->
-                    Text(
-                        text = court,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = TextSecondary,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
+                session.courtName?.let {
+                    Text(it, style = MaterialTheme.typography.labelSmall, color = TextSecondary, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
-
                 session.remainingDays?.let { days ->
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(2.dp),
-                    ) {
-                        Icon(
-                            Icons.Default.Timer,
-                            contentDescription = null,
-                            tint = Primary,
-                            modifier = Modifier.size(12.dp),
-                        )
-                        Text(
-                            text = "$days يوم",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontSize = 10.sp,
-                            color = TextSecondary,
-                        )
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Icon(Icons.Default.Timer, contentDescription = null, tint = Primary, modifier = Modifier.size(12.dp))
+                        Text("$days يوم", style = MaterialTheme.typography.labelSmall, fontSize = 10.sp, color = TextSecondary)
                     }
                 }
             }
 
             Spacer(modifier = Modifier.width(8.dp))
 
-            Column(
-                horizontalAlignment = Alignment.End,
-                verticalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
+            Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Column(horizontalAlignment = Alignment.End) {
                         val firstUser = session.assignedUsers.firstOrNull()
-                        val userDisplay = if (session.assignedUsers.size > 1)
-                            "${firstUser ?: ""} ..."
-                        else firstUser ?: ""
-
+                        val userDisplay = if (session.assignedUsers.size > 1) "${firstUser ?: ""} ..." else firstUser ?: ""
                         if (userDisplay.isNotBlank()) {
-                            Text(
-                                text = userDisplay,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurface,
-                                textAlign = TextAlign.End,
-                                modifier = Modifier.widthIn(max = 160.dp),
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                            )
+                            Text(userDisplay, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface, textAlign = TextAlign.End, modifier = Modifier.widthIn(max = 160.dp), maxLines = 1, overflow = TextOverflow.Ellipsis)
                         }
-
-                        session.caseName?.let { name ->
-                            Text(
-                                text = name,
-                                style = MaterialTheme.typography.labelSmall,
-                                color = Primary,
-                                textAlign = TextAlign.End,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.widthIn(max = 160.dp),
-                            )
+                        session.caseName?.let {
+                            Text(it, style = MaterialTheme.typography.labelSmall, color = Primary, textAlign = TextAlign.End, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.widthIn(max = 160.dp))
                         }
                     }
-
-                    Box(
-                        modifier = Modifier
-                            .size(36.dp)
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(MaterialTheme.colorScheme.primaryContainer),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.icons8_avatar_100),
-                            contentDescription = null,
-                            tint = Color.Unspecified,
-                            modifier = Modifier.fillMaxSize(),
-                        )
+                    Box(modifier = Modifier.size(36.dp).clip(RoundedCornerShape(8.dp)).background(MaterialTheme.colorScheme.primaryContainer), contentAlignment = Alignment.Center) {
+                        Icon(painter = painterResource(R.drawable.icons8_avatar_100), contentDescription = null, tint = Color.Unspecified, modifier = Modifier.fillMaxSize())
                     }
                 }
 
                 val dateDisplay = buildString {
-                    session.startTime?.let { time ->
-                        val formatted = time.take(5)
-                        append(formatted)
-                        append(" / ")
-                    }
-                    session.startDate?.let { date ->
-                        append(date.take(10))
-                    }
-                    session.startDateHijri?.let { hijri ->
-                        append(" / ")
-                        append(hijri)
-                    }
+                    session.startTime?.let { append(it.take(5)); append(" / ") }
+                    session.startDate?.let { append(it.take(10)) }
+                    session.startDateHijri?.let { append(" / "); append(it) }
                 }
-
                 if (dateDisplay.isNotBlank()) {
-                    Text(
-                        text = dateDisplay,
-                        style = MaterialTheme.typography.labelSmall,
-                        fontSize = 10.sp,
-                        color = TextSecondary,
-                        textAlign = TextAlign.End,
-                    )
+                    Text(dateDisplay, style = MaterialTheme.typography.labelSmall, fontSize = 10.sp, color = TextSecondary, textAlign = TextAlign.End)
                 }
-
-                session.hearingNumber?.let { num ->
-                    Text(
-                        text = num.toString(),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = TextSecondary,
-                        textAlign = TextAlign.End,
-                    )
+                session.hearingNumber?.let {
+                    Text(it.toString(), style = MaterialTheme.typography.labelSmall, color = TextSecondary, textAlign = TextAlign.End)
                 }
             }
         }
@@ -410,11 +589,7 @@ fun SessionCard(session: Session, onClick: () -> Unit) {
 @Composable
 private fun EmptySessionsState() {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text(
-            text = "لا توجد جلسات",
-            style = MaterialTheme.typography.bodyMedium,
-            color = TextSecondary,
-        )
+        Text("لا توجد جلسات", style = MaterialTheme.typography.bodyMedium, color = TextSecondary)
     }
 }
 

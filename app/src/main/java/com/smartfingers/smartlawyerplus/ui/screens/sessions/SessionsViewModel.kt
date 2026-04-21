@@ -2,6 +2,7 @@ package com.smartfingers.smartlawyerplus.ui.screens.sessions
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.smartfingers.smartlawyerplus.domain.model.HearingFilter
 import com.smartfingers.smartlawyerplus.domain.model.HearingPeriod
 import com.smartfingers.smartlawyerplus.domain.model.HearingStatus
 import com.smartfingers.smartlawyerplus.domain.model.Result
@@ -134,5 +135,25 @@ class SessionsViewModel @Inject constructor(
                 else -> Unit
             }
         }
+    }
+    fun openFilterSheet() {
+        _uiState.update { it.copy(showFilterSheet = true, pendingFilter = it.filter) }
+    }
+
+    fun dismissFilterSheet() {
+        _uiState.update { it.copy(showFilterSheet = false) }
+    }
+
+    fun applyFilter(filter: HearingFilter) {
+        _uiState.update {
+            it.copy(
+                showFilterSheet = false,
+                filter = filter.copy(page = 0),
+                sessions = emptyList(),
+                page = 0,
+                hasMore = false,
+            )
+        }
+        loadSessions(refresh = true)
     }
 }

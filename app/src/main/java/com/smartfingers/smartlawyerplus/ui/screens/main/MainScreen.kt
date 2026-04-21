@@ -12,6 +12,8 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -48,6 +50,7 @@ fun MainScreen(
     val uiState by viewModel.uiState.collectAsState()
     var selectedTab by remember { mutableStateOf(MainTab.TASKS) }
     var showFabMenu by remember { mutableStateOf(false) }
+    var sessionsFilterAction by remember { mutableStateOf<(() -> Unit)?>(null) }
 
     Box(modifier = Modifier.fillMaxSize()) {
 
@@ -61,6 +64,8 @@ fun MainScreen(
                 userPicture = uiState.userPicture,
                 onNotificationsClick = onNotificationsClick,
                 onCalendarClick = onCalendarClick,
+                selectedTab,
+                sessionsFilterAction,
             )
 
             when (selectedTab) {
@@ -69,7 +74,11 @@ fun MainScreen(
                     viewModel = viewModel,
                 )
 
-                MainTab.SESSIONS -> SessionsScreen(onSessionClick = {})
+                MainTab.SESSIONS -> SessionsScreen(
+                    onSessionClick = {},
+                    onFilterIconReady = { action -> sessionsFilterAction = action },
+                )
+
                 MainTab.APPOINTMENTS -> PlaceholderTabScreen("المواعيد")
                 MainTab.CASES -> PlaceholderTabScreen("القضايا")
             }
@@ -115,6 +124,8 @@ private fun SharedTopBar(
     userPicture: String,
     onNotificationsClick: () -> Unit,
     onCalendarClick: () -> Unit,
+    selectedTab: MainTab,
+    sessionsFilterAction: (() -> Unit)? = null,
 ) {
     Row(
         modifier = Modifier
@@ -140,6 +151,24 @@ private fun SharedTopBar(
         }
 
         Spacer(modifier = Modifier.width(8.dp))
+
+
+        if (selectedTab == MainTab.SESSIONS) {
+            IconButton(
+                onClick = { sessionsFilterAction?.invoke() },
+                modifier = Modifier
+                    .size(42.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(MaterialTheme.colorScheme.primary),
+            ) {
+                Icon(
+                    imageVector = Icons.Default.FilterList,
+                    contentDescription = "تصنيف الجلسات",
+                    tint = Color.White,
+                )
+            }
+            Spacer(modifier = Modifier.width(8.dp))
+        }
 
         IconButton(
             onClick = onCalendarClick,
