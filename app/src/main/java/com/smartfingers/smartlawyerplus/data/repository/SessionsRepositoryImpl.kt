@@ -53,27 +53,17 @@ class SessionsRepositoryImpl @Inject constructor(
     override suspend fun getHearingStatuses(): Result<List<HearingStatus>> = runCatching {
         val url = "${baseUrl()}/api/Enums/hearing-statuses"
         val response = api.getHearingStatuses(url)
-        if (response.isSuccess == true) {
-            Result.Success(
-                response.data?.map { HearingStatus(id = it.id ?: 0, name = it.name ?: "") }
-                    ?: emptyList()
-            )
-        } else {
-            Result.Error(response.errorList?.firstOrNull() ?: "Failed to load statuses")
-        }
+        Result.Success(
+            response.map { HearingStatus(id = it.id ?: 0, name = it.name ?: "") }
+        )
     }.getOrElse { Result.Error(it.message ?: "Network error") }
 
     override suspend fun getHearingPeriods(): Result<List<HearingPeriod>> = runCatching {
         val url = "${baseUrl()}/api/Enums/dashboard-period-types"
         val response = api.getHearingPeriods(url)
-        if (response.isSuccess == true) {
-            Result.Success(
-                response.data?.map { HearingPeriod(id = it.id ?: 0, name = it.name ?: "") }
-                    ?: emptyList()
-            )
-        } else {
-            Result.Error(response.errorList?.firstOrNull() ?: "Failed to load periods")
-        }
+        Result.Success(
+            response.map { HearingPeriod(id = it.id ?: 0, name = it.name ?: "") }
+        )
     }.getOrElse { Result.Error(it.message ?: "Network error") }
 
     private suspend fun buildUrl(filter: HearingFilter): String {

@@ -20,10 +20,10 @@ interface SessionsApiService {
     suspend fun getHearings(@Url url: String): AppResponseDto<HearingsListResponseDto>
 
     @GET
-    suspend fun getHearingStatuses(@Url url: String): AppResponseDto<List<HearingStatusDto>>
+    suspend fun getHearingStatuses(@Url url: String): List<HearingStatusDto>
 
     @GET
-    suspend fun getHearingPeriods(@Url url: String): AppResponseDto<List<HearingPeriodDto>>
+    suspend fun getHearingPeriods(@Url url: String): List<HearingPeriodDto>
 
     @GET
     suspend fun getHearingDetails(@Url url: String): AppResponseDto<HearingListItemDto>
