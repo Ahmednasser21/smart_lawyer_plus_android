@@ -130,6 +130,9 @@ fun SessionsScreen(
 
 // ─── Period dropdown + Status chips bar ───────────────────────────────────────
 
+// In SessionsScreen.kt
+// Replace the entire SessionsFilterBar composable
+
 @Composable
 private fun SessionsFilterBar(
     statuses: List<HearingStatus>,
@@ -143,11 +146,11 @@ private fun SessionsFilterBar(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 4.dp),
+            .padding(horizontal = 12.dp, vertical = 4.dp)
+            .height(48.dp),  // explicit height so chips are visible
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        // Period dropdown — fixed size, always visible
         Box {
             Row(
                 modifier = Modifier
@@ -190,14 +193,7 @@ private fun SessionsFilterBar(
             ) {
                 if (selectedPeriod != null) {
                     DropdownMenuItem(
-                        text = {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                            ) {
-                                Text("الكل", style = MaterialTheme.typography.bodyMedium)
-                            }
-                        },
+                        text = { Text("الكل", style = MaterialTheme.typography.bodyMedium) },
                         onClick = { onPeriodSelected(null); showPeriodMenu = false },
                     )
                     HorizontalDivider(color = Divider)
@@ -212,22 +208,22 @@ private fun SessionsFilterBar(
                             ) {
                                 Text(period.name, style = MaterialTheme.typography.bodyMedium)
                                 if (selectedPeriod?.id == period.id) {
-                                    Text(
-                                        "✓",
-                                        color = Primary,
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 14.sp,
-                                    )
+                                    Text("✓", color = Primary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                                 }
                             }
                         },
                         onClick = { onPeriodSelected(period); showPeriodMenu = false },
                     )
                 }
+                if (periods.isEmpty()) {
+                    DropdownMenuItem(
+                        text = { Text("لا توجد بيانات", style = MaterialTheme.typography.bodyMedium, color = TextSecondary) },
+                        onClick = { showPeriodMenu = false },
+                    )
+                }
             }
         }
 
-        // Status chips — NO reverseLayout, use regular order
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier.weight(1f),
@@ -452,6 +448,9 @@ private fun SessionsFilterSheet(
 
 // ─── Reusable lazy dropdown field ─────────────────────────────────────────────
 
+// In SessionsScreen.kt
+// Replace the entire FilterDropdownField composable
+
 @Composable
 private fun FilterDropdownField(
     modifier: Modifier = Modifier,
@@ -463,11 +462,6 @@ private fun FilterDropdownField(
     onSelect: (FilterOption) -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
-
-    // Trigger load when expanded
-    LaunchedEffect(expanded) {
-        if (expanded) onExpand()
-    }
 
     Box(modifier = modifier) {
         OutlinedTextField(
@@ -484,15 +478,16 @@ private fun FilterDropdownField(
                 )
             },
             trailingIcon = {
-                // iOS-style: teal square button with arrow icon
                 Box(
                     modifier = Modifier
                         .size(36.dp)
                         .clip(RoundedCornerShape(6.dp))
                         .background(Primary)
                         .clickable {
+                            if (!expanded) {
+                                onExpand()  // trigger load BEFORE expanding
+                            }
                             expanded = !expanded
-                            if (expanded) onExpand()
                         },
                     contentAlignment = Alignment.Center,
                 ) {
@@ -515,7 +510,10 @@ private fun FilterDropdownField(
             },
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable { expanded = !expanded; if (expanded) onExpand() },
+                .clickable {
+                    if (!expanded) onExpand()
+                    expanded = !expanded
+                },
             singleLine = true,
             shape = RoundedCornerShape(8.dp),
             colors = OutlinedTextFieldDefaults.colors(
@@ -533,9 +531,7 @@ private fun FilterDropdownField(
         ) {
             if (isLoading) {
                 Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
+                    modifier = Modifier.fillMaxWidth().padding(16.dp),
                     contentAlignment = Alignment.Center,
                 ) {
                     CircularProgressIndicator(
@@ -580,12 +576,7 @@ private fun FilterDropdownField(
                                     modifier = Modifier.weight(1f),
                                 )
                                 if (selectedOption?.id == option.id) {
-                                    Text(
-                                        "✓",
-                                        color = Primary,
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 14.sp,
-                                    )
+                                    Text("✓", color = Primary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                                 }
                             }
                         },

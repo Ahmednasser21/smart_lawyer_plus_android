@@ -58,7 +58,6 @@ class SessionsViewModel @Inject constructor(
                 else -> Unit
             }
 
-            // Pre-load periods so they are ready for both bar and filter sheet
             when (val result = getHearingPeriodsUseCase()) {
                 is Result.Success -> _uiState.update { it.copy(periods = result.data) }
                 else -> Unit
@@ -72,12 +71,12 @@ class SessionsViewModel @Inject constructor(
         if (_uiState.value.courts.isNotEmpty() || _uiState.value.isLoadingCourts) return
         viewModelScope.launch {
             _uiState.update { it.copy(isLoadingCourts = true) }
-            if (getCourtsUseCase() is Result.Success) {
-                val result = getCourtsUseCase()
-                if (result is Result.Success)
-                    _uiState.update { it.copy(courts = result.data, isLoadingCourts = false) }
-                else _uiState.update { it.copy(isLoadingCourts = false) }
-            } else _uiState.update { it.copy(isLoadingCourts = false) }
+            when (val result = getCourtsUseCase()) {
+                is Result.Success -> _uiState.update {
+                    it.copy(courts = result.data, isLoadingCourts = false)
+                }
+                else -> _uiState.update { it.copy(isLoadingCourts = false) }
+            }
         }
     }
 

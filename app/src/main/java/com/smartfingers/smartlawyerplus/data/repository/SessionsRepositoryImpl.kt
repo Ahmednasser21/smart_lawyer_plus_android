@@ -105,7 +105,7 @@ class SessionsRepositoryImpl @Inject constructor(
     }.getOrElse { Result.Error(it.message ?: "Network error") }
 
     override suspend fun getCases(): Result<List<FilterOption>> = runCatching {
-        val url = "${baseUrl()}/api/cases"
+        val url = "${baseUrl()}/api/cases/for-select"
         val response = api.getCases(url)
         if (response.isSuccess == true) {
             val items = response.data?.map {
@@ -136,7 +136,7 @@ class SessionsRepositoryImpl @Inject constructor(
     }.getOrElse { Result.Error(it.message ?: "Network error") }
 
     override suspend fun getEmployees(): Result<List<FilterOption>> = runCatching {
-        val url = "${baseUrl()}/api/employees"
+        val url = "${baseUrl()}/api/Employees/List"
         val response = api.getEmployees(url)
         if (response.isSuccess == true) {
             Result.Success(response.data?.map {
