@@ -43,4 +43,11 @@ data class HearingFilter(
     val judgeName: String? = null,
     val branchId: String? = null,
     val clientId: String? = null,
+    val clientMobile: String? = null,
+    val clientNumber: String? = null,
+)
+
+data class FilterOption(
+    val id: String,
+    val name: String,
 )

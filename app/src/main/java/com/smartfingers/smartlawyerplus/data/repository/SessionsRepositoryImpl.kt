@@ -2,6 +2,7 @@ package com.smartfingers.smartlawyerplus.data.repository
 
 import com.smartfingers.smartlawyerplus.data.local.AppPreferences
 import com.smartfingers.smartlawyerplus.data.remote.api.SessionsApiService
+import com.smartfingers.smartlawyerplus.domain.model.FilterOption
 import com.smartfingers.smartlawyerplus.domain.model.HearingFilter
 import com.smartfingers.smartlawyerplus.domain.model.HearingPeriod
 import com.smartfingers.smartlawyerplus.domain.model.HearingStatus
@@ -92,4 +93,74 @@ class SessionsRepositoryImpl @Inject constructor(
         }
         return "$base?${params.joinToString("&")}"
     }
+
+    override suspend fun getCourts(): Result<List<FilterOption>> = runCatching {
+        val url = "${baseUrl()}/api/courts"
+        val response = api.getCourts(url)
+        if (response.isSuccess == true) {
+            Result.Success(response.data?.items?.map {
+                FilterOption(id = "${it.id ?: 0}", name = it.name ?: "")
+            } ?: emptyList())
+        } else Result.Error(response.errorList?.firstOrNull() ?: "Failed")
+    }.getOrElse { Result.Error(it.message ?: "Network error") }
+
+    override suspend fun getCases(): Result<List<FilterOption>> = runCatching {
+        val url = "${baseUrl()}/api/cases"
+        val response = api.getCases(url)
+        if (response.isSuccess == true) {
+            Result.Success(response.data?.map {
+                FilterOption(id = "${it.id ?: 0}", name = it.name ?: "")
+            } ?: emptyList())
+        } else Result.Error(response.errorList?.firstOrNull() ?: "Failed")
+    }.getOrElse { Result.Error(it.message ?: "Network error") }
+
+    override suspend fun getHearingTypes(): Result<List<FilterOption>> = runCatching {
+        val url = "${baseUrl()}/api/hearingTypes"
+        val response = api.getHearingTypes(url)
+        if (response.isSuccess == true) {
+            Result.Success(response.data?.items?.map {
+                FilterOption(id = "${it.id ?: 0}", name = it.name ?: "")
+            } ?: emptyList())
+        } else Result.Error(response.errorList?.firstOrNull() ?: "Failed")
+    }.getOrElse { Result.Error(it.message ?: "Network error") }
+
+    override suspend fun getSubHearingTypes(): Result<List<FilterOption>> = runCatching {
+        val url = "${baseUrl()}/api/subHearingTypes"
+        val response = api.getSubHearingTypes(url)
+        if (response.isSuccess == true) {
+            Result.Success(response.data?.items?.map {
+                FilterOption(id = "${it.id ?: 0}", name = it.name ?: "")
+            } ?: emptyList())
+        } else Result.Error(response.errorList?.firstOrNull() ?: "Failed")
+    }.getOrElse { Result.Error(it.message ?: "Network error") }
+
+    override suspend fun getEmployees(): Result<List<FilterOption>> = runCatching {
+        val url = "${baseUrl()}/api/employees"
+        val response = api.getEmployees(url)
+        if (response.isSuccess == true) {
+            Result.Success(response.data?.map {
+                FilterOption(id = it.id ?: "", name = it.name ?: "")
+            } ?: emptyList())
+        } else Result.Error(response.errorList?.firstOrNull() ?: "Failed")
+    }.getOrElse { Result.Error(it.message ?: "Network error") }
+
+    override suspend fun getBranches(): Result<List<FilterOption>> = runCatching {
+        val url = "${baseUrl()}/api/branches"
+        val response = api.getBranches(url)
+        if (response.isSuccess == true) {
+            Result.Success(response.data?.items?.map {
+                FilterOption(id = "${it.id ?: 0}", name = it.name ?: "")
+            } ?: emptyList())
+        } else Result.Error(response.errorList?.firstOrNull() ?: "Failed")
+    }.getOrElse { Result.Error(it.message ?: "Network error") }
+
+    override suspend fun getParties(): Result<List<FilterOption>> = runCatching {
+        val url = "${baseUrl()}/api/parties"
+        val response = api.getParties(url)
+        if (response.isSuccess == true) {
+            Result.Success(response.data?.items?.map {
+                FilterOption(id = "${it.id ?: 0}", name = it.name ?: "")
+            } ?: emptyList())
+        } else Result.Error(response.errorList?.firstOrNull() ?: "Failed")
+    }.getOrElse { Result.Error(it.message ?: "Network error") }
 }

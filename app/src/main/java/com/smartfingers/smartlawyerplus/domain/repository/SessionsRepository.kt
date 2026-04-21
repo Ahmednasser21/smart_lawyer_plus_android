@@ -1,5 +1,6 @@
 package com.smartfingers.smartlawyerplus.domain.repository
 
+import com.smartfingers.smartlawyerplus.domain.model.FilterOption
 import com.smartfingers.smartlawyerplus.domain.model.HearingFilter
 import com.smartfingers.smartlawyerplus.domain.model.HearingPeriod
 import com.smartfingers.smartlawyerplus.domain.model.HearingStatus
@@ -10,4 +11,11 @@ interface SessionsRepository {
     suspend fun getSessions(filter: HearingFilter): Result<Pair<List<Session>, Int>>
     suspend fun getHearingStatuses(): Result<List<HearingStatus>>
     suspend fun getHearingPeriods(): Result<List<HearingPeriod>>
+    suspend fun getCourts(): Result<List<FilterOption>>
+    suspend fun getCases(): Result<List<FilterOption>>
+    suspend fun getHearingTypes(): Result<List<FilterOption>>
+    suspend fun getSubHearingTypes(): Result<List<FilterOption>>
+    suspend fun getEmployees(): Result<List<FilterOption>>
+    suspend fun getBranches(): Result<List<FilterOption>>
+    suspend fun getParties(): Result<List<FilterOption>>
 }

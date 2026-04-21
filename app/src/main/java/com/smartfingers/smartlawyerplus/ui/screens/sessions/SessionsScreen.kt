@@ -3,51 +3,18 @@ package com.smartfingers.smartlawyerplus.ui.screens.sessions
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Timer
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.material3.rememberModalBottomSheetState
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -60,15 +27,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.smartfingers.smartlawyerplus.R
-import com.smartfingers.smartlawyerplus.domain.model.HearingFilter
-import com.smartfingers.smartlawyerplus.domain.model.HearingPeriod
-import com.smartfingers.smartlawyerplus.domain.model.HearingStatus
-import com.smartfingers.smartlawyerplus.domain.model.Session
+import com.smartfingers.smartlawyerplus.domain.model.*
 import com.smartfingers.smartlawyerplus.ui.theme.Divider
 import com.smartfingers.smartlawyerplus.ui.theme.Primary
 import com.smartfingers.smartlawyerplus.ui.theme.TextSecondary
 
-// Expose so MainScreen can wire the filter icon action
 typealias OnOpenSessionFilter = () -> Unit
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -82,7 +45,6 @@ fun SessionsScreen(
     val listState = rememberLazyListState()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    // Expose the open-filter callback to the parent (MainScreen) for the AppBar icon
     LaunchedEffect(Unit) { onFilterIconReady(viewModel::openFilterSheet) }
 
     val shouldLoadMore by remember {
@@ -91,7 +53,6 @@ fun SessionsScreen(
             lastVisible >= uiState.sessions.size - 3 && uiState.hasMore && !uiState.isLoadingMore
         }
     }
-
     LaunchedEffect(shouldLoadMore) { if (shouldLoadMore) viewModel.loadMore() }
 
     Column(
@@ -99,7 +60,6 @@ fun SessionsScreen(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background),
     ) {
-        // ── Period dropdown + status chips row ──
         SessionsFilterBar(
             statuses = uiState.statuses,
             periods = uiState.periods,
@@ -130,9 +90,7 @@ fun SessionsScreen(
                     if (uiState.isLoadingMore) {
                         item {
                             Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(12.dp),
+                                modifier = Modifier.fillMaxWidth().padding(12.dp),
                                 contentAlignment = Alignment.Center,
                             ) {
                                 CircularProgressIndicator(
@@ -148,15 +106,21 @@ fun SessionsScreen(
         }
     }
 
-    // ── Filter bottom sheet ──
     if (uiState.showFilterSheet) {
         ModalBottomSheet(
             onDismissRequest = viewModel::dismissFilterSheet,
             sheetState = sheetState,
+            containerColor = MaterialTheme.colorScheme.background,
         ) {
             SessionsFilterSheet(
-                periods = uiState.periods,
-                currentFilter = uiState.filter,
+                uiState = uiState,
+                onLoadCourts = viewModel::loadCourtsIfNeeded,
+                onLoadCases = viewModel::loadCasesIfNeeded,
+                onLoadHearingTypes = viewModel::loadHearingTypesIfNeeded,
+                onLoadSubHearingTypes = viewModel::loadSubHearingTypesIfNeeded,
+                onLoadEmployees = viewModel::loadEmployeesIfNeeded,
+                onLoadBranches = viewModel::loadBranchesIfNeeded,
+                onLoadParties = viewModel::loadPartiesIfNeeded,
                 onApply = viewModel::applyFilter,
                 onCancel = viewModel::dismissFilterSheet,
             )
@@ -164,9 +128,7 @@ fun SessionsScreen(
     }
 }
 
-// ─────────────────────────────────────────────
-// Filter bar (period dropdown + status chips)
-// ─────────────────────────────────────────────
+// ─── Period dropdown + Status chips bar ───────────────────────────────────────
 
 @Composable
 private fun SessionsFilterBar(
@@ -179,28 +141,11 @@ private fun SessionsFilterBar(
     var showPeriodMenu by remember { mutableStateOf(false) }
 
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 12.dp),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        // Scrollable status chips
-        LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.weight(1f),
-        ) {
-            items(statuses) { status ->
-                SessionStatusChip(
-                    label = status.name,
-                    isSelected = status.isSelected,
-                    accentColor = hearingStatusColor(status.id),
-                    onClick = { onStatusSelected(status) },
-                )
-            }
-        }
-
-        // Period dropdown
+        // Period dropdown (left side, matching iOS top-left position)
         Box {
             Row(
                 modifier = Modifier
@@ -212,266 +157,359 @@ private fun SessionsFilterBar(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
             ) {
-                Text(
-                    text = selectedPeriod?.name ?: "الفترة",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    maxLines = 1,
-                )
                 Icon(
-                    Icons.Default.KeyboardArrowDown,
+                    if (showPeriodMenu) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier.size(16.dp),
                 )
+                Column(horizontalAlignment = Alignment.Start) {
+                    Text(
+                        text = "الفترة",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = TextSecondary,
+                        fontSize = 9.sp,
+                    )
+                    Text(
+                        text = selectedPeriod?.name ?: "اليوم",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        maxLines = 1,
+                    )
+                }
             }
 
             DropdownMenu(
                 expanded = showPeriodMenu,
                 onDismissRequest = { showPeriodMenu = false },
+                modifier = Modifier.background(MaterialTheme.colorScheme.surface),
             ) {
                 if (selectedPeriod != null) {
                     DropdownMenuItem(
-                        text = { Text("الكل") },
+                        text = { Text("الكل", style = MaterialTheme.typography.bodyMedium) },
                         onClick = { onPeriodSelected(null); showPeriodMenu = false },
+                        leadingIcon = {
+                            if (selectedPeriod == null)
+                                Icon(painterResource(R.drawable.ic_close), null, modifier = Modifier.size(16.dp))
+                        },
                     )
+                    HorizontalDivider(color = Divider)
                 }
                 periods.forEach { period ->
                     DropdownMenuItem(
-                        text = { Text(period.name) },
+                        text = {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Text(period.name, style = MaterialTheme.typography.bodyMedium)
+                                if (selectedPeriod?.id == period.id) {
+                                    Text("✓", color = Primary, fontWeight = FontWeight.Bold)
+                                }
+                            }
+                        },
                         onClick = { onPeriodSelected(period); showPeriodMenu = false },
                     )
                 }
             }
         }
+
+        // Scrollable status chips (right side)
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.weight(1f),
+            reverseLayout = true, // RTL — rightmost chip first
+        ) {
+            items(statuses) { status ->
+                SessionStatusChip(
+                    label = status.name,
+                    isSelected = status.isSelected,
+                    accentColor = hearingStatusColor(status.id),
+                    onClick = { onStatusSelected(status) },
+                )
+            }
+        }
     }
 }
 
-// ─────────────────────────────────────────────
-// Filter bottom sheet (matches iOS filter sheet)
-// ─────────────────────────────────────────────
+// ─── Filter bottom sheet with lazy dropdowns ──────────────────────────────────
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SessionsFilterSheet(
-    periods: List<HearingPeriod>,
-    currentFilter: HearingFilter,
+    uiState: SessionsUiState,
+    onLoadCourts: () -> Unit,
+    onLoadCases: () -> Unit,
+    onLoadHearingTypes: () -> Unit,
+    onLoadSubHearingTypes: () -> Unit,
+    onLoadEmployees: () -> Unit,
+    onLoadBranches: () -> Unit,
+    onLoadParties: () -> Unit,
     onApply: (HearingFilter) -> Unit,
     onCancel: () -> Unit,
 ) {
-    var courtId by remember { mutableStateOf(currentFilter.courtId ?: "") }
-    var judgeName by remember { mutableStateOf(currentFilter.judgeName ?: "") }
-    var caseId by remember { mutableStateOf(currentFilter.caseId ?: "") }
-    var hearingTypeId by remember { mutableStateOf(currentFilter.hearingTypeId ?: "") }
-    var subHearingTypeId by remember { mutableStateOf(currentFilter.subHearingTypeId ?: "") }
-    var assignedUserId by remember { mutableStateOf(currentFilter.assignedUserId ?: "") }
-    var branchId by remember { mutableStateOf(currentFilter.branchId ?: "") }
-    var clientId by remember { mutableStateOf(currentFilter.clientId ?: "") }
-
-    var showResultsCountMenu by remember { mutableStateOf(false) }
-    var selectedResultsCount by remember { mutableStateOf<Int?>(null) }
-    val resultCountOptions = listOf(10, 20, 50, 100)
+    var selectedCourt by remember { mutableStateOf<FilterOption?>(null) }
+    var selectedCase by remember { mutableStateOf<FilterOption?>(null) }
+    var selectedHearingType by remember { mutableStateOf<FilterOption?>(null) }
+    var selectedSubHearingType by remember { mutableStateOf<FilterOption?>(null) }
+    var judgeName by remember { mutableStateOf(uiState.pendingFilter.judgeName ?: "") }
+    var selectedEmployee by remember { mutableStateOf<FilterOption?>(null) }
+    var selectedPeriod by remember { mutableStateOf<HearingPeriod?>(null) }
+    var selectedBranch by remember { mutableStateOf<FilterOption?>(null) }
+    var selectedClient by remember { mutableStateOf<FilterOption?>(null) }
+    var clientPhone by remember { mutableStateOf("") }
+    var clientNumber by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 16.dp)
+            .padding(bottom = 24.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
+        // Title
         Text(
             text = "تصنيف الجلسات",
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
             textAlign = TextAlign.Center,
         )
 
-        // Row 1: عدد النتائج + المحكمة
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            // عدد النتائج dropdown
-            Box(modifier = Modifier.weight(1f)) {
-                OutlinedTextField(
-                    value = selectedResultsCount?.toString() ?: "",
-                    onValueChange = {},
-                    readOnly = true,
-                    placeholder = { Text("عدد النتائج") },
-                    trailingIcon = {
-                        IconButton(onClick = { showResultsCountMenu = true }) {
-                            Icon(Icons.Default.KeyboardArrowDown, contentDescription = null)
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                )
-                DropdownMenu(
-                    expanded = showResultsCountMenu,
-                    onDismissRequest = { showResultsCountMenu = false },
-                ) {
-                    resultCountOptions.forEach { count ->
-                        DropdownMenuItem(
-                            text = { Text(count.toString()) },
-                            onClick = { selectedResultsCount = count; showResultsCountMenu = false },
-                        )
-                    }
-                }
-            }
-
-            // المحكمة
-            OutlinedTextField(
-                value = courtId,
-                onValueChange = { courtId = it },
-                placeholder = { Text("المحكمة") },
+        // Row 1: Court + Number of results (placeholder)
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FilterDropdownField(
                 modifier = Modifier.weight(1f),
-                singleLine = true,
+                label = "المحكمة",
+                selectedOption = selectedCourt,
+                options = uiState.courts,
+                isLoading = uiState.isLoadingCourts,
+                onExpand = onLoadCourts,
+                onSelect = { selectedCourt = it },
+            )
+            FilterDropdownField(
+                modifier = Modifier.weight(1f),
+                label = "القضية",
+                selectedOption = selectedCase,
+                options = uiState.cases,
+                isLoading = uiState.isLoadingCases,
+                onExpand = onLoadCases,
+                onSelect = { selectedCase = it },
             )
         }
 
-        // Row 2: القضية + نوع الجلسة
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            OutlinedTextField(
-                value = caseId,
-                onValueChange = { caseId = it },
-                placeholder = { Text("القضية") },
+        // Row 2: Hearing type + Sub hearing type
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FilterDropdownField(
                 modifier = Modifier.weight(1f),
-                singleLine = true,
+                label = "نوع الجلسة",
+                selectedOption = selectedHearingType,
+                options = uiState.hearingTypes,
+                isLoading = uiState.isLoadingHearingTypes,
+                onExpand = onLoadHearingTypes,
+                onSelect = { selectedHearingType = it },
             )
-            OutlinedTextField(
-                value = hearingTypeId,
-                onValueChange = { hearingTypeId = it },
-                placeholder = { Text("نوع الجلسة") },
+            FilterDropdownField(
                 modifier = Modifier.weight(1f),
-                singleLine = true,
+                label = "نوع الجلسة الفرعي",
+                selectedOption = selectedSubHearingType,
+                options = uiState.subHearingTypes,
+                isLoading = uiState.isLoadingSubHearingTypes,
+                onExpand = onLoadSubHearingTypes,
+                onSelect = { selectedSubHearingType = it },
             )
         }
 
-        // Row 3: نوع الجلسة الفرعي + اسم القاضي
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
+        // Row 3: Judge name (text) + Person in charge (dropdown)
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             OutlinedTextField(
                 value = judgeName,
                 onValueChange = { judgeName = it },
-                placeholder = { Text("اسم القاضي") },
+                placeholder = { Text("اسم القاضي", style = MaterialTheme.typography.bodySmall) },
                 modifier = Modifier.weight(1f),
                 singleLine = true,
+                shape = RoundedCornerShape(8.dp),
             )
-            OutlinedTextField(
-                value = subHearingTypeId,
-                onValueChange = { subHearingTypeId = it },
-                placeholder = { Text("نوع الجلسة الفرعي") },
+            FilterDropdownField(
                 modifier = Modifier.weight(1f),
-                singleLine = true,
-            )
-        }
-
-        // Row 4: المكلف بالجلسة + الفترة (dropdown)
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            OutlinedTextField(
-                value = assignedUserId,
-                onValueChange = { assignedUserId = it },
-                placeholder = { Text("المكلف بالجلسة") },
-                modifier = Modifier.weight(1f),
-                singleLine = true,
-            )
-            OutlinedTextField(
-                value = branchId,
-                onValueChange = { branchId = it },
-                placeholder = { Text("الفرع") },
-                modifier = Modifier.weight(1f),
-                singleLine = true,
+                label = "المكلف بالجلسة",
+                selectedOption = selectedEmployee,
+                options = uiState.employees,
+                isLoading = uiState.isLoadingEmployees,
+                onExpand = onLoadEmployees,
+                onSelect = { selectedEmployee = it },
             )
         }
 
-        // Row 5: عميل + رقم جوال العميل
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            OutlinedTextField(
-                value = clientId,
-                onValueChange = { clientId = it },
-                placeholder = { Text("عميل") },
+        // Row 4: Period (from uiState.periods) + Branch
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FilterDropdownField(
                 modifier = Modifier.weight(1f),
-                singleLine = true,
+                label = "الفترة",
+                selectedOption = selectedPeriod?.let { FilterOption(it.id.toString(), it.name) },
+                options = uiState.periods.map { FilterOption(it.id.toString(), it.name) },
+                isLoading = false,
+                onExpand = {},
+                onSelect = { opt ->
+                    selectedPeriod = uiState.periods.firstOrNull { it.id.toString() == opt.id }
+                },
             )
-            OutlinedTextField(
-                value = "",
-                onValueChange = {},
-                placeholder = { Text("رقم جوال العميل") },
+            FilterDropdownField(
                 modifier = Modifier.weight(1f),
-                singleLine = true,
+                label = "الفرع",
+                selectedOption = selectedBranch,
+                options = uiState.branches,
+                isLoading = uiState.isLoadingBranches,
+                onExpand = onLoadBranches,
+                onSelect = { selectedBranch = it },
             )
         }
 
-        // Row 6: رقم العميل (single field, half width)
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
+        // Row 5: Client + Client phone
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FilterDropdownField(
+                modifier = Modifier.weight(1f),
+                label = "عميل",
+                selectedOption = selectedClient,
+                options = uiState.parties,
+                isLoading = uiState.isLoadingParties,
+                onExpand = onLoadParties,
+                onSelect = { selectedClient = it },
+            )
             OutlinedTextField(
-                value = "",
-                onValueChange = {},
-                placeholder = { Text("رقم العميل") },
+                value = clientPhone,
+                onValueChange = { clientPhone = it },
+                placeholder = { Text("رقم جوال العميل", style = MaterialTheme.typography.bodySmall) },
                 modifier = Modifier.weight(1f),
                 singleLine = true,
+                shape = RoundedCornerShape(8.dp),
+            )
+        }
+
+        // Row 6: Client number (half width)
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            OutlinedTextField(
+                value = clientNumber,
+                onValueChange = { clientNumber = it },
+                placeholder = { Text("رقم العميل", style = MaterialTheme.typography.bodySmall) },
+                modifier = Modifier.weight(1f),
+                singleLine = true,
+                shape = RoundedCornerShape(8.dp),
             )
             Spacer(modifier = Modifier.weight(1f))
         }
 
+        Spacer(modifier = Modifier.height(8.dp))
+
         // Action buttons
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Button(
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            OutlinedButton(
                 onClick = onCancel,
-                modifier = Modifier.weight(1f),
-                colors = ButtonDefaults.outlinedButtonColors(
-                    containerColor = Color.Transparent,
-                    contentColor = MaterialTheme.colorScheme.onBackground,
-                ),
-            ) {
-                Text("إلغاء")
-            }
+                modifier = Modifier.weight(1f).height(48.dp),
+                shape = RoundedCornerShape(8.dp),
+            ) { Text("إلغاء") }
+
             Button(
                 onClick = {
                     onApply(
-                        currentFilter.copy(
-                            courtId = courtId.ifBlank { null },
+                        uiState.pendingFilter.copy(
+                            courtId = selectedCourt?.id,
+                            caseId = selectedCase?.id,
+                            hearingTypeId = selectedHearingType?.id,
+                            subHearingTypeId = selectedSubHearingType?.id,
                             judgeName = judgeName.ifBlank { null },
-                            caseId = caseId.ifBlank { null },
-                            hearingTypeId = hearingTypeId.ifBlank { null },
-                            subHearingTypeId = subHearingTypeId.ifBlank { null },
-                            assignedUserId = assignedUserId.ifBlank { null },
-                            branchId = branchId.ifBlank { null },
-                            clientId = clientId.ifBlank { null },
-                            pageSize = selectedResultsCount ?: currentFilter.pageSize,
+                            assignedUserId = selectedEmployee?.id,
+                            dashboardPeriodType = selectedPeriod?.id?.toString(),
+                            branchId = selectedBranch?.id,
+                            clientId = selectedClient?.id,
+                            clientMobile = clientPhone.ifBlank { null },
+                            clientNumber = clientNumber.ifBlank { null },
                         )
                     )
                 },
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(1f).height(48.dp),
+                shape = RoundedCornerShape(8.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Primary),
-            ) {
-                Text("بحث")
+            ) { Text("بحث", fontWeight = FontWeight.Bold) }
+        }
+    }
+}
+
+// ─── Reusable lazy dropdown field ─────────────────────────────────────────────
+
+@Composable
+private fun FilterDropdownField(
+    modifier: Modifier = Modifier,
+    label: String,
+    selectedOption: FilterOption?,
+    options: List<FilterOption>,
+    isLoading: Boolean,
+    onExpand: () -> Unit,
+    onSelect: (FilterOption) -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    Box(modifier = modifier) {
+        OutlinedTextField(
+            value = selectedOption?.name ?: "",
+            onValueChange = {},
+            readOnly = true,
+            placeholder = { Text(label, style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+            trailingIcon = {
+                if (isLoading) {
+                    CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp, color = Primary)
+                } else {
+                    Icon(
+                        if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                        contentDescription = null,
+                        modifier = Modifier.clickable {
+                            expanded = true
+                            onExpand()
+                        },
+                    )
+                }
+            },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+            shape = RoundedCornerShape(8.dp),
+        )
+
+        DropdownMenu(
+            expanded = expanded && options.isNotEmpty(),
+            onDismissRequest = { expanded = false },
+            modifier = Modifier
+                .background(MaterialTheme.colorScheme.surface)
+                .heightIn(max = 200.dp),
+        ) {
+            if (selectedOption != null) {
+                DropdownMenuItem(
+                    text = { Text("الكل", style = MaterialTheme.typography.bodyMedium) },
+                    onClick = { onSelect(FilterOption("", "")); expanded = false },
+                )
+                HorizontalDivider(color = Divider)
+            }
+            options.forEach { option ->
+                DropdownMenuItem(
+                    text = {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                        ) {
+                            Text(option.name, style = MaterialTheme.typography.bodyMedium)
+                            if (selectedOption?.id == option.id)
+                                Text("✓", color = Primary, fontWeight = FontWeight.Bold)
+                        }
+                    },
+                    onClick = { onSelect(option); expanded = false },
+                )
             }
         }
     }
 }
 
-// ─────────────────────────────────────────────
-// Status chip
-// ─────────────────────────────────────────────
+// ─── Status chip (matching iOS design) ───────────────────────────────────────
 
 @Composable
 private fun SessionStatusChip(
@@ -483,7 +521,9 @@ private fun SessionStatusChip(
     Row(
         modifier = Modifier
             .clip(RoundedCornerShape(8.dp))
-            .background(MaterialTheme.colorScheme.surface)
+            .background(
+                if (isSelected) Primary else MaterialTheme.colorScheme.surface
+            )
             .border(
                 width = if (isSelected) 0.dp else 1.dp,
                 color = if (isSelected) Color.Transparent else Divider,
@@ -492,43 +532,38 @@ private fun SessionStatusChip(
             .clickable(onClick = onClick),
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        // Colored left bar
         Box(
             modifier = Modifier
                 .width(5.dp)
                 .height(36.dp)
                 .background(
-                    color = if (isSelected) accentColor else Divider,
+                    color = accentColor,
                     shape = RoundedCornerShape(topStart = 8.dp, bottomStart = 8.dp),
                 ),
         )
         Text(
             text = label,
             style = MaterialTheme.typography.labelMedium,
-            color = if (isSelected) MaterialTheme.colorScheme.onBackground else TextSecondary,
+            color = if (isSelected) Color.White else TextSecondary,
             fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
             modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
         )
     }
 }
 
-// ─────────────────────────────────────────────
-// Session card
-// ─────────────────────────────────────────────
+// ─── Session card ─────────────────────────────────────────────────────────────
 
 @Composable
 fun SessionCard(session: Session, onClick: () -> Unit) {
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick),
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
         shape = RoundedCornerShape(10.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 10.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.Top,
         ) {
@@ -565,7 +600,10 @@ fun SessionCard(session: Session, onClick: () -> Unit) {
                             Text(it, style = MaterialTheme.typography.labelSmall, color = Primary, textAlign = TextAlign.End, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.widthIn(max = 160.dp))
                         }
                     }
-                    Box(modifier = Modifier.size(36.dp).clip(RoundedCornerShape(8.dp)).background(MaterialTheme.colorScheme.primaryContainer), contentAlignment = Alignment.Center) {
+                    Box(
+                        modifier = Modifier.size(36.dp).clip(RoundedCornerShape(8.dp)).background(MaterialTheme.colorScheme.primaryContainer),
+                        contentAlignment = Alignment.Center,
+                    ) {
                         Icon(painter = painterResource(R.drawable.icons8_avatar_100), contentDescription = null, tint = Color.Unspecified, modifier = Modifier.fillMaxSize())
                     }
                 }
@@ -594,8 +632,8 @@ private fun EmptySessionsState() {
 }
 
 private fun hearingStatusColor(statusId: Int): Color = when (statusId) {
-    1    -> Color(0xFF37B958)
-    2    -> Color(0xFF307893)
-    3    -> Color(0xFFA50900)
+    1 -> Color(0xFF37B958)
+    2 -> Color(0xFF307893)
+    3 -> Color(0xFFA50900)
     else -> Primary
 }
