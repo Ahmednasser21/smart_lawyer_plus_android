@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.smartfingers.smartlawyerplus.R
 import com.smartfingers.smartlawyerplus.ui.components.BottomNavCutoutShape
+import com.smartfingers.smartlawyerplus.ui.screens.sessions.SessionsScreen
 import com.smartfingers.smartlawyerplus.ui.screens.tasks.TasksScreen
 import com.smartfingers.smartlawyerplus.ui.screens.tasks.TasksViewModel
 import com.smartfingers.smartlawyerplus.ui.theme.TextSecondary
@@ -67,7 +68,8 @@ fun MainScreen(
                     onTaskClick = {},
                     viewModel = viewModel,
                 )
-                MainTab.SESSIONS -> PlaceholderTabScreen("الجلسات")
+
+                MainTab.SESSIONS -> SessionsScreen(onSessionClick = {})
                 MainTab.APPOINTMENTS -> PlaceholderTabScreen("المواعيد")
                 MainTab.CASES -> PlaceholderTabScreen("القضايا")
             }
@@ -180,7 +182,9 @@ fun UserAvatar(
             try {
                 val bytes = android.util.Base64.decode(picture, android.util.Base64.DEFAULT)
                 BitmapFactory.decodeByteArray(bytes, 0, bytes.size)?.asImageBitmap()
-            } catch (_: Exception) { null }
+            } catch (_: Exception) {
+                null
+            }
         } else null
     }
 
@@ -241,7 +245,7 @@ private fun SmartLawyerBottomBar(
                 modifier = Modifier.fillMaxSize(),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                listOf(MainTab.CASES,MainTab.APPOINTMENTS).forEach { tab ->
+                listOf(MainTab.CASES, MainTab.APPOINTMENTS).forEach { tab ->
                     BottomNavItem(
                         tab = tab,
                         isSelected = selectedTab == tab,
@@ -251,7 +255,7 @@ private fun SmartLawyerBottomBar(
                 }
                 Spacer(modifier = Modifier.width(fabSize + 8.dp))
 
-                listOf( MainTab.SESSIONS, MainTab.TASKS).forEach { tab ->
+                listOf(MainTab.SESSIONS, MainTab.TASKS).forEach { tab ->
                     BottomNavItem(
                         tab = tab,
                         isSelected = selectedTab == tab,

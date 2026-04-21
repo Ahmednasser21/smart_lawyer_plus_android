@@ -2,6 +2,7 @@ package com.smartfingers.smartlawyerplus.di
 
 import com.smartfingers.smartlawyerplus.data.local.AppPreferences
 import com.smartfingers.smartlawyerplus.data.remote.api.AuthApiService
+import com.smartfingers.smartlawyerplus.data.remote.api.SessionsApiService
 import com.smartfingers.smartlawyerplus.data.remote.api.TasksApiService
 import dagger.Module
 import dagger.Provides
@@ -76,4 +77,9 @@ object NetworkModule {
     @Singleton
     fun provideTasksApiService(retrofit: Retrofit): TasksApiService =
         retrofit.create(TasksApiService::class.java)
+
+    @Provides
+    @Singleton
+    fun provideSessionsApiService(retrofit: Retrofit): SessionsApiService =
+        retrofit.create(SessionsApiService::class.java)
 }
