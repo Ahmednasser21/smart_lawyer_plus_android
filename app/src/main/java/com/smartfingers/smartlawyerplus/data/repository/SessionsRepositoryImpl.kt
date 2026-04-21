@@ -108,9 +108,10 @@ class SessionsRepositoryImpl @Inject constructor(
         val url = "${baseUrl()}/api/cases"
         val response = api.getCases(url)
         if (response.isSuccess == true) {
-            Result.Success(response.data?.map {
+            val items = response.data?.map {
                 FilterOption(id = "${it.id ?: 0}", name = it.name ?: "")
-            } ?: emptyList())
+            } ?: emptyList()
+            Result.Success(items)
         } else Result.Error(response.errorList?.firstOrNull() ?: "Failed")
     }.getOrElse { Result.Error(it.message ?: "Network error") }
 

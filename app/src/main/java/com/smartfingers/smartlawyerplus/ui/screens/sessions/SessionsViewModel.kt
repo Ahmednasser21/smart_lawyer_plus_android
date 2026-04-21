@@ -39,10 +39,12 @@ class SessionsViewModel @Inject constructor(
         viewModelScope.launch {
             when (val result = getHearingStatusesUseCase()) {
                 is Result.Success -> {
-                    val statuses = result.data.mapIndexed { index, status ->
-                        status.copy(isSelected = index == 0)
-                    }
-                    val firstStatus = statuses.firstOrNull()
+                    val rawStatuses = result.data
+                    // Prefer id==1 (waiting/بالانتظار) as default, fallback to first
+                    val defaultId = rawStatuses.firstOrNull { it.id == 1 }?.id
+                        ?: rawStatuses.firstOrNull()?.id
+                    val statuses = rawStatuses.map { it.copy(isSelected = it.id == defaultId) }
+                    val firstStatus = statuses.firstOrNull { it.isSelected }
                     _uiState.update {
                         it.copy(
                             statuses = statuses,
@@ -56,6 +58,7 @@ class SessionsViewModel @Inject constructor(
                 else -> Unit
             }
 
+            // Pre-load periods so they are ready for both bar and filter sheet
             when (val result = getHearingPeriodsUseCase()) {
                 is Result.Success -> _uiState.update { it.copy(periods = result.data) }
                 else -> Unit

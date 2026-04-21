@@ -40,6 +40,7 @@ interface SessionsApiService {
     @GET
     suspend fun getSubHearingTypes(@Url url: String): AppResponseDto<HearingTypesResponseDto>
 
+
     @GET
     suspend fun getEmployees(@Url url: String): AppResponseDto<List<EmployeeDto>>
 

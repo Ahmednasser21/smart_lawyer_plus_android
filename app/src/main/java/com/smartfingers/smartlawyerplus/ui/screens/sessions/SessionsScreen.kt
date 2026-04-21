@@ -141,11 +141,13 @@ private fun SessionsFilterBar(
     var showPeriodMenu by remember { mutableStateOf(false) }
 
     Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp, vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        // Period dropdown (left side, matching iOS top-left position)
+        // Period dropdown — fixed size, always visible
         Box {
             Row(
                 modifier = Modifier
@@ -153,17 +155,11 @@ private fun SessionsFilterBar(
                     .background(MaterialTheme.colorScheme.surface)
                     .border(1.dp, Divider, RoundedCornerShape(8.dp))
                     .clickable { showPeriodMenu = true }
-                    .padding(horizontal = 10.dp, vertical = 8.dp),
+                    .padding(horizontal = 10.dp, vertical = 6.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
             ) {
-                Icon(
-                    if (showPeriodMenu) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.size(16.dp),
-                )
-                Column(horizontalAlignment = Alignment.Start) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
                         text = "الفترة",
                         style = MaterialTheme.typography.labelSmall,
@@ -171,12 +167,20 @@ private fun SessionsFilterBar(
                         fontSize = 9.sp,
                     )
                     Text(
-                        text = selectedPeriod?.name ?: "اليوم",
-                        style = MaterialTheme.typography.labelMedium,
+                        text = selectedPeriod?.name ?: "الكل",
+                        style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onBackground,
+                        fontWeight = FontWeight.Medium,
                         maxLines = 1,
                     )
                 }
+                Icon(
+                    imageVector = if (showPeriodMenu) Icons.Default.KeyboardArrowUp
+                    else Icons.Default.KeyboardArrowDown,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.size(16.dp),
+                )
             }
 
             DropdownMenu(
@@ -186,12 +190,15 @@ private fun SessionsFilterBar(
             ) {
                 if (selectedPeriod != null) {
                     DropdownMenuItem(
-                        text = { Text("الكل", style = MaterialTheme.typography.bodyMedium) },
-                        onClick = { onPeriodSelected(null); showPeriodMenu = false },
-                        leadingIcon = {
-                            if (selectedPeriod == null)
-                                Icon(painterResource(R.drawable.ic_close), null, modifier = Modifier.size(16.dp))
+                        text = {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                            ) {
+                                Text("الكل", style = MaterialTheme.typography.bodyMedium)
+                            }
                         },
+                        onClick = { onPeriodSelected(null); showPeriodMenu = false },
                     )
                     HorizontalDivider(color = Divider)
                 }
@@ -205,7 +212,12 @@ private fun SessionsFilterBar(
                             ) {
                                 Text(period.name, style = MaterialTheme.typography.bodyMedium)
                                 if (selectedPeriod?.id == period.id) {
-                                    Text("✓", color = Primary, fontWeight = FontWeight.Bold)
+                                    Text(
+                                        "✓",
+                                        color = Primary,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 14.sp,
+                                    )
                                 }
                             }
                         },
@@ -215,11 +227,11 @@ private fun SessionsFilterBar(
             }
         }
 
-        // Scrollable status chips (right side)
+        // Status chips — NO reverseLayout, use regular order
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier.weight(1f),
-            reverseLayout = true, // RTL — rightmost chip first
+            contentPadding = PaddingValues(end = 4.dp),
         ) {
             items(statuses) { status ->
                 SessionStatusChip(
@@ -287,7 +299,7 @@ private fun SessionsFilterSheet(
                 options = uiState.courts,
                 isLoading = uiState.isLoadingCourts,
                 onExpand = onLoadCourts,
-                onSelect = { selectedCourt = it },
+                onSelect = { selectedCourt = if (it.id.isBlank()) null else it }
             )
             FilterDropdownField(
                 modifier = Modifier.weight(1f),
@@ -296,11 +308,10 @@ private fun SessionsFilterSheet(
                 options = uiState.cases,
                 isLoading = uiState.isLoadingCases,
                 onExpand = onLoadCases,
-                onSelect = { selectedCase = it },
+                onSelect = { selectedCase = if (it.id.isBlank()) null else it }
             )
         }
 
-        // Row 2: Hearing type + Sub hearing type
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             FilterDropdownField(
                 modifier = Modifier.weight(1f),
@@ -309,7 +320,7 @@ private fun SessionsFilterSheet(
                 options = uiState.hearingTypes,
                 isLoading = uiState.isLoadingHearingTypes,
                 onExpand = onLoadHearingTypes,
-                onSelect = { selectedHearingType = it },
+                onSelect = { selectedHearingType = if (it.id.isBlank()) null else it }
             )
             FilterDropdownField(
                 modifier = Modifier.weight(1f),
@@ -318,11 +329,10 @@ private fun SessionsFilterSheet(
                 options = uiState.subHearingTypes,
                 isLoading = uiState.isLoadingSubHearingTypes,
                 onExpand = onLoadSubHearingTypes,
-                onSelect = { selectedSubHearingType = it },
+                onSelect = { selectedSubHearingType = if (it.id.isBlank()) null else it }
             )
         }
 
-        // Row 3: Judge name (text) + Person in charge (dropdown)
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             OutlinedTextField(
                 value = judgeName,
@@ -339,35 +349,38 @@ private fun SessionsFilterSheet(
                 options = uiState.employees,
                 isLoading = uiState.isLoadingEmployees,
                 onExpand = onLoadEmployees,
-                onSelect = { selectedEmployee = it },
+                onSelect = { selectedEmployee = if (it.id.isBlank()) null else it }
             )
         }
 
-        // Row 4: Period (from uiState.periods) + Branch
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            // Period uses already-loaded uiState.periods — no API call needed
+            val periodOptions = uiState.periods.map { FilterOption(it.id.toString(), it.name) }
             FilterDropdownField(
                 modifier = Modifier.weight(1f),
                 label = "الفترة",
-                selectedOption = selectedPeriod?.let { FilterOption(it.id.toString(), it.name) },
-                options = uiState.periods.map { FilterOption(it.id.toString(), it.name) },
+                selectedOption = selectedPeriod?.let {
+                    FilterOption(it.id.toString(), it.name)
+                },
+                options = periodOptions,
                 isLoading = false,
-                onExpand = {},
+                onExpand = { /* already loaded */ },
                 onSelect = { opt ->
-                    selectedPeriod = uiState.periods.firstOrNull { it.id.toString() == opt.id }
+                    selectedPeriod = if (opt.id.isBlank()) null
+                    else uiState.periods.firstOrNull { it.id.toString() == opt.id }
                 },
             )
             FilterDropdownField(
                 modifier = Modifier.weight(1f),
                 label = "الفرع",
-                selectedOption = selectedBranch,
+                selectedOption = selectedBranch?.takeIf { it.id.isNotBlank() },
                 options = uiState.branches,
                 isLoading = uiState.isLoadingBranches,
                 onExpand = onLoadBranches,
-                onSelect = { selectedBranch = it },
+                onSelect = { selectedBranch = if (it.id.isBlank()) null else it },
             )
         }
 
-        // Row 5: Client + Client phone
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             FilterDropdownField(
                 modifier = Modifier.weight(1f),
@@ -376,7 +389,7 @@ private fun SessionsFilterSheet(
                 options = uiState.parties,
                 isLoading = uiState.isLoadingParties,
                 onExpand = onLoadParties,
-                onSelect = { selectedClient = it },
+                onSelect = { selectedClient = if (it.id.isBlank()) null else it }
             )
             OutlinedTextField(
                 value = clientPhone,
@@ -451,59 +464,137 @@ private fun FilterDropdownField(
 ) {
     var expanded by remember { mutableStateOf(false) }
 
+    // Trigger load when expanded
+    LaunchedEffect(expanded) {
+        if (expanded) onExpand()
+    }
+
     Box(modifier = modifier) {
         OutlinedTextField(
             value = selectedOption?.name ?: "",
             onValueChange = {},
             readOnly = true,
-            placeholder = { Text(label, style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+            placeholder = {
+                Text(
+                    label,
+                    style = MaterialTheme.typography.bodySmall,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    color = TextSecondary,
+                )
+            },
             trailingIcon = {
-                if (isLoading) {
-                    CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp, color = Primary)
-                } else {
-                    Icon(
-                        if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                        contentDescription = null,
-                        modifier = Modifier.clickable {
-                            expanded = true
-                            onExpand()
+                // iOS-style: teal square button with arrow icon
+                Box(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(Primary)
+                        .clickable {
+                            expanded = !expanded
+                            if (expanded) onExpand()
                         },
-                    )
+                    contentAlignment = Alignment.Center,
+                ) {
+                    if (isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(16.dp),
+                            strokeWidth = 2.dp,
+                            color = Color.White,
+                        )
+                    } else {
+                        Icon(
+                            imageVector = if (expanded) Icons.Default.KeyboardArrowUp
+                            else Icons.Default.KeyboardArrowDown,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(20.dp),
+                        )
+                    }
                 }
             },
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { expanded = !expanded; if (expanded) onExpand() },
             singleLine = true,
             shape = RoundedCornerShape(8.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = Primary,
+                unfocusedBorderColor = Divider,
+            ),
         )
 
         DropdownMenu(
-            expanded = expanded && options.isNotEmpty(),
+            expanded = expanded,
             onDismissRequest = { expanded = false },
             modifier = Modifier
                 .background(MaterialTheme.colorScheme.surface)
-                .heightIn(max = 200.dp),
+                .heightIn(max = 220.dp),
         ) {
-            if (selectedOption != null) {
-                DropdownMenuItem(
-                    text = { Text("الكل", style = MaterialTheme.typography.bodyMedium) },
-                    onClick = { onSelect(FilterOption("", "")); expanded = false },
-                )
-                HorizontalDivider(color = Divider)
-            }
-            options.forEach { option ->
+            if (isLoading) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = Primary,
+                        strokeWidth = 2.dp,
+                    )
+                }
+            } else if (options.isEmpty()) {
                 DropdownMenuItem(
                     text = {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                        ) {
-                            Text(option.name, style = MaterialTheme.typography.bodyMedium)
-                            if (selectedOption?.id == option.id)
-                                Text("✓", color = Primary, fontWeight = FontWeight.Bold)
-                        }
+                        Text(
+                            "لا توجد بيانات",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = TextSecondary,
+                        )
                     },
-                    onClick = { onSelect(option); expanded = false },
+                    onClick = { expanded = false },
                 )
+            } else {
+                if (selectedOption != null && selectedOption.id.isNotBlank()) {
+                    DropdownMenuItem(
+                        text = { Text("الكل", style = MaterialTheme.typography.bodyMedium) },
+                        onClick = {
+                            onSelect(FilterOption("", ""))
+                            expanded = false
+                        },
+                    )
+                    HorizontalDivider(color = Divider)
+                }
+                options.forEach { option ->
+                    DropdownMenuItem(
+                        text = {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Text(
+                                    option.name,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    modifier = Modifier.weight(1f),
+                                )
+                                if (selectedOption?.id == option.id) {
+                                    Text(
+                                        "✓",
+                                        color = Primary,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 14.sp,
+                                    )
+                                }
+                            }
+                        },
+                        onClick = {
+                            onSelect(option)
+                            expanded = false
+                        },
+                    )
+                }
             }
         }
     }
