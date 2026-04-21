@@ -18,4 +18,6 @@ interface SessionsRepository {
     suspend fun getEmployees(): Result<List<FilterOption>>
     suspend fun getBranches(): Result<List<FilterOption>>
     suspend fun getParties(): Result<List<FilterOption>>
+    suspend fun getResultCounts(): Result<List<FilterOption>>
+    suspend fun getDiscounts(): Result<List<FilterOption>>
 }

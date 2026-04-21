@@ -26,6 +26,8 @@ class SessionsViewModel @Inject constructor(
     private val getEmployeesUseCase: GetEmployeesUseCase,
     private val getBranchesUseCase: GetBranchesUseCase,
     private val getPartiesUseCase: GetPartiesUseCase,
+    private val getResultCountsUseCase: GetResultCountsUseCase,
+    private val getDiscountsUseCase: GetDiscountsUseCase,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SessionsUiState())
@@ -234,5 +236,27 @@ class SessionsViewModel @Inject constructor(
             )
         }
         loadSessions(refresh = true)
+    }
+
+    fun loadResultCountsIfNeeded() {
+        if (_uiState.value.resultCounts.isNotEmpty() || _uiState.value.isLoadingResultCounts) return
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoadingResultCounts = true) }
+            val result = getResultCountsUseCase()
+            if (result is Result.Success)
+                _uiState.update { it.copy(resultCounts = result.data, isLoadingResultCounts = false) }
+            else _uiState.update { it.copy(isLoadingResultCounts = false) }
+        }
+    }
+
+    fun loadDiscountsIfNeeded() {
+        if (_uiState.value.discounts.isNotEmpty() || _uiState.value.isLoadingDiscounts) return
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoadingDiscounts = true) }
+            val result = getDiscountsUseCase()
+            if (result is Result.Success)
+                _uiState.update { it.copy(discounts = result.data, isLoadingDiscounts = false) }
+            else _uiState.update { it.copy(isLoadingDiscounts = false) }
+        }
     }
 }

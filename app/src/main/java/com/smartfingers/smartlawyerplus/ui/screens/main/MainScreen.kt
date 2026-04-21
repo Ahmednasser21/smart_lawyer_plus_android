@@ -150,7 +150,7 @@ private fun SharedTopBar(
             )
         }
 
-        Spacer(modifier = Modifier.width(8.dp))
+        Spacer(modifier = Modifier.width(12.dp))
 
 
         if (selectedTab == MainTab.SESSIONS) {
@@ -167,7 +167,7 @@ private fun SharedTopBar(
                     tint = Color.White,
                 )
             }
-            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = Modifier.width(12.dp))
         }
 
         IconButton(

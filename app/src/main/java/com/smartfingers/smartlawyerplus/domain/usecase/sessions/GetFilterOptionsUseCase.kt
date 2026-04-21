@@ -32,3 +32,11 @@ class GetBranchesUseCase @Inject constructor(private val repository: SessionsRep
 class GetPartiesUseCase @Inject constructor(private val repository: SessionsRepository) {
     suspend operator fun invoke(): Result<List<FilterOption>> = repository.getParties()
 }
+
+class GetResultCountsUseCase @Inject constructor(private val repository: SessionsRepository) {
+    suspend operator fun invoke(): Result<List<FilterOption>> = repository.getResultCounts()
+}
+
+class GetDiscountsUseCase @Inject constructor(private val repository: SessionsRepository) {
+    suspend operator fun invoke(): Result<List<FilterOption>> = repository.getDiscounts()
+}

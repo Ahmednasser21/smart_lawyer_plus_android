@@ -34,4 +34,8 @@ data class SessionsUiState(
     val isLoadingEmployees: Boolean = false,
     val isLoadingBranches: Boolean = false,
     val isLoadingParties: Boolean = false,
+    val resultCounts: List<FilterOption> = emptyList(),
+    val discounts: List<FilterOption> = emptyList(),
+    val isLoadingResultCounts: Boolean = false,
+    val isLoadingDiscounts: Boolean = false,
 )

@@ -154,4 +154,20 @@ class SessionsRepositoryImpl @Inject constructor(
             } ?: emptyList())
         } else Result.Error(response.errorList?.firstOrNull() ?: "Failed")
     }.getOrElse { Result.Error(it.message ?: "Network error") }
+
+    override suspend fun getResultCounts(): Result<List<FilterOption>> = runCatching {
+        Result.Success(
+            listOf(
+                FilterOption("10", "10"),
+                FilterOption("25", "25"),
+                FilterOption("50", "50"),
+                FilterOption("100", "100"),
+            )
+        )
+    }.getOrElse { Result.Error(it.message ?: "Network error") }
+
+    override suspend fun getDiscounts(): Result<List<FilterOption>> = runCatching {
+        val url = "${baseUrl()}/api/discounts"
+        Result.Success(emptyList<FilterOption>())
+    }.getOrElse { Result.Error(it.message ?: "Network error") }
 }
