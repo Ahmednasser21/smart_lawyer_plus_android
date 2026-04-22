@@ -4,10 +4,12 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.smartfingers.smartlawyerplus.ui.screens.calendar.CalendarScreen
 import com.smartfingers.smartlawyerplus.ui.screens.linkentry.LinkEntryScreen
 import com.smartfingers.smartlawyerplus.ui.screens.login.ForgetPasswordScreen
 import com.smartfingers.smartlawyerplus.ui.screens.login.LoginScreen
 import com.smartfingers.smartlawyerplus.ui.screens.main.MainScreen
+import com.smartfingers.smartlawyerplus.ui.screens.notifications.NotificationsScreen
 import com.smartfingers.smartlawyerplus.ui.screens.onboarding.OnboardingScreen
 import com.smartfingers.smartlawyerplus.ui.screens.splash.SplashScreen
 import com.smartfingers.smartlawyerplus.ui.screens.tasks.TasksScreen
@@ -92,10 +94,26 @@ fun AppNavGraph(navController: NavHostController) {
             )
         }
 
+        composable(NavRoutes.Calendar.route) {
+            CalendarScreen(
+                onBack = { navController.popBackStack() },
+            )
+        }
+
+        composable(NavRoutes.Notifications.route) {
+            NotificationsScreen(
+                onBack = { navController.popBackStack() },
+            )
+        }
+
         composable(NavRoutes.Main.route) {
             MainScreen(
-                onNotificationsClick = { /* TODO */ },
-                onCalendarClick = { /* TODO */ },
+                onNotificationsClick = {
+                    navController.navigate(NavRoutes.Notifications.route)
+                },
+                onCalendarClick = {
+                    navController.navigate(NavRoutes.Calendar.route)
+                },
             )
         }
     }
