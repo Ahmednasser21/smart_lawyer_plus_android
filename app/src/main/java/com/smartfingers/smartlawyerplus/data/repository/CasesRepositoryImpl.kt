@@ -21,11 +21,11 @@ class CasesRepositoryImpl @Inject constructor(
 
     // Mirrors iOS setCasesFilter() — status ids match backend enum
     override fun getCaseStatusFilters(): List<CaseStatusFilter> = listOf(
-        CaseStatusFilter(id = 5, name = "قيد الانتظار"),
+        CaseStatusFilter(id = 5, name = "معلقة"),
         CaseStatusFilter(id = 2, name = "مغلقة"),
         CaseStatusFilter(id = 4, name = "مسودة"),
         CaseStatusFilter(id = 1, name = "منظورة"),
-        CaseStatusFilter(id = 6, name = "ما قبل التقاضي", isSelected = true),
+        CaseStatusFilter(id = 6, name = "ما قبل رفع الدعوى", isSelected = true),
     )
 
     override suspend fun getCases(

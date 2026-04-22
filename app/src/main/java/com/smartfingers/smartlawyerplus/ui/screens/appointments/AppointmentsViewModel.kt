@@ -25,7 +25,7 @@ class AppointmentsViewModel @Inject constructor(
 
     // Mirrors iOS: finished tab + scheduled tab (isFinished = false is "Scheduled")
     private val defaultTabs = listOf(
-        AppointmentFilterTab(id = 1, name = "منجزة", isFinished = true),
+        AppointmentFilterTab(id = 1, name = "منتهية", isFinished = true),
         AppointmentFilterTab(id = 2, name = "مجدولة", isFinished = false, isSelected = true),
     )
 

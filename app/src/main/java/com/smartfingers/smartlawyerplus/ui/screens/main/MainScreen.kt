@@ -29,10 +29,13 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.smartfingers.smartlawyerplus.R
 import com.smartfingers.smartlawyerplus.ui.components.BottomNavCutoutShape
+import com.smartfingers.smartlawyerplus.ui.screens.appointments.AppointmentsScreen
+import com.smartfingers.smartlawyerplus.ui.screens.appointments.AppointmentsViewModel
+import com.smartfingers.smartlawyerplus.ui.screens.cases.CasesScreen
+import com.smartfingers.smartlawyerplus.ui.screens.cases.CasesViewModel
 import com.smartfingers.smartlawyerplus.ui.screens.sessions.SessionsScreen
 import com.smartfingers.smartlawyerplus.ui.screens.tasks.TasksScreen
 import com.smartfingers.smartlawyerplus.ui.screens.tasks.TasksViewModel
-import com.smartfingers.smartlawyerplus.ui.theme.TextSecondary
 
 enum class MainTab(val labelAr: String, val iconRes: Int) {
     TASKS("المهام", R.drawable.layer_3_2),
@@ -46,6 +49,8 @@ fun MainScreen(
     onNotificationsClick: () -> Unit = {},
     onCalendarClick: () -> Unit = {},
     viewModel: TasksViewModel = hiltViewModel(),
+    casesViewModel: CasesViewModel = hiltViewModel(),
+    appointmentsViewModel: AppointmentsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var selectedTab by remember { mutableStateOf(MainTab.TASKS) }
@@ -79,9 +84,17 @@ fun MainScreen(
                     onFilterIconReady = { action -> sessionsFilterAction = action },
                 )
 
-                MainTab.APPOINTMENTS -> PlaceholderTabScreen("المواعيد")
-                MainTab.CASES -> PlaceholderTabScreen("القضايا")
+                MainTab.APPOINTMENTS -> AppointmentsScreen(
+                    onAppointmentClick = {},
+                    viewModel = appointmentsViewModel,
+                )
+
+                MainTab.CASES -> CasesScreen(
+                    onCaseClick = {},
+                    viewModel = casesViewModel,
+                )
             }
+
         }
 
         AnimatedVisibility(
@@ -401,16 +414,5 @@ private fun FabMenuItems(
                 )
             }
         }
-    }
-}
-
-@Composable
-private fun PlaceholderTabScreen(title: String) {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.headlineMedium,
-            color = TextSecondary,
-        )
     }
 }
