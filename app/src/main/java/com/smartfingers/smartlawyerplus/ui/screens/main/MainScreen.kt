@@ -27,8 +27,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavHostController
 import com.smartfingers.smartlawyerplus.R
 import com.smartfingers.smartlawyerplus.ui.components.BottomNavCutoutShape
+import com.smartfingers.smartlawyerplus.ui.navigation.NavRoutes
 import com.smartfingers.smartlawyerplus.ui.screens.appointments.AppointmentsScreen
 import com.smartfingers.smartlawyerplus.ui.screens.appointments.AppointmentsViewModel
 import com.smartfingers.smartlawyerplus.ui.screens.cases.CasesScreen
@@ -46,6 +48,7 @@ enum class MainTab(val labelAr: String, val iconRes: Int) {
 
 @Composable
 fun MainScreen(
+    navController: NavHostController,
     onNotificationsClick: () -> Unit = {},
     onCalendarClick: () -> Unit = {},
     viewModel: TasksViewModel = hiltViewModel(),
@@ -75,22 +78,25 @@ fun MainScreen(
 
             when (selectedTab) {
                 MainTab.TASKS -> TasksScreen(
-                    onTaskClick = {},
+                    onTaskClick = { taskId -> navController.navigate(NavRoutes.TaskDetails.createRoute(taskId)) },
                     viewModel = viewModel,
                 )
 
                 MainTab.SESSIONS -> SessionsScreen(
-                    onSessionClick = {},
+                    onSessionClick = { session ->
+                        navController.currentBackStackEntry?.savedStateHandle?.set("session", session)
+                        navController.navigate(NavRoutes.SessionDetails.createRoute(session.id))
+                    },
                     onFilterIconReady = { action -> sessionsFilterAction = action },
                 )
 
                 MainTab.APPOINTMENTS -> AppointmentsScreen(
-                    onAppointmentClick = {},
+                    onAppointmentClick = { apptId -> navController.navigate(NavRoutes.AppointmentDetails.createRoute(apptId)) },
                     viewModel = appointmentsViewModel,
                 )
 
                 MainTab.CASES -> CasesScreen(
-                    onCaseClick = {},
+                    onCaseClick = { caseId -> navController.navigate(NavRoutes.CaseDetails.createRoute(caseId)) },
                     viewModel = casesViewModel,
                 )
             }
@@ -111,9 +117,9 @@ fun MainScreen(
                 contentAlignment = Alignment.BottomCenter,
             ) {
                 FabMenuItems(
-                    onAddTask = { showFabMenu = false },
-                    onAddSession = { showFabMenu = false },
-                    onAddAppointment = { showFabMenu = false },
+                    onAddTask = { showFabMenu = false; navController.navigate(NavRoutes.AddTask.route) },
+                    onAddSession = { showFabMenu = false; navController.navigate(NavRoutes.AddSession.route) },
+                    onAddAppointment = { showFabMenu = false; navController.navigate(NavRoutes.AddAppointmentNav.route) },
                 )
             }
         }

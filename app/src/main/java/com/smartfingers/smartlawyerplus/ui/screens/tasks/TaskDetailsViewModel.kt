@@ -1,0 +1,57 @@
+package com.smartfingers.smartlawyerplus.ui.screens.tasks
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.smartfingers.smartlawyerplus.domain.model.*
+import com.smartfingers.smartlawyerplus.domain.usecase.tasks.*
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
+import javax.inject.Inject
+
+@HiltViewModel
+class TaskDetailsViewModel @Inject constructor(
+    private val getTaskDetails: GetTaskDetailsUseCase,
+    private val getTaskProjectInfo: GetTaskProjectInfoUseCase,
+    private val getTaskReplies: GetTaskRepliesUseCase,
+) : ViewModel() {
+
+    private val _state = MutableStateFlow(TaskDetailsUiState())
+    val state: StateFlow<TaskDetailsUiState> = _state
+
+    fun load(taskId: Int) {
+        viewModelScope.launch {
+            _state.update { it.copy(isLoading = true) }
+            when (val r = getTaskDetails(taskId)) {
+                is Result.Success -> {
+                    _state.update { it.copy(isLoading = false, details = r.data) }
+                    loadProjectInfo(taskId)
+                }
+                is Result.Error -> _state.update { it.copy(isLoading = false, error = r.message) }
+                else -> Unit
+            }
+        }
+    }
+
+    private fun loadProjectInfo(taskId: Int) {
+        viewModelScope.launch {
+            when (val r = getTaskProjectInfo(taskId)) {
+                is Result.Success -> _state.update { it.copy(projectInfo = r.data) }
+                else -> Unit
+            }
+        }
+    }
+
+    fun loadReplies(taskId: Int) {
+        viewModelScope.launch {
+            _state.update { it.copy(isLoadingReplies = true) }
+            when (val r = getTaskReplies(taskId)) {
+                is Result.Success -> _state.update { it.copy(isLoadingReplies = false, replies = r.data) }
+                is Result.Error -> _state.update { it.copy(isLoadingReplies = false) }
+                else -> Unit
+            }
+        }
+    }
+
+    fun selectTab(tab: TaskDetailsTab) = _state.update { it.copy(selectedTab = tab) }
+}

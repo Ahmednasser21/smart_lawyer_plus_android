@@ -1,0 +1,55 @@
+package com.smartfingers.smartlawyerplus.data.repository
+
+import com.smartfingers.smartlawyerplus.data.local.AppPreferences
+import com.smartfingers.smartlawyerplus.data.remote.api.TasksDetailApiService
+import com.smartfingers.smartlawyerplus.data.remote.dto.AddSessionDto
+import com.smartfingers.smartlawyerplus.domain.model.*
+import com.smartfingers.smartlawyerplus.domain.repository.SessionsAddRepository
+import javax.inject.Inject
+
+class SessionsAddRepositoryImpl @Inject constructor(
+    private val prefs: AppPreferences,
+    private val api: TasksDetailApiService,
+) : SessionsAddRepository {
+
+    private suspend fun base() = "${prefs.getBaseUrlOnce()}${prefs.getAppUrlOnce()}"
+
+    override suspend fun getHearingTypesForAdd(): Result<List<HearingType>> = runCatching {
+        val r = api.getHearingTypes("${base()}/api/hearingTypes")
+        if (r.isSuccess == true)
+            Result.Success(r.data?.items?.map { HearingType(it.id ?: 0, it.name ?: "") } ?: emptyList())
+        else Result.Error(r.errorList?.firstOrNull() ?: "Error")
+    }.getOrElse { Result.Error(it.message ?: "Network error") }
+
+    override suspend fun getCourtsForAdd(): Result<List<Court>> = runCatching {
+        val r = api.getCourts("${base()}/api/courts")
+        if (r.isSuccess == true)
+            Result.Success(r.data?.items?.map { Court(it.id ?: 0, it.name ?: "") } ?: emptyList())
+        else Result.Error(r.errorList?.firstOrNull() ?: "Error")
+    }.getOrElse { Result.Error(it.message ?: "Network error") }
+
+    override suspend fun getCasesForAdd(): Result<List<TaskCase>> = runCatching {
+        val list = api.getTaskCases("${base()}/api/cases/for-select")
+        Result.Success(list.map { TaskCase(it.id ?: 0, it.name ?: "") })
+    }.getOrElse { Result.Error(it.message ?: "Network error") }
+
+    override suspend fun getEmployeesForAdd(): Result<List<TaskEmployee>> = runCatching {
+        val list = api.getEmployees("${base()}/api/Employees/List")
+        Result.Success(list.map { TaskEmployee(it.id ?: "", it.name ?: "") })
+    }.getOrElse { Result.Error(it.message ?: "Network error") }
+
+    override suspend fun addSession(request: AddSessionRequest): Result<Int> = runCatching {
+        val dto = AddSessionDto(
+            caseId = request.caseId, assignedUserIds = request.assignedUserIds,
+            hearingNumber = request.hearingNumber, hearingTypeId = request.hearingTypeId,
+            subHearingTypeId = request.subHearingTypeId, courtId = request.courtId,
+            courtCircle = request.courtCircle, startDate = request.startDate,
+            startTime = request.startTime, judgeName = request.judgeName,
+            judgeOfficeNumber = request.judgeOfficeNumber, hearingDesc = request.hearingDesc,
+            requiredDocs = request.requiredDocs,
+        )
+        val r = api.addSession("${base()}/api/hearings", dto)
+        if (r.isSuccess == true) Result.Success(r.data ?: 0)
+        else Result.Error(r.errorList?.firstOrNull() ?: "Error")
+    }.getOrElse { Result.Error(it.message ?: "Network error") }
+}

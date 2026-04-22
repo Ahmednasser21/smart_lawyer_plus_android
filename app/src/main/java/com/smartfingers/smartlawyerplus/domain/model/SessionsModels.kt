@@ -1,5 +1,9 @@
 package com.smartfingers.smartlawyerplus.domain.model
 
+import android.os.Parcelable
+import kotlinx.parcelize.Parcelize
+
+@Parcelize
 data class Session(
     val id: Int,
     val hearingNumber: Int?,
@@ -17,7 +21,7 @@ data class Session(
     val caseId: Int?,
     val remainingDays: Int?,
     val hasReport: Boolean,
-)
+) : Parcelable
 
 data class HearingStatus(
     val id: Int,

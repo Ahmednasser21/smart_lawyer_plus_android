@@ -38,7 +38,7 @@ typealias OnOpenSessionFilter = () -> Unit
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SessionsScreen(
-    onSessionClick: (Int) -> Unit = {},
+    onSessionClick: (Session) -> Unit = {},
     onFilterIconReady: (OnOpenSessionFilter) -> Unit = {},
     viewModel: SessionsViewModel = hiltViewModel(),
 ) {
@@ -86,7 +86,11 @@ fun SessionsScreen(
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     items(uiState.sessions.distinctBy { it.id }, key = { it.id }) { session ->
-                        SessionCard(session = session, onClick = { onSessionClick(session.id) })
+                        SessionCard(
+                            session = session,
+                            onClick = {
+                                onSessionClick(session)
+                            })
                     }
                     if (uiState.isLoadingMore) {
                         item {
@@ -175,7 +179,7 @@ private fun SessionsFilterBar(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Top,
 
-                ) {
+                    ) {
                     Text(
                         text = "الفترة",
                         style = MaterialTheme.typography.labelSmall,

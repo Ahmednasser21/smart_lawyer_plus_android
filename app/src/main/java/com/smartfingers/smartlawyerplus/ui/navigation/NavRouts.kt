@@ -17,11 +17,21 @@ sealed class NavRoutes(val route: String) {
 
     data object Main : NavRoutes("main")
 
-    data object Tasks : NavRoutes("tasks")
-    data object Sessions : NavRoutes("sessions")
-    data object Home : NavRoutes("home")
-    data object Appointments : NavRoutes("appointments")
-    data object Cases : NavRoutes("cases")
+    data object TaskDetails : NavRoutes("task_details/{taskId}") {
+        fun createRoute(taskId: Int) = "task_details/$taskId"
+    }
+    data object SessionDetails : NavRoutes("session_details/{sessionId}") {
+        fun createRoute(sessionId: Int) = "session_details/$sessionId"
+    }
+    data object AppointmentDetails : NavRoutes("appointment_details/{appointmentId}") {
+        fun createRoute(appointmentId: Int) = "appointment_details/$appointmentId"
+    }
+    data object CaseDetails : NavRoutes("case_details/{caseId}") {
+        fun createRoute(caseId: Int) = "case_details/$caseId"
+    }
+    data object AddTask : NavRoutes("add_task")
+    data object AddSession : NavRoutes("add_session")
+    data object AddAppointmentNav : NavRoutes("add_appointment")
 
     data object Calendar : NavRoutes("calendar")
     data object Notifications : NavRoutes("notifications")
