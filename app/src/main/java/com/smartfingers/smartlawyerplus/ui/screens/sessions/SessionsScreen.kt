@@ -54,7 +54,18 @@ fun SessionsScreen(
             lastVisible >= uiState.sessions.size - 3 && uiState.hasMore && !uiState.isLoadingMore
         }
     }
-    LaunchedEffect(shouldLoadMore) { if (shouldLoadMore) viewModel.loadMore() }
+    LaunchedEffect(listState) {
+        snapshotFlow { listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
+            .collect { lastVisibleIndex ->
+                if (lastVisibleIndex != null &&
+                    lastVisibleIndex >= uiState.sessions.size - 3 &&
+                    uiState.hasMore &&
+                    !uiState.isLoadingMore
+                ) {
+                    viewModel.loadMore()
+                }
+            }
+    }
 
     Column(
         modifier = Modifier
@@ -847,7 +858,7 @@ fun SessionCard(session: Session, onClick: () -> Unit) {
                             dateDisplay,
                             style = MaterialTheme.typography.labelSmall,
                             fontSize = 10.sp,
-                            color = TextSecondary,
+                            color = MaterialTheme.colorScheme.onSurface,
                             textAlign = TextAlign.End
                         )
                         Icon(

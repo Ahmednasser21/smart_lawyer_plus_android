@@ -176,7 +176,7 @@ private fun FilterRow(
            DropdownMenu(
                 expanded = showScopeMenu,
                 onDismissRequest = { showScopeMenu = false },
-                modifier = Modifier.background(Color.White)
+                modifier = Modifier.background(MaterialTheme.colorScheme.surface)
             ) {
                 TaskScope.entries.forEach { scope ->
                     DropdownMenuItem(
@@ -187,7 +187,7 @@ private fun FilterRow(
                                     TaskScope.ALL        -> "كل المهام"
                                     TaskScope.CREATED    -> "مهام أنشأتها"
                                 },
-                                color = TextPrimary
+                                color = MaterialTheme.colorScheme.onSurface,
                             )
                         },
                         onClick = {
@@ -226,7 +226,7 @@ private fun ScopeChip(label: String, expanded: Boolean, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .clip(RoundedCornerShape(8.dp))
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.surface)
             .border(1.dp, Divider, RoundedCornerShape(8.dp))
             .clickable(onClick = onClick)
             .padding(horizontal = 10.dp, vertical = 8.dp),
@@ -236,14 +236,14 @@ private fun ScopeChip(label: String, expanded: Boolean, onClick: () -> Unit) {
         Icon(
             imageVector = Icons.Default.KeyboardArrowDown,
             contentDescription = null,
-            tint = TextPrimary,
+            tint = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.rotate(rotation)
                 .size(32.dp),
         )
         Text(
             text = label,
             style = MaterialTheme.typography.labelMedium,
-            color = TextPrimary,
+            color = MaterialTheme.colorScheme.onSurface,
         )
     }
 }
@@ -258,7 +258,7 @@ private fun StatusFilterChip(
     Row(
         modifier = Modifier
             .clip(RoundedCornerShape(8.dp))
-            .background(if (isSelected) Primary else  Color.White)
+            .background(if (isSelected) Primary else  MaterialTheme.colorScheme.surface)
             .border(
                 width = 1.dp,
                 color = if (isSelected) Primary else Divider,
@@ -270,7 +270,7 @@ private fun StatusFilterChip(
         Text(
             text = label,
             style = MaterialTheme.typography.labelMedium,
-            color = if (isSelected) Color.White else TextSecondary,
+            color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface,
             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
         )
@@ -373,13 +373,13 @@ fun TaskCard(task: Task, onClick: () -> Unit) {
                         text = "${task.remainingDays} يوم",
                         style = MaterialTheme.typography.labelSmall,
                         fontSize = 10.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = MaterialTheme.colorScheme.onSurface,
                     )
 
                     Icon(
                         Icons.Default.AvTimer,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        tint = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.size(11.dp),
                     )
 
@@ -426,7 +426,7 @@ private fun EmptyTasksState() {
         Text(
             text = "لا توجد مهام",
             style = MaterialTheme.typography.bodyMedium,
-            color = TextSecondary,
+            color = MaterialTheme.colorScheme.onSurface,
         )
     }
 }
