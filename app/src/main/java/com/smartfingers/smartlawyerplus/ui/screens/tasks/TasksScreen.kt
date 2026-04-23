@@ -211,7 +211,7 @@ private fun FilterRow(
                     accentColor = when (filter.id) {
                         1    -> Secondary
                         4    -> Primary
-                        else -> Color.Red.copy(alpha = 0.8f)
+                        else -> Color(0xFFA50900)
                     },
                     onClick = { onFilterSelected(filter) }
                 )
@@ -238,7 +238,7 @@ private fun ScopeChip(label: String, expanded: Boolean, onClick: () -> Unit) {
             contentDescription = null,
             tint = TextPrimary,
             modifier = Modifier.rotate(rotation)
-                .size(20.dp),
+                .size(32.dp),
         )
         Text(
             text = label,

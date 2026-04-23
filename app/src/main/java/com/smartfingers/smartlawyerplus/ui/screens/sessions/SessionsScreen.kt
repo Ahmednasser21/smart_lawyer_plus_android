@@ -10,6 +10,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AvTimer
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Timer
@@ -171,7 +172,7 @@ private fun SessionsFilterBar(
                     else Icons.Default.KeyboardArrowDown,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.size(20.dp),
+                    modifier = Modifier.size(24.dp),
                 )
                 Spacer(modifier = Modifier.weight(1f))
 
@@ -756,19 +757,27 @@ fun SessionCard(session: Session, onClick: () -> Unit) {
                 .fillMaxWidth()
                 .padding(horizontal = 12.dp, vertical = 10.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.Top,
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(
                 horizontalAlignment = Alignment.Start,
                 verticalArrangement = Arrangement.spacedBy(6.dp),
                 modifier = Modifier.weight(1f),
             ) {
+
                 session.hearingTypeName?.let {
                     Text(
                         it,
                         style = MaterialTheme.typography.labelSmall,
                         color = Primary,
                         fontWeight = FontWeight.SemiBold
+                    )
+                }
+                session.hearingNumber?.let {
+                    Text(
+                        it.toString(),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = TextSecondary
                     )
                 }
                 session.courtName?.let {
@@ -779,25 +788,6 @@ fun SessionCard(session: Session, onClick: () -> Unit) {
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
-                }
-                session.remainingDays?.let { days ->
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(2.dp)
-                    ) {
-                        Icon(
-                            Icons.Default.Timer,
-                            contentDescription = null,
-                            tint = Primary,
-                            modifier = Modifier.size(12.dp)
-                        )
-                        Text(
-                            "$days يوم",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontSize = 10.sp,
-                            color = TextSecondary
-                        )
-                    }
                 }
             }
 
@@ -811,33 +801,20 @@ fun SessionCard(session: Session, onClick: () -> Unit) {
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Column(horizontalAlignment = Alignment.End) {
-                        val firstUser = session.assignedUsers.firstOrNull()
-                        val userDisplay =
-                            if (session.assignedUsers.size > 1) "${firstUser ?: ""} ..." else firstUser
-                                ?: ""
-                        if (userDisplay.isNotBlank()) {
-                            Text(
-                                userDisplay,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurface,
-                                textAlign = TextAlign.End,
-                                modifier = Modifier.widthIn(max = 160.dp),
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
-                        session.caseName?.let {
-                            Text(
-                                it,
-                                style = MaterialTheme.typography.labelSmall,
-                                color = Primary,
-                                textAlign = TextAlign.End,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.widthIn(max = 160.dp)
-                            )
-                        }
+                    val firstUser = session.assignedUsers.firstOrNull()
+                    val userDisplay =
+                        if (session.assignedUsers.size > 1) "${firstUser ?: ""} ..." else firstUser
+                            ?: ""
+                    if (userDisplay.isNotBlank()) {
+                        Text(
+                            userDisplay,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            textAlign = TextAlign.End,
+                            modifier = Modifier.widthIn(max = 160.dp),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
                     }
                     Box(
                         modifier = Modifier
@@ -855,27 +832,42 @@ fun SessionCard(session: Session, onClick: () -> Unit) {
                     }
                 }
 
+                session.caseName?.let {
+                    Text(
+                        it,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Primary,
+                        textAlign = TextAlign.End,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.widthIn(max = 160.dp)
+                    )
+                }
+
                 val dateDisplay = buildString {
                     session.startTime?.let { append(it.take(5)); append(" / ") }
                     session.startDate?.let { append(it.take(10)) }
                     session.startDateHijri?.let { append(" / "); append(it) }
                 }
                 if (dateDisplay.isNotBlank()) {
-                    Text(
-                        dateDisplay,
-                        style = MaterialTheme.typography.labelSmall,
-                        fontSize = 10.sp,
-                        color = TextSecondary,
-                        textAlign = TextAlign.End
-                    )
-                }
-                session.hearingNumber?.let {
-                    Text(
-                        it.toString(),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = TextSecondary,
-                        textAlign = TextAlign.End
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Text(
+                            dateDisplay,
+                            style = MaterialTheme.typography.labelSmall,
+                            fontSize = 10.sp,
+                            color = TextSecondary,
+                            textAlign = TextAlign.End
+                        )
+                        Icon(
+                            Icons.Default.AvTimer,
+                            contentDescription = null,
+                            tint = Primary,
+                            modifier = Modifier.size(12.dp)
+                        )
+                    }
                 }
             }
         }

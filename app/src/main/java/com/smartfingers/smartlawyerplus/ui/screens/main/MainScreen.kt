@@ -14,6 +14,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material.icons.filled.FormatAlignCenter
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -181,7 +182,7 @@ private fun SharedTopBar(
                     .background(MaterialTheme.colorScheme.primary),
             ) {
                 Icon(
-                    imageVector = Icons.Default.FilterList,
+                    imageVector = Icons.Default.FormatAlignCenter,
                     contentDescription = "تصنيف الجلسات",
                     tint = Color.White,
                 )
