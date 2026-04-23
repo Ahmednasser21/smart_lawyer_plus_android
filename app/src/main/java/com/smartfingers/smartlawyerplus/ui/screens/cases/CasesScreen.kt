@@ -21,10 +21,13 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AvTimer
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -38,12 +41,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.smartfingers.smartlawyerplus.R
 import com.smartfingers.smartlawyerplus.domain.model.CaseListItem
 import com.smartfingers.smartlawyerplus.domain.model.CaseStatusFilter
 import com.smartfingers.smartlawyerplus.ui.theme.Divider
@@ -206,146 +210,115 @@ fun CaseCard(case: CaseListItem, onClick: () -> Unit) {
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 12.dp, vertical = 10.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            // Top row: case name + status badge
+            // Top row: label (left) + name + avatar (right)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                // Case name (right side, RTL primary)
+                // Left: case number or court label
                 Text(
-                    text = case.name.ifBlank { "-" },
-                    style = MaterialTheme.typography.bodySmall,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    maxLines = 2,
+                    text = case.name,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Primary,
+                    maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    textAlign = TextAlign.End,
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(end = 8.dp),
+                    modifier = Modifier.widthIn(max = 100.dp),
                 )
 
-                // Status badge
-                case.legalStatusName?.let { status ->
+                // Right: name + avatar
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Text(
+                        text = case.managers ?: case.name.ifBlank { "-" },
+                        style = MaterialTheme.typography.bodySmall,
+                        fontWeight = FontWeight.Medium,
+                        maxLines = 1,
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
                     Box(
                         modifier = Modifier
-                            .clip(RoundedCornerShape(6.dp))
-                            .background(caseStatusColor(case.status ?: 0).copy(alpha = 0.15f))
-                            .padding(horizontal = 8.dp, vertical = 3.dp),
+                            .size(32.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(MaterialTheme.colorScheme.primaryContainer),
+                        contentAlignment = Alignment.Center,
                     ) {
-                        Text(
-                            text = status,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = caseStatusColor(case.status ?: 0),
-                            fontWeight = FontWeight.Medium,
+                        Icon(
+                            painter = painterResource(R.drawable.icons8_avatar_100),
+                            contentDescription = null,
+                            tint = Color.Unspecified,
+                            modifier = Modifier.fillMaxSize(),
                         )
                     }
                 }
             }
 
-            // Case number
-            case.caseNumberInSource?.let { number ->
-                Text(
-                    text = number,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = Primary,
-                    textAlign = TextAlign.End,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
-
-            // Divider line
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(0.5.dp)
-                    .background(Divider),
-            )
-
-            // Bottom row: court + litigationType + next hearing
+            // Bottom row: badges (left) + date (right)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Bottom,
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                // Left: litigation type
-                Column(
-                    horizontalAlignment = Alignment.Start,
-                    verticalArrangement = Arrangement.spacedBy(2.dp),
-                ) {
-                    case.litigationTypeName?.let {
-                        Text(
-                            text = it,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = TextSecondary,
-                            fontSize = 10.sp,
-                        )
-                    }
-                    case.nextHearingStartDate?.let { date ->
-                        Text(
-                            text = date.take(10),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.primary,
-                            fontSize = 10.sp,
-                        )
-                    }
-                }
-
-                // Right: court name
-                case.court?.let { court ->
-                    Text(
-                        text = court,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = TextSecondary,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        textAlign = TextAlign.End,
-                        modifier = Modifier.widthIn(max = 160.dp),
-                    )
-                }
-            }
-
-            // Clients / adversaries row
-            if (!case.clients.isNullOrBlank() || !case.adversaries.isNullOrBlank()) {
+                // Left: status badges
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    case.adversaries?.let {
-                        if (it.isNotBlank()) {
+                    case.legalStatusName?.let { status ->
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(Color(0xFFC7E2B6))
+                                .padding(horizontal = 10.dp, vertical = 4.dp),
+                        ) {
                             Text(
-                                text = it,
+                                text = status,
                                 style = MaterialTheme.typography.labelSmall,
-                                color = Color(0xFFF44336),
-                                fontSize = 10.sp,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.widthIn(max = 100.dp),
-                            )
-                            Text(
-                                text = " / ",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = TextSecondary,
-                                fontSize = 10.sp,
+                                color = Color.Black,
+                                fontWeight = FontWeight.Medium,
                             )
                         }
                     }
-                    case.clients?.let {
-                        if (it.isNotBlank()) {
+                    case.litigationTypeName?.let { type ->
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(Color(0xFFC7E2B6))
+                                .padding(horizontal = 10.dp, vertical = 4.dp),
+                        ) {
                             Text(
-                                text = it,
+                                text = type,
                                 style = MaterialTheme.typography.labelSmall,
-                                color = Color(0xFF3AAD66),
-                                fontSize = 10.sp,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.widthIn(max = 100.dp),
+                                color = Color.Black,
+                                fontWeight = FontWeight.Medium,
                             )
                         }
+                    }
+                }
+
+                // Right: date + timer icon
+                val dateDisplay = case.nextHearingStartDate?.take(10)
+                    ?: case.startDate?.take(10)
+                if (!dateDisplay.isNullOrBlank()) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        Text(
+                            text = dateDisplay,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = TextSecondary,
+                        )
+                        Icon(
+                            imageVector = Icons.Default.AvTimer,
+                            contentDescription = null,
+                            tint = Primary,
+                            modifier = Modifier.size(14.dp),
+                        )
                     }
                 }
             }
