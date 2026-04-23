@@ -1,18 +1,22 @@
 package com.smartfingers.smartlawyerplus.ui.screens.tasks
 
+import com.smartfingers.smartlawyerplus.R
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -28,6 +32,63 @@ fun AddTaskScreen(
     onSaved: () -> Unit,
     viewModel: AddTaskViewModel = hiltViewModel(),
 ) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.surface)
+            .statusBarsPadding()
+            .navigationBarsPadding()
+    ) {
+        CenterAlignedTopAppBar(
+            title = {
+                Text(
+                    text = "إضافة مهمه",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                )
+            },
+            actions = {
+                IconButton(onClick = onBack) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                        contentDescription = "Back",
+                        tint = Primary,
+                        modifier = Modifier.size(28.dp)
+                    )
+                }
+            },
+            colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                containerColor = MaterialTheme.colorScheme.surface,
+            ),
+        )
+        Column(
+            modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.software_engineer_amico),
+                contentDescription = null,
+                modifier = Modifier.size(200.dp).padding(bottom = 16.dp),
+                tint = Color.Unspecified
+            )
+            Text(
+                text = "المهام تحت التطوير حالياً",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        }
+
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AddTaskScreenX(
+    onBack: () -> Unit,
+    onSaved: () -> Unit,
+    viewModel: AddTaskViewModel = hiltViewModel(),
+) {
     val state by viewModel.state.collectAsState()
 
     LaunchedEffect(state.success) {
@@ -37,8 +98,21 @@ fun AddTaskScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("إضافة مهمة", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold) },
-                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, null) } },
+                title = {
+                    Text(
+                        "إضافة مهمة",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            null
+                        )
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
             )
         },
@@ -60,11 +134,16 @@ fun AddTaskScreen(
                 label = { Text("رقم المهمة") },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(8.dp),
-                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Primary, unfocusedBorderColor = Divider),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Primary,
+                    unfocusedBorderColor = Divider
+                ),
             )
 
             // Secret checkbox
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable { viewModel.onSecretToggle() }) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.clickable { viewModel.onSecretToggle() }) {
                 Checkbox(
                     checked = state.isSecret,
                     onCheckedChange = { viewModel.onSecretToggle() },
@@ -87,7 +166,10 @@ fun AddTaskScreen(
                 label = "الأولوية",
                 selected = state.selectedPriority?.name ?: "",
                 options = state.priorities.map { it.name },
-                onSelect = { name -> state.priorities.firstOrNull { it.name == name }?.let { viewModel.onPrioritySelected(it) } },
+                onSelect = { name ->
+                    state.priorities.firstOrNull { it.name == name }
+                        ?.let { viewModel.onPrioritySelected(it) }
+                },
             )
 
             // Category dropdown
@@ -95,7 +177,10 @@ fun AddTaskScreen(
                 label = "تصنيف المهمة",
                 selected = state.selectedCategory?.name ?: "",
                 options = state.categories.map { it.name },
-                onSelect = { name -> state.categories.firstOrNull { it.name == name }?.let { viewModel.onCategorySelected(it) } },
+                onSelect = { name ->
+                    state.categories.firstOrNull { it.name == name }
+                        ?.let { viewModel.onCategorySelected(it) }
+                },
             )
 
             // Employees multi-select
@@ -114,7 +199,8 @@ fun AddTaskScreen(
                 options = listOf("بدون") + state.cases.map { it.name },
                 onSelect = { name ->
                     if (name == "بدون") viewModel.onCaseSelected(null)
-                    else state.cases.firstOrNull { it.name == name }?.let { viewModel.onCaseSelected(it) }
+                    else state.cases.firstOrNull { it.name == name }
+                        ?.let { viewModel.onCaseSelected(it) }
                 },
             )
 
@@ -123,14 +209,23 @@ fun AddTaskScreen(
                 value = state.requestMessage,
                 onValueChange = viewModel::onMessageChange,
                 label = { Text("المستندات المطلوبة") },
-                modifier = Modifier.fillMaxWidth().height(100.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(100.dp),
                 shape = RoundedCornerShape(8.dp),
                 maxLines = 4,
-                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Primary, unfocusedBorderColor = Divider),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Primary,
+                    unfocusedBorderColor = Divider
+                ),
             )
 
             if (state.error.isNotEmpty()) {
-                Text(state.error, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                Text(
+                    state.error,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall
+                )
             }
 
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -166,9 +261,14 @@ fun DropdownSelector(
             readOnly = true,
             label = { Text(label) },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
-            modifier = Modifier.fillMaxWidth().menuAnchor(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .menuAnchor(),
             shape = RoundedCornerShape(8.dp),
-            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Primary, unfocusedBorderColor = Divider),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = Primary,
+                unfocusedBorderColor = Divider
+            ),
         )
         ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             options.forEach { opt ->
@@ -193,15 +293,27 @@ fun <T> MultiSelectChips(
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Text(label, style = MaterialTheme.typography.labelMedium, color = TextSecondary)
         if (allOptions.isEmpty()) {
-            Text("جار التحميل...", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
+            Text(
+                "جار التحميل...",
+                style = MaterialTheme.typography.labelSmall,
+                color = TextSecondary
+            )
         } else {
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
                 allOptions.forEach { option ->
                     val isSelected = selected.any { getLabel(it) == getLabel(option) }
                     FilterChip(
                         selected = isSelected,
                         onClick = { onToggle(option) },
-                        label = { Text(getLabel(option), style = MaterialTheme.typography.labelSmall) },
+                        label = {
+                            Text(
+                                getLabel(option),
+                                style = MaterialTheme.typography.labelSmall
+                            )
+                        },
                         colors = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = Primary,
                             selectedLabelColor = Color.White,
