@@ -765,14 +765,14 @@ fun SessionCard(session: Session, onClick: () -> Unit) {
                     Text(
                         it.toString(),
                         style = MaterialTheme.typography.labelSmall,
-                        color = TextSecondary
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
                 session.courtName?.let {
                     Text(
                         it,
                         style = MaterialTheme.typography.labelSmall,
-                        color = TextSecondary,
+                        color = MaterialTheme.colorScheme.onSurface,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )

@@ -296,7 +296,7 @@ fun AppointmentCard(appointment: AppointmentListItem, onClick: () -> Unit) {
                             text = dateDisplay,
                             style = MaterialTheme.typography.labelSmall,
                             fontSize = 10.sp,
-                            color = TextSecondary,
+                            color = MaterialTheme.colorScheme.onSurface,
                             textAlign = TextAlign.End,
                         )
                         Icon(
@@ -343,7 +343,7 @@ fun AppointmentCard(appointment: AppointmentListItem, onClick: () -> Unit) {
                     Text(
                         text = displayParties + suffix,
                         style = MaterialTheme.typography.labelSmall,
-                        color = TextSecondary,
+                        color = MaterialTheme.colorScheme.onSurface,
                         fontSize = 10.sp,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
@@ -360,7 +360,7 @@ private fun EmptyAppointmentsState() {
         Text(
             text = "لا توجد مواعيد",
             style = MaterialTheme.typography.bodyMedium,
-            color = TextSecondary,
+            color = MaterialTheme.colorScheme.onSurface,
         )
     }
 }
