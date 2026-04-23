@@ -26,7 +26,7 @@ class TasksViewModel @Inject constructor(
     private val defaultFilters = listOf(
         TaskFilter(4, "بانتظار الاعتماد", TaskFilterType.REQUIRES_APPROVAL),
         TaskFilter(1, "مهام منجزة", TaskFilterType.FINISHED),
-        TaskFilter(2, "مهام مسؤول عنها", TaskFilterType.UNFINISHED, isSelected = true),
+        TaskFilter(2, "مهام غير منجزة", TaskFilterType.UNFINISHED, isSelected = true),
     )
 
     init {

@@ -1,5 +1,6 @@
 package com.smartfingers.smartlawyerplus.ui.screens.tasks
 
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -26,7 +27,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AvTimer
 import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -48,6 +48,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -58,12 +59,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.smartfingers.smartlawyerplus.R
 import com.smartfingers.smartlawyerplus.domain.model.Task
 import com.smartfingers.smartlawyerplus.domain.model.TaskFilter
-import com.smartfingers.smartlawyerplus.ui.theme.ColorSuccess
-import com.smartfingers.smartlawyerplus.ui.theme.ColorTask
 import com.smartfingers.smartlawyerplus.ui.theme.Divider
 import com.smartfingers.smartlawyerplus.ui.theme.Primary
 import com.smartfingers.smartlawyerplus.ui.theme.Secondary
-import com.smartfingers.smartlawyerplus.ui.theme.TextOnPrimary
+import com.smartfingers.smartlawyerplus.ui.theme.TextPrimary
 import com.smartfingers.smartlawyerplus.ui.theme.TextSecondary
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -159,7 +158,7 @@ private fun FilterRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 12.dp),
+            .padding(horizontal = 12.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
@@ -170,24 +169,31 @@ private fun FilterRow(
                     TaskScope.ALL        -> "كل المهام"
                     TaskScope.CREATED    -> "مهام أنشأتها"
                 },
+                expanded = showScopeMenu,
                 onClick = { showScopeMenu = true },
             )
-            DropdownMenu(
+
+           DropdownMenu(
                 expanded = showScopeMenu,
                 onDismissRequest = { showScopeMenu = false },
+                modifier = Modifier.background(Color.White)
             ) {
                 TaskScope.entries.forEach { scope ->
                     DropdownMenuItem(
                         text = {
                             Text(
-                                when (scope) {
+                                text = when (scope) {
                                     TaskScope.RESPONSIBLE -> "مهام مسؤول عنها"
                                     TaskScope.ALL        -> "كل المهام"
                                     TaskScope.CREATED    -> "مهام أنشأتها"
-                                }
+                                },
+                                color = TextPrimary
                             )
                         },
-                        onClick = { onScopeSelected(scope); showScopeMenu = false },
+                        onClick = {
+                            onScopeSelected(scope)
+                            showScopeMenu = false
+                        },
                     )
                 }
             }
@@ -196,7 +202,7 @@ private fun FilterRow(
         LazyRow(
             state = listState,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.weight(1f)
         ) {
             itemsIndexed(filters) { _, filter ->
                 StatusFilterChip(
@@ -204,8 +210,8 @@ private fun FilterRow(
                     isSelected = filter.isSelected,
                     accentColor = when (filter.id) {
                         1    -> Secondary
-                        4    -> ColorTask
-                        else -> Primary
+                        4    -> Primary
+                        else -> Color.Red.copy(alpha = 0.8f)
                     },
                     onClick = { onFilterSelected(filter) }
                 )
@@ -214,11 +220,13 @@ private fun FilterRow(
     }
 }
 @Composable
-private fun ScopeChip(label: String, onClick: () -> Unit) {
+private fun ScopeChip(label: String, expanded: Boolean, onClick: () -> Unit) {
+    val rotation by animateFloatAsState(targetValue = if (expanded) 180f else 0f)
+
     Row(
         modifier = Modifier
             .clip(RoundedCornerShape(8.dp))
-            .background(MaterialTheme.colorScheme.surface)
+            .background(Color.White)
             .border(1.dp, Divider, RoundedCornerShape(8.dp))
             .clickable(onClick = onClick)
             .padding(horizontal = 10.dp, vertical = 8.dp),
@@ -226,15 +234,16 @@ private fun ScopeChip(label: String, onClick: () -> Unit) {
         horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         Icon(
-            Icons.Default.KeyboardArrowDown,
+            imageVector = Icons.Default.KeyboardArrowDown,
             contentDescription = null,
-            tint = MaterialTheme.colorScheme.onBackground,
-            modifier = Modifier.size(16.dp),
+            tint = TextPrimary,
+            modifier = Modifier.rotate(rotation)
+                .size(20.dp),
         )
         Text(
             text = label,
             style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onBackground,
+            color = TextPrimary,
         )
     }
 }
@@ -249,31 +258,31 @@ private fun StatusFilterChip(
     Row(
         modifier = Modifier
             .clip(RoundedCornerShape(8.dp))
-            .background(MaterialTheme.colorScheme.surface)
+            .background(if (isSelected) Primary else  Color.White)
             .border(
-                width = if (isSelected) 0.dp else 1.dp,
-                color = if (isSelected) Color.Transparent else Divider,
+                width = 1.dp,
+                color = if (isSelected) Primary else Divider,
                 shape = RoundedCornerShape(8.dp),
             )
             .clickable(onClick = onClick),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Box(
-            modifier = Modifier
-                .width(5.dp)
-                .height(36.dp)
-                .background(
-                    color = if (isSelected) accentColor else Divider,
-                    shape = RoundedCornerShape(topStart = 8.dp, bottomStart = 8.dp),
-                ),
-        )
         Text(
             text = label,
             style = MaterialTheme.typography.labelMedium,
-            color = if (isSelected) MaterialTheme.colorScheme.onBackground
-            else TextSecondary,
-            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
+            color = if (isSelected) Color.White else TextSecondary,
+            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+        )
+
+        Box(
+            modifier = Modifier
+                .width(8.dp)
+                .height(36.dp)
+                .background(
+                    color = accentColor,
+                    shape = RoundedCornerShape(topEnd = 8.dp, bottomEnd = 8.dp),
+                ),
         )
     }
 }
