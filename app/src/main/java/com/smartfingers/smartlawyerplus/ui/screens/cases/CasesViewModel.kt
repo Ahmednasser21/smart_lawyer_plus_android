@@ -62,7 +62,7 @@ class CasesViewModel @Inject constructor(
 
     private fun loadCases(refresh: Boolean) {
         val state = _uiState.value
-        val page = if (refresh) 0 else state.page
+        val page = if (refresh) 1 else state.page
         val statusId = state.selectedFilter?.id ?: 6
 
         viewModelScope.launch {
