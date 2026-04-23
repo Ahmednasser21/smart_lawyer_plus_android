@@ -54,19 +54,7 @@ fun SessionsScreen(
             lastVisible >= uiState.sessions.size - 3 && uiState.hasMore && !uiState.isLoadingMore
         }
     }
-    LaunchedEffect(listState) {
-        snapshotFlow { listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
-            .collect { lastVisibleIndex ->
-                if (lastVisibleIndex != null &&
-                    lastVisibleIndex >= uiState.sessions.size - 3 &&
-                    uiState.hasMore &&
-                    !uiState.isLoadingMore
-                ) {
-                    viewModel.loadMore()
-                }
-            }
-    }
-
+    LaunchedEffect(shouldLoadMore) { if (shouldLoadMore) viewModel.loadMore() }
     Column(
         modifier = Modifier
             .fillMaxSize()
