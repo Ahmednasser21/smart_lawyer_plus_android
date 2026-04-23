@@ -61,7 +61,7 @@ class AppointmentsViewModel @Inject constructor(
 
     private fun loadAppointments(refresh: Boolean) {
         val state = _uiState.value
-        val page = if (refresh) 0 else state.page
+        val page = if (refresh) 1 else state.page
         val isFinished = state.selectedTab?.isFinished ?: false
 
         viewModelScope.launch {

@@ -187,7 +187,7 @@ class SessionsViewModel @Inject constructor(
 
     private fun loadSessions(refresh: Boolean) {
         val state = _uiState.value
-        val page = if (refresh) 0 else state.page
+        val page = if (refresh) 1 else state.page
         val filter = state.filter.copy(page = page)
 
         viewModelScope.launch {

@@ -51,7 +51,7 @@ class TasksViewModel @Inject constructor(
                 filters = state.filters.map { it.copy(isSelected = it.id == filter.id) },
                 selectedFilter = filter,
                 tasks = emptyList(),
-                page = 0,
+                page = 1,
                 hasMore = false,
             )
         }
@@ -59,7 +59,7 @@ class TasksViewModel @Inject constructor(
     }
 
     fun selectScope(scope: TaskScope) {
-        _uiState.update { it.copy(selectedScope = scope, tasks = emptyList(), page = 0, hasMore = false) }
+        _uiState.update { it.copy(selectedScope = scope, tasks = emptyList(), page = 1, hasMore = false) }
         loadTasks(refresh = true)
     }
 
@@ -69,13 +69,13 @@ class TasksViewModel @Inject constructor(
     }
 
     fun refresh() {
-        _uiState.update { it.copy(tasks = emptyList(), page = 0, hasMore = false) }
+        _uiState.update { it.copy(tasks = emptyList(), page = 1, hasMore = false) }
         loadTasks(refresh = true)
     }
 
     private fun loadTasks(refresh: Boolean) {
         val state = _uiState.value
-        val page = if (refresh) 0 else state.page
+        val page = if (refresh) 1 else state.page
         val filterId = state.selectedFilter?.id ?: 2
         val scopeId = state.selectedScope.id
 
