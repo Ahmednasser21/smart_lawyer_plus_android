@@ -66,7 +66,8 @@ fun MainScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(bottom = 64.dp),
+                .padding(bottom = 64.dp)
+                .background(MaterialTheme.colorScheme.background),
         ) {
             SharedTopBar(
                 userName = uiState.userName,
@@ -151,7 +152,8 @@ private fun SharedTopBar(
         modifier = Modifier
             .fillMaxWidth()
             .statusBarsPadding()
-            .padding(horizontal = 12.dp, vertical = 8.dp),
+            .padding(horizontal = 12.dp, vertical = 8.dp)
+            .background(MaterialTheme.colorScheme.background),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Start,
     ) {

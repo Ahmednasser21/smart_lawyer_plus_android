@@ -19,6 +19,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -149,6 +150,7 @@ private fun SessionsFilterBar(
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.background)
             .padding(horizontal = 12.dp, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -157,7 +159,7 @@ private fun SessionsFilterBar(
             Row(
                 modifier = Modifier
                     .clip(RoundedCornerShape(8.dp))
-                    .background(MaterialTheme.colorScheme.surface)
+                    .background(MaterialTheme.colorScheme.background)
                     .border(1.dp, Divider, RoundedCornerShape(8.dp))
                     .clickable { showPeriodMenu = true }
                     .padding(horizontal = 12.dp, vertical = 8.dp)
@@ -198,7 +200,7 @@ private fun SessionsFilterBar(
             DropdownMenu(
                 expanded = showPeriodMenu,
                 onDismissRequest = { showPeriodMenu = false },
-                modifier = Modifier.background(MaterialTheme.colorScheme.surface),
+                modifier = Modifier.background(MaterialTheme.colorScheme.background),
             ) {
                 periods.forEach { period ->
                     DropdownMenuItem(
@@ -551,7 +553,7 @@ private fun FilterDropdownField(
 ) {
     var expanded by remember { mutableStateOf(false) }
 
-    Box(modifier = modifier) {
+    Box(modifier = modifier.background(MaterialTheme.colorScheme.background)) {
         OutlinedTextField(
             value = selectedOption?.name ?: "",
             onValueChange = {},
@@ -598,6 +600,7 @@ private fun FilterDropdownField(
             },
             modifier = Modifier
                 .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.background)
                 .clickable {
                     if (!expanded) onExpand()
                     expanded = !expanded
@@ -614,7 +617,7 @@ private fun FilterDropdownField(
             expanded = expanded,
             onDismissRequest = { expanded = false },
             modifier = Modifier
-                .background(MaterialTheme.colorScheme.surface)
+                .background(MaterialTheme.colorScheme.background)
                 .heightIn(max = 220.dp),
         ) {
             if (isLoading) {
@@ -735,15 +738,24 @@ fun SessionCard(session: Session, onClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick),
-        shape = RoundedCornerShape(10.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+            .clickable(onClick = onClick)
+            .padding(top = 10.dp)
+            .shadow(
+                elevation = 5.dp,
+                shape = RoundedCornerShape(12.dp),
+                spotColor = MaterialTheme.colorScheme.onSurface
+            ),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.background
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 10.dp),
+                .padding(horizontal = 12.dp, vertical = 10.dp)
+                .background(MaterialTheme.colorScheme.background),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
