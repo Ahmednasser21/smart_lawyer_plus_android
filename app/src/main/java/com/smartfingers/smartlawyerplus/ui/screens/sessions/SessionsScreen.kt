@@ -13,7 +13,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AvTimer
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.*
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
@@ -172,7 +171,7 @@ private fun SessionsFilterBar(
                     else Icons.Default.KeyboardArrowDown,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.size(24.dp),
+                    modifier = Modifier.size(28.dp),
                 )
                 Spacer(modifier = Modifier.weight(1f))
 
@@ -292,7 +291,6 @@ private fun SessionsFilterSheet(
             .padding(bottom = 32.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        // Title
         Text(
             text = "تصنيف الجلسات",
             style = MaterialTheme.typography.titleMedium,
@@ -303,7 +301,6 @@ private fun SessionsFilterSheet(
             textAlign = TextAlign.Center,
         )
 
-        // Row 1: Result count + Court  (iOS: عدد النتائج | المحكمة)
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -328,7 +325,6 @@ private fun SessionsFilterSheet(
             )
         }
 
-        // Row 2: Hearing type + Case  (iOS: نوع الجلسة | القضية)
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -353,7 +349,6 @@ private fun SessionsFilterSheet(
             )
         }
 
-        // Row 3: Judge name (text) + Sub hearing type
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -387,7 +382,6 @@ private fun SessionsFilterSheet(
             )
         }
 
-        // Row 4: Person in charge + Period
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -416,7 +410,6 @@ private fun SessionsFilterSheet(
             )
         }
 
-        // Row 5: Client + Branch
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -441,7 +434,6 @@ private fun SessionsFilterSheet(
             )
         }
 
-        // Row 6: Client phone + Client number
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -484,7 +476,6 @@ private fun SessionsFilterSheet(
             )
         }
 
-        // Row 7: Discount (half width, right-aligned) + empty  (iOS: خصم | empty)
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -503,7 +494,6 @@ private fun SessionsFilterSheet(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Action buttons — بحث (right/primary) | إلغاء (left/outlined) matching iOS
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -584,7 +574,7 @@ private fun FilterDropdownField(
                         .background(Primary)
                         .clickable {
                             if (!expanded) {
-                                onExpand()  // trigger load BEFORE expanding
+                                onExpand()
                             }
                             expanded = !expanded
                         },
@@ -602,7 +592,7 @@ private fun FilterDropdownField(
                             else Icons.Default.KeyboardArrowDown,
                             contentDescription = null,
                             tint = Color.White,
-                            modifier = Modifier.size(20.dp),
+                            modifier = Modifier.size(28.dp),
                         )
                     }
                 }
@@ -740,7 +730,6 @@ private fun SessionStatusChip(
     }
 }
 
-// ─── Session card ─────────────────────────────────────────────────────────────
 
 @Composable
 fun SessionCard(session: Session, onClick: () -> Unit) {

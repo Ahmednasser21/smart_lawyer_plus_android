@@ -20,11 +20,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AvTimer
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -102,7 +100,9 @@ fun AppointmentsScreen(
                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    items(uiState.appointments.distinctBy { it.id }, key = { it.id }) { appointment ->
+                    items(
+                        uiState.appointments.distinctBy { it.id },
+                        key = { it.id }) { appointment ->
                         AppointmentCard(
                             appointment = appointment,
                             onClick = { onAppointmentClick(appointment.id) },
@@ -214,143 +214,58 @@ fun AppointmentCard(appointment: AppointmentListItem, onClick: () -> Unit) {
                 .fillMaxWidth()
                 .padding(horizontal = 12.dp, vertical = 10.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.Top,
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            // Left column: remaining time + finished badge
             Column(
                 horizontalAlignment = Alignment.Start,
                 verticalArrangement = Arrangement.spacedBy(6.dp),
-                modifier = Modifier.width(80.dp),
+                modifier = Modifier.weight(1f),
             ) {
-                if (appointment.isFinished) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(3.dp),
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.CheckCircle,
-                            contentDescription = null,
-                            tint = ColorSuccess,
-                            modifier = Modifier.size(12.dp),
-                        )
-                        Text(
-                            text = "منتهي",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = ColorSuccess,
-                            fontSize = 10.sp,
-                        )
-                    }
-                } else {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(3.dp),
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.AvTimer,
-                            contentDescription = null,
-                            tint = Primary,
-                            modifier = Modifier.size(12.dp),
-                        )
-                        Text(
-                            text = "${appointment.remainingDays} يوم",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = TextSecondary,
-                            fontSize = 10.sp,
-                        )
-                    }
-                    if (appointment.remainingHours > 0) {
-                        Text(
-                            text = "${appointment.remainingHours} ساعة",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = TextSecondary,
-                            fontSize = 10.sp,
-                        )
-                    }
+                appointment.typeName?.let {
+                    Text(
+                        text = it,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Primary,
+                        fontWeight = FontWeight.SemiBold,
+                    )
                 }
-
-                // Type name badge
-                appointment.typeName?.let { type ->
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(4.dp))
-                            .background(Primary.copy(alpha = 0.12f))
-                            .padding(horizontal = 5.dp, vertical = 2.dp),
-                    ) {
-                        Text(
-                            text = type,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = Primary,
-                            fontSize = 10.sp,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    }
+                appointment.subject?.let {
+                    Text(
+                        text = it,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
                 }
             }
 
             Spacer(modifier = Modifier.width(8.dp))
 
-            // Right column: subject + users + date
             Column(
                 horizontalAlignment = Alignment.End,
                 verticalArrangement = Arrangement.spacedBy(6.dp),
-                modifier = Modifier.weight(1f),
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    Column(
-                        horizontalAlignment = Alignment.End,
-                        verticalArrangement = Arrangement.spacedBy(2.dp),
-                    ) {
-                        // Subject
-                        appointment.subject?.let { subject ->
-                            Text(
-                                text = subject,
-                                style = MaterialTheme.typography.bodySmall,
-                                fontWeight = FontWeight.Medium,
-                                color = MaterialTheme.colorScheme.onSurface,
-                                textAlign = TextAlign.End,
-                                maxLines = 2,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.widthIn(max = 170.dp),
-                            )
-                        }
+                    val firstUser = appointment.assignedUsers.firstOrNull()
+                    val userDisplay = if (appointment.assignedUsers.size > 1)
+                        "${firstUser ?: ""} ..."
+                    else firstUser ?: ""
 
-                        // Assigned users
-                        val firstUser = appointment.assignedUsers.firstOrNull()
-                        val userDisplay = if (appointment.assignedUsers.size > 1)
-                            "${firstUser ?: ""} ..."
-                        else firstUser ?: ""
-
-                        if (userDisplay.isNotBlank()) {
-                            Text(
-                                text = userDisplay,
-                                style = MaterialTheme.typography.labelSmall,
-                                color = TextSecondary,
-                                textAlign = TextAlign.End,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.widthIn(max = 170.dp),
-                            )
-                        }
-
-                        // Case name
-                        appointment.caseName?.let { caseName ->
-                            Text(
-                                text = caseName,
-                                style = MaterialTheme.typography.labelSmall,
-                                color = Primary,
-                                textAlign = TextAlign.End,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.widthIn(max = 170.dp),
-                            )
-                        }
+                    if (userDisplay.isNotBlank()) {
+                        Text(
+                            text = userDisplay,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            textAlign = TextAlign.End,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.widthIn(max = 160.dp),
+                        )
                     }
-
-                    // Avatar
                     Box(
                         modifier = Modifier
                             .size(36.dp)
@@ -367,49 +282,73 @@ fun AppointmentCard(appointment: AppointmentListItem, onClick: () -> Unit) {
                     }
                 }
 
-                // Date + time row
                 val dateDisplay = buildString {
                     appointment.startTime?.let { append(it.take(5)); append(" / ") }
                     appointment.startDate?.let { append(it.take(10)) }
                     appointment.startDateHijri?.let { append(" / "); append(it) }
                 }
                 if (dateDisplay.isNotBlank()) {
-                    Text(
-                        text = dateDisplay,
-                        style = MaterialTheme.typography.labelSmall,
-                        fontSize = 10.sp,
-                        color = TextSecondary,
-                        textAlign = TextAlign.End,
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        Text(
+                            text = dateDisplay,
+                            style = MaterialTheme.typography.labelSmall,
+                            fontSize = 10.sp,
+                            color = TextSecondary,
+                            textAlign = TextAlign.End,
+                        )
+                        Icon(
+                            imageVector = Icons.Default.AvTimer,
+                            contentDescription = null,
+                            tint = Primary,
+                            modifier = Modifier.size(12.dp),
+                        )
+                    }
                 }
             }
         }
 
-        // Parties strip (clients) at the bottom if present
-        if (appointment.parties.isNotEmpty()) {
+        if (appointment.parties.isNotEmpty() || appointment.caseName != null) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(0.5.dp)
                     .background(Divider),
             )
+
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 12.dp, vertical = 6.dp),
-                horizontalArrangement = Arrangement.End,
+                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                val displayParties = appointment.parties.take(2).joinToString(" , ")
-                val suffix = if (appointment.parties.size > 2) " ..." else ""
-                Text(
-                    text = displayParties + suffix,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = TextSecondary,
-                    fontSize = 10.sp,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
+                appointment.caseName?.let {
+                    Text(
+                        text = it,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Primary,
+                        fontSize = 10.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f),
+                    )
+                } ?: Spacer(modifier = Modifier.weight(1f))
+
+                if (appointment.parties.isNotEmpty()) {
+                    val displayParties = appointment.parties.take(2).joinToString(" , ")
+                    val suffix = if (appointment.parties.size > 2) " ..." else ""
+                    Text(
+                        text = displayParties + suffix,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = TextSecondary,
+                        fontSize = 10.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
             }
         }
     }
