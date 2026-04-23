@@ -50,6 +50,7 @@ class CasesRepositoryImpl @Inject constructor(
                     startDateHijri = dto.startDateHijri,
                     litigationTypeName = dto.litigationTypeName,
                     legalStatusName = dto.legalStatusName,
+                    legalStatusNumber = dto.legalStatusNumber,
                     court = dto.court,
                     clients = dto.clients,
                     adversaries = dto.adversaries,

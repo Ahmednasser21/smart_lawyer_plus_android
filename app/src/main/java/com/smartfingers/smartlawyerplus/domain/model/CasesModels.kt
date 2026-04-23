@@ -19,6 +19,7 @@ data class CaseListItem(
     val startDateHijri: String?,
     val litigationTypeName: String?,
     val legalStatusName: String?,
+    val legalStatusNumber: Int?,
     val court: String?,
     val clients: String?,
     val adversaries: String?,

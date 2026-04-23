@@ -16,6 +16,7 @@ data class CaseItemListDto(
     @SerializedName("startDateHijri") val startDateHijri: String?,
     @SerializedName("litigationTypeName") val litigationTypeName: String?,
     @SerializedName("legalStatusName") val legalStatusName: String?,
+    @SerializedName("legalStatus") val legalStatusNumber: Int?,
     @SerializedName("court") val court: String?,
     @SerializedName("clients") val clients: String?,
     @SerializedName("adversaries") val adversaries: String?,

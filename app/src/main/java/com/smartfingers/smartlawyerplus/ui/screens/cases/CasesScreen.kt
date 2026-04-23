@@ -268,11 +268,14 @@ fun CaseCard(case: CaseListItem, onClick: () -> Unit) {
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
+                    val backgroundColor = if (case.legalStatusNumber == 1) {
+                        Color(0xFFB6DEE2)
+                    } else Color(0xFFC7E2B6)
                     case.legalStatusName?.let { status ->
                         Box(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(6.dp))
-                                .background(Color(0xFFC7E2B6))
+                                .background(backgroundColor)
                                 .padding(horizontal = 10.dp, vertical = 4.dp),
                         ) {
                             Text(
@@ -287,7 +290,7 @@ fun CaseCard(case: CaseListItem, onClick: () -> Unit) {
                         Box(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(6.dp))
-                                .background(Color(0xFFC7E2B6))
+                                .background(backgroundColor)
                                 .padding(horizontal = 10.dp, vertical = 4.dp),
                         ) {
                             Text(
@@ -300,7 +303,6 @@ fun CaseCard(case: CaseListItem, onClick: () -> Unit) {
                     }
                 }
 
-                // Right: date + timer icon
                 val dateDisplay = case.nextHearingStartDate?.take(10)
                     ?: case.startDate?.take(10)
                 if (!dateDisplay.isNullOrBlank()) {
@@ -311,7 +313,7 @@ fun CaseCard(case: CaseListItem, onClick: () -> Unit) {
                         Text(
                             text = dateDisplay,
                             style = MaterialTheme.typography.labelSmall,
-                            color = TextSecondary,
+                            color = MaterialTheme.colorScheme.onSurface,
                         )
                         Icon(
                             imageVector = Icons.Default.AvTimer,
