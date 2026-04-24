@@ -39,6 +39,7 @@ object CalendarManager {
     private fun generateGregorianDays(yearMonth: YearMonth): List<CalendarDay> {
         val firstDay = yearMonth.atDay(1)
         val today = LocalDate.now()
+        // How many leading cells before day 1 (column 0 = Saturday)
         val firstDayColumn = satFirstCol(firstDay.dayOfWeek.value)
         val days = mutableListOf<CalendarDay>()
 
@@ -46,6 +47,7 @@ object CalendarManager {
         if (firstDayColumn > 0) {
             val prev = yearMonth.minusMonths(1)
             val daysInPrev = prev.lengthOfMonth()
+            // We need `firstDayColumn` days from the end of the previous month
             for (i in firstDayColumn - 1 downTo 0) {
                 val date = prev.atDay(daysInPrev - i)
                 days += CalendarDay(date, date.dayOfMonth.toString(), isWithinDisplayedMonth = false, isSelected = false)
@@ -106,6 +108,7 @@ object CalendarManager {
             var pm = hMonth - 1; var py = hYear
             if (pm < 1) { pm = 12; py-- }
             val prevLen = HijrahDate.of(py, pm, 1).lengthOfMonth()
+            // We need `firstCol` days from end of previous Hijri month
             for (i in firstCol - 1 downTo 0) {
                 val dn = prevLen - i
                 val gDate = LocalDate.from(HijrahChronology.INSTANCE.date(HijrahDate.of(py, pm, dn)))
@@ -136,8 +139,17 @@ object CalendarManager {
 
     // ─────────────────────────────── Helpers ─────────────────────────────────
 
+    // Grid columns: 0=Sat, 1=Fri, 2=Thu, 3=Wed, 4=Tue, 5=Mon, 6=Sun
+    // Java DayOfWeek: Mon=1, Tue=2, Wed=3, Thu=4, Fri=5, Sat=6, Sun=7
     private fun satFirstCol(dayOfWeekValue: Int): Int = when (dayOfWeekValue) {
-        6 -> 0; 5 -> 1; 4 -> 2; 3 -> 3; 2 -> 4; 1 -> 5; 7 -> 6; else -> 0
+        7 -> 0 // Sunday    → column 0 (leftmost)
+        1 -> 1 // Monday    → column 1
+        2 -> 2 // Tuesday   → column 2
+        3 -> 3 // Wednesday → column 3
+        4 -> 4 // Thursday  → column 4
+        5 -> 5 // Friday    → column 5
+        6 -> 6 // Saturday  → column 6 (rightmost)
+        else -> 0
     }
 
     private fun arabicHijriMonth(m: Int): String = listOf(

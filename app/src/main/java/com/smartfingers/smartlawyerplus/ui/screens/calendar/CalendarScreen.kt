@@ -54,6 +54,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.input.pointer.pointerInput
@@ -73,18 +74,7 @@ import com.smartfingers.smartlawyerplus.domain.model.DayEvent
 import com.smartfingers.smartlawyerplus.domain.model.FilterOption
 import androidx.core.graphics.toColorInt
 
-// ── Day header: left→right matches iOS screenshot (SAT on left, SUN on right) ─
-private val DAY_LABELS = listOf("سبت", "جمعة", "خميس", "أربعاء", "ثلاثاء", "إثنين", "أحد")
-
-// ── iOS dark palette ───────────────────────────────────────────────────────────
-private val IosBackground    = Color(0xFF000000)
-private val IosSurface       = Color(0xFF1C1C1E)
-private val IosCard          = Color(0xFF2C2C2E)
-private val IosTeal          = Color(0xFF3AABD6)
-private val IosToggleInactive = Color(0xFF3A3A3C)
-private val IosTextPrimary   = Color(0xFFFFFFFF)
-private val IosTextSecondary = Color(0xFF8E8E93)
-private val IosBorder        = Color(0xFF3A3A3C)
+private val DAY_LABELS = listOf("أحد", "إثنين", "ثلاثاء", "أربعاء", "خميس", "جمعة", "سبت")
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -98,7 +88,7 @@ fun CalendarScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(IosBackground)
+            .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding()
             .navigationBarsPadding(),
     ) {
@@ -114,7 +104,7 @@ fun CalendarScreen(
                 text = "الأجندة",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
-                color = IosTextPrimary,
+                color = MaterialTheme.colorScheme.onSurface,
             )
             Box(
                 modifier = Modifier
@@ -126,7 +116,7 @@ fun CalendarScreen(
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                         contentDescription = "Back",
-                        tint = IosTeal,
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(28.dp),
                     )
                 }
@@ -149,7 +139,7 @@ fun CalendarScreen(
                 Icon(
                     painter = painterResource(R.drawable.icons8_notification_100),
                     contentDescription = "Notifications",
-                    tint = IosTextPrimary,
+                    tint = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.size(24.dp),
                 )
             }
@@ -162,14 +152,12 @@ fun CalendarScreen(
                     Text(
                         text = "المحامية: ${uiState.userName}",
                         style = MaterialTheme.typography.bodySmall,
-                        color = IosTextPrimary,
+                        color = MaterialTheme.colorScheme.onSurface,
                         fontWeight = FontWeight.Medium,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
                 }
-
-                // Avatar: show picture if available, otherwise first letter
                 UserAvatarCalendar(
                     picture = uiState.userPicture,
                     name = uiState.userName,
@@ -180,14 +168,12 @@ fun CalendarScreen(
         Spacer(modifier = Modifier.height(8.dp))
 
         // ── Filter dropdowns row ──────────────────────────────────────────────
-        // iOS: right dropdown = employee name, left dropdown = item type with icons
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            // Left = نوع المعلومات (item types with icons)
             IosItemTypeDropdown(
                 modifier = Modifier.weight(1f),
                 label = "نوع المعلومات",
@@ -197,7 +183,6 @@ fun CalendarScreen(
                 onSelect = { viewModel.onItemTypeSelected(it) },
             )
 
-            // Right = إسم الموظف
             IosEmployeeDropdown(
                 modifier = Modifier.weight(1f),
                 label = "إسم الموظف",
@@ -222,6 +207,11 @@ fun CalendarScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp)
+                        .shadow(
+                            elevation = 10.dp,
+                            shape = RoundedCornerShape(16.dp),
+                            spotColor = MaterialTheme.colorScheme.onSurface,
+                        )
                         .pointerInput(uiState.currentMonthIndex) {
                             detectHorizontalDragGestures { _, dragAmount ->
                                 if (dragAmount < -40f && uiState.currentMonthIndex < uiState.months.lastIndex) {
@@ -232,67 +222,73 @@ fun CalendarScreen(
                             }
                         },
                     shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = IosSurface),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.background,
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
                 ) {
-                    Column(modifier = Modifier.padding(bottom = 8.dp)) {
+                    Column {
 
-                        // ── Toggle (م / هـ) + Month title ────────────────────
-                        Row(
+                        // ── Toggle (م / ) LEFT  +  Month title CENTERED ────
+                        Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 12.dp, vertical = 12.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween,
+                                .padding(horizontal = 12.dp, vertical = 8.dp),
                         ) {
-                            // Toggle buttons on the LEFT (matches iOS screenshot)
+                            // Month title — absolutely centered in the row
+                            Text(
+                                text = month.monthTitle,
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.align(Alignment.Center),
+                            )
+
+                            // Toggle buttons pinned to the LEFT
                             Row(
                                 modifier = Modifier
+                                    .align(Alignment.CenterStart)
                                     .clip(RoundedCornerShape(8.dp))
-                                    .background(IosToggleInactive),
+                                    .background(Color.Transparent)
+                                    .padding(3.dp), // padding between buttons
                             ) {
-                                // م Gregorian
+                                // هـ Hijri — now on the LEFT
                                 Box(
                                     modifier = Modifier
-                                        .clip(RoundedCornerShape(8.dp))
-                                        .background(if (!uiState.isHijri) IosTeal else Color.Transparent)
-                                        .clickable { viewModel.onCalendarTypeChanged(false) }
-                                        .padding(horizontal = 18.dp, vertical = 7.dp),
-                                    contentAlignment = Alignment.Center,
-                                ) {
-                                    Text(
-                                        text = "م",
-                                        color = if (!uiState.isHijri) IosTextPrimary else IosTextSecondary,
-                                        fontWeight = if (!uiState.isHijri) FontWeight.Bold else FontWeight.Normal,
-                                        fontSize = 14.sp,
-                                    )
-                                }
-                                // هـ Hijri
-                                Box(
-                                    modifier = Modifier
-                                        .clip(RoundedCornerShape(8.dp))
-                                        .background(if (uiState.isHijri) IosTeal else Color.Transparent)
+                                        .clip(RoundedCornerShape(6.dp))
+                                        .background(if (uiState.isHijri) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant)
                                         .clickable { viewModel.onCalendarTypeChanged(true) }
                                         .padding(horizontal = 18.dp, vertical = 7.dp),
                                     contentAlignment = Alignment.Center,
                                 ) {
                                     Text(
                                         text = "هـ",
-                                        color = if (uiState.isHijri) IosTextPrimary else IosTextSecondary,
+                                        color = if (uiState.isHijri) Color.White else MaterialTheme.colorScheme.onSurface,
                                         fontWeight = if (uiState.isHijri) FontWeight.Bold else FontWeight.Normal,
                                         fontSize = 14.sp,
                                     )
                                 }
-                            }
 
-                            // Month title on the RIGHT
-                            Text(
-                                text = month.monthTitle,
-                                style = MaterialTheme.typography.titleSmall,
-                                fontWeight = FontWeight.SemiBold,
-                                color = IosTextPrimary,
-                                textAlign = TextAlign.End,
-                            )
+                                Spacer(modifier = Modifier.width(3.dp)) // gap between buttons
+
+                                // م Gregorian — now on the RIGHT
+                                Box(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(6.dp))
+                                        .background(if (!uiState.isHijri) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant)
+                                        .clickable { viewModel.onCalendarTypeChanged(false) }
+                                        .padding(horizontal = 18.dp, vertical = 7.dp),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    Text(
+                                        text = "م",
+                                        color = if (!uiState.isHijri) Color.White else MaterialTheme.colorScheme.onSurface,
+                                        fontWeight = if (!uiState.isHijri) FontWeight.Bold else FontWeight.Normal,
+                                        fontSize = 14.sp,
+                                    )
+                                }
+                            }
                         }
 
                         // ── Day header: سبت | جمعة | ... | أحد ───────────────
@@ -301,7 +297,7 @@ fun CalendarScreen(
                                 .fillMaxWidth()
                                 .padding(horizontal = 8.dp)
                                 .clip(RoundedCornerShape(10.dp))
-                                .background(IosTeal),
+                                .background(MaterialTheme.colorScheme.primary),
                         ) {
                             Row(
                                 modifier = Modifier
@@ -314,7 +310,7 @@ fun CalendarScreen(
                                         modifier = Modifier.weight(1f),
                                         textAlign = TextAlign.Center,
                                         style = MaterialTheme.typography.labelSmall,
-                                        color = IosTextPrimary,
+                                        color = Color.White,
                                         fontWeight = FontWeight.Medium,
                                         fontSize = 11.sp,
                                     )
@@ -332,7 +328,7 @@ fun CalendarScreen(
                                     .height(240.dp),
                                 contentAlignment = Alignment.Center,
                             ) {
-                                CircularProgressIndicator(color = IosTeal, strokeWidth = 2.dp)
+                                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary, strokeWidth = 2.dp)
                             }
                         } else {
                             LazyVerticalGrid(
@@ -340,19 +336,19 @@ fun CalendarScreen(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(horizontal = 8.dp)
-                                    .height(((month.days.size / 7) * 56 + 8).dp),
+                                    .height(((month.days.size / 7) * 55).dp),
                                 contentPadding = PaddingValues(0.dp),
                                 horizontalArrangement = Arrangement.spacedBy(4.dp),
                                 verticalArrangement = Arrangement.spacedBy(4.dp),
                                 userScrollEnabled = false,
                             ) {
                                 items(month.days) { day ->
-                                    IosDayCell(day = day, onClick = { viewModel.onDaySelected(day) })
+                                    IosDayCell(
+                                        day = day,
+                                        onClick = { viewModel.onDaySelected(day) })
                                 }
                             }
                         }
-
-                        Spacer(modifier = Modifier.height(4.dp))
                     }
                 }
             }
@@ -379,7 +375,7 @@ fun CalendarScreen(
                         Text(
                             text = "لا توجد أحداث في هذا اليوم",
                             style = MaterialTheme.typography.bodySmall,
-                            color = IosTextSecondary,
+                            color = MaterialTheme.colorScheme.onSurface,
                         )
                     }
                 }
@@ -409,8 +405,8 @@ private fun UserAvatarCalendar(picture: String, name: String) {
         modifier = Modifier
             .size(36.dp)
             .clip(RoundedCornerShape(8.dp))
-            .background(IosTeal)
-            .border(1.dp, IosTeal, RoundedCornerShape(8.dp)),
+            .background(MaterialTheme.colorScheme.primary)
+            .border(1.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(8.dp)),
         contentAlignment = Alignment.Center,
     ) {
         if (bitmap != null) {
@@ -423,7 +419,7 @@ private fun UserAvatarCalendar(picture: String, name: String) {
         } else {
             Text(
                 text = name.firstOrNull()?.uppercase() ?: "م",
-                color = IosTextPrimary,
+                color = MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.Bold,
                 fontSize = 16.sp,
             )
@@ -437,29 +433,42 @@ private fun UserAvatarCalendar(picture: String, name: String) {
 private fun IosDayCell(day: CalendarDay, onClick: () -> Unit) {
     val bgColor by animateColorAsState(
         targetValue = when {
-            day.isSelected              -> IosTeal
+            day.isSelected -> MaterialTheme.colorScheme.primary
             !day.isWithinDisplayedMonth -> Color.Transparent
-            else                        -> IosCard
+            else -> Color.Transparent // Let the shadow/surface handle non-selected days
         },
         animationSpec = tween(200),
         label = "dayBg",
     )
     val textColor = when {
-        day.isSelected              -> IosTextPrimary
-        !day.isWithinDisplayedMonth -> IosTextSecondary.copy(alpha = 0.35f)
-        else                        -> IosTextPrimary
+        day.isSelected -> Color.White
+        !day.isWithinDisplayedMonth -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f)
+        else -> MaterialTheme.colorScheme.onSurface
     }
+
+    val shape = RoundedCornerShape(12.dp)
+    val isVisible = day.isWithinDisplayedMonth
 
     Column(
         modifier = Modifier
             .aspectRatio(1f)
-            .clip(RoundedCornerShape(10.dp))
-            .background(bgColor)
+            .then(
+                if (isVisible) Modifier.shadow(
+                    elevation = 8.dp,
+                    shape = shape,
+                    spotColor = MaterialTheme.colorScheme.onSurface,
+                ) else Modifier
+            )
+            .clip(shape)
+            .background(
+                if (day.isSelected) bgColor
+                else if (isVisible) MaterialTheme.colorScheme.background
+                else Color.Transparent
+            )
             .clickable(onClick = onClick),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        // Leading-zero padded like iOS: 01, 02 … 31
         Text(
             text = day.number.padStart(2, '0'),
             style = MaterialTheme.typography.labelMedium,
@@ -467,7 +476,6 @@ private fun IosDayCell(day: CalendarDay, onClick: () -> Unit) {
             color = textColor,
             fontSize = 15.sp,
         )
-        // Event dots below number
         if (day.events.isNotEmpty() && day.isWithinDisplayedMonth) {
             Row(
                 modifier = Modifier.padding(top = 2.dp),
@@ -479,10 +487,10 @@ private fun IosDayCell(day: CalendarDay, onClick: () -> Unit) {
                             .size(4.dp)
                             .clip(CircleShape)
                             .background(
-                                if (day.isSelected) IosTextPrimary.copy(alpha = 0.7f)
+                                if (day.isSelected) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                                 else runCatching {
                                     Color((dayEvent.event.color ?: "#3AABD6").toColorInt())
-                                }.getOrDefault(IosTeal)
+                                }.getOrDefault(MaterialTheme.colorScheme.primary)
                             ),
                     )
                 }
@@ -509,26 +517,32 @@ private fun IosEmployeeDropdown(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(10.dp))
-                .background(IosCard)
-                .border(1.dp, IosBorder, RoundedCornerShape(10.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant)
+                .border(1.dp,Color.Transparent , RoundedCornerShape(10.dp))
                 .clickable { expanded = !expanded }
                 .padding(horizontal = 12.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             if (isLoading) {
-                CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp, color = IosTeal)
+                CircularProgressIndicator(
+                    modifier = Modifier.size(16.dp),
+                    strokeWidth = 2.dp,
+                    color = MaterialTheme.colorScheme.primary
+                )
             } else {
                 Icon(
                     imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                    contentDescription = null, tint = IosTextSecondary, modifier = Modifier.size(20.dp),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.size(20.dp),
                 )
             }
             Spacer(modifier = Modifier.width(6.dp))
             Text(
                 text = selectedName ?: label,
                 style = MaterialTheme.typography.bodySmall,
-                color = if (selectedName != null) IosTextPrimary else IosTextSecondary,
+                color = if (selectedName != null) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface,
                 maxLines = 1, overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f), textAlign = TextAlign.End, fontSize = 13.sp,
             )
@@ -537,16 +551,32 @@ private fun IosEmployeeDropdown(
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
-            modifier = Modifier.background(IosCard),
+            modifier = Modifier.background(MaterialTheme.colorScheme.background),
         ) {
             DropdownMenuItem(
-                text = { Text("الكل", style = MaterialTheme.typography.bodyMedium, color = IosTextPrimary, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.End) },
+                text = {
+                    Text(
+                        "الكل",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.End
+                    )
+                },
                 onClick = { onSelect(null); expanded = false },
             )
-            HorizontalDivider(color = IosBorder)
+            HorizontalDivider(color = MaterialTheme.colorScheme.surface)
             options.forEachIndexed { index, opt ->
                 DropdownMenuItem(
-                    text = { Text(opt.name, style = MaterialTheme.typography.bodyMedium, color = IosTextPrimary, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.End) },
+                    text = {
+                        Text(
+                            opt.name,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.End
+                        )
+                    },
                     onClick = { onSelect(index); expanded = false },
                 )
             }
@@ -572,23 +602,28 @@ private fun IosItemTypeDropdown(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(10.dp))
-                .background(IosCard)
-                .border(1.dp, IosBorder, RoundedCornerShape(10.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant)
+                .border(1.dp, Color.Transparent, RoundedCornerShape(10.dp))
                 .clickable { expanded = !expanded }
                 .padding(horizontal = 12.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             if (isLoading) {
-                CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp, color = IosTeal)
+                CircularProgressIndicator(
+                    modifier = Modifier.size(16.dp),
+                    strokeWidth = 2.dp,
+                    color = MaterialTheme.colorScheme.primary
+                )
             } else {
                 Icon(
                     imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                    contentDescription = null, tint = IosTextSecondary, modifier = Modifier.size(20.dp),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.size(20.dp),
                 )
             }
             Spacer(modifier = Modifier.width(6.dp))
-            // Show icon + name of selected type, or placeholder
             if (selectedType != null) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -599,7 +634,7 @@ private fun IosItemTypeDropdown(
                     Text(
                         text = selectedType.name,
                         style = MaterialTheme.typography.bodySmall,
-                        color = IosTextPrimary,
+                        color = MaterialTheme.colorScheme.onSurface,
                         maxLines = 1, overflow = TextOverflow.Ellipsis, fontSize = 13.sp,
                     )
                     CalendarTypeIcon(typeId = selectedType.id, size = 18)
@@ -608,7 +643,7 @@ private fun IosItemTypeDropdown(
                 Text(
                     text = label,
                     style = MaterialTheme.typography.bodySmall,
-                    color = IosTextSecondary,
+                    color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1, overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f), textAlign = TextAlign.End, fontSize = 13.sp,
                 )
@@ -618,9 +653,8 @@ private fun IosItemTypeDropdown(
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
-            modifier = Modifier.background(IosCard),
+            modifier = Modifier.background(MaterialTheme.colorScheme.background),
         ) {
-            // "All" option
             DropdownMenuItem(
                 text = {
                     Row(
@@ -628,7 +662,11 @@ private fun IosItemTypeDropdown(
                         horizontalArrangement = Arrangement.End,
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Text("الكل", style = MaterialTheme.typography.bodyMedium, color = IosTextPrimary)
+                        Text(
+                            "الكل",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
                         Spacer(modifier = Modifier.width(8.dp))
                         Icon(
                             painter = painterResource(R.drawable.tasks_app_svgrepo_com_4),
@@ -640,7 +678,7 @@ private fun IosItemTypeDropdown(
                 },
                 onClick = { onSelect(null); expanded = false },
             )
-            HorizontalDivider(color = IosBorder)
+            HorizontalDivider(color = MaterialTheme.colorScheme.surface)
             options.forEach { type ->
                 val isSelected = selectedType?.id == type.id
                 DropdownMenuItem(
@@ -651,12 +689,18 @@ private fun IosItemTypeDropdown(
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             if (isSelected) {
-                                Text("✓", color = IosTeal, fontWeight = FontWeight.Bold, fontSize = 14.sp, modifier = Modifier.padding(end = 8.dp))
+                                Text(
+                                    "✓",
+                                    color = MaterialTheme.colorScheme.primary,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 14.sp,
+                                    modifier = Modifier.padding(end = 8.dp)
+                                )
                             }
                             Text(
                                 text = type.name,
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = if (isSelected) IosTeal else IosTextPrimary,
+                                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             CalendarTypeIcon(typeId = type.id, size = 20)
@@ -669,20 +713,15 @@ private fun IosItemTypeDropdown(
     }
 }
 
-/**
- * Maps calendar item type ID to a drawable icon.
- * Based on iOS app: type 1=Appointment, 2=Hearing, 3=Task, 4=CaseAppeal, 5=Agency
- * Uses the same drawable names as in the iOS assets (already added to Android project).
- */
 @Composable
 private fun CalendarTypeIcon(typeId: Int, size: Int) {
     val (resId, color) = when (typeId) {
-        1    -> Pair(R.drawable.stockholm_icons___home___timer, Color(0xFF3AAD66))   // Appointment موعد
-        2    -> Pair(R.drawable.auction,               Color(0xFF3AABD6))   // Hearing جلسة
-        3    -> Pair(R.drawable.layer_3,               Color(0xFFE4B24F))   // Task مهمة
-        4    -> Pair(R.drawable.exclamation_circle_fill,                  Color(0xFFC5C4E8))   // CaseAppeal قضية
-        5    -> Pair(R.drawable.person_fill_gear,                  Color(0xFF9C88D4))   // Agency وكالة
-        else -> Pair(R.drawable.tasks_app_svgrepo_com_4,               IosTextSecondary)
+        1 -> Pair(R.drawable.stockholm_icons___home___timer, Color(0xFF3AAD66))
+        2 -> Pair(R.drawable.auction, Color(0xFF3AABD6))
+        3 -> Pair(R.drawable.layer_3, Color(0xFFE4B24F))
+        4 -> Pair(R.drawable.exclamation_circle_fill, Color(0xFFC5C4E8))
+        5 -> Pair(R.drawable.person_fill_gear, Color(0xFF9C88D4))
+        else -> Pair(R.drawable.tasks_app_svgrepo_com_4, MaterialTheme.colorScheme.onSurface)
     }
     Icon(
         painter = painterResource(resId),
@@ -696,19 +735,31 @@ private fun CalendarTypeIcon(typeId: Int, size: Int) {
 
 @Composable
 fun IosCalendarEventCard(dayEvent: DayEvent) {
-    val event     = dayEvent.event
+    val event = dayEvent.event
     val typeColor = calendarEventTypeColor(dayEvent.eventType)
-    val height    = if (dayEvent.eventType == CalendarEventType.APPOINTMENT ||
-        dayEvent.eventType == CalendarEventType.HEARING) 100.dp else 72.dp
+    val height = if (dayEvent.eventType == CalendarEventType.APPOINTMENT ||
+        dayEvent.eventType == CalendarEventType.HEARING
+    ) 100.dp else 72.dp
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 10.dp)
+            .shadow(
+                elevation = 10.dp,
+                shape = RoundedCornerShape(12.dp),
+                spotColor = MaterialTheme.colorScheme.onSurface,
+            ),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = IosSurface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface,
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth().height(height),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(height),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Box(
@@ -724,7 +775,9 @@ fun IosCalendarEventCard(dayEvent: DayEvent) {
             )
 
             Column(
-                modifier = Modifier.weight(1f).padding(horizontal = 12.dp, vertical = 10.dp),
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(horizontal = 12.dp, vertical = 10.dp),
                 horizontalAlignment = Alignment.End,
                 verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
@@ -732,7 +785,7 @@ fun IosCalendarEventCard(dayEvent: DayEvent) {
                     text = event.title ?: event.extendedProperties?.caseName ?: "-",
                     style = MaterialTheme.typography.bodySmall,
                     fontWeight = FontWeight.Medium,
-                    color = IosTextPrimary,
+                    color = MaterialTheme.colorScheme.onSurface,
                     textAlign = TextAlign.End,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
@@ -740,27 +793,54 @@ fun IosCalendarEventCard(dayEvent: DayEvent) {
                 when (dayEvent.eventType) {
                     CalendarEventType.HEARING -> {
                         event.extendedProperties?.courtName?.let {
-                            Text(it, style = MaterialTheme.typography.labelSmall, color = IosTextSecondary, textAlign = TextAlign.End)
+                            Text(
+                                it,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                textAlign = TextAlign.End
+                            )
                         }
                         event.extendedProperties?.startTime?.let {
-                            Text(it.take(5), style = MaterialTheme.typography.labelSmall, fontSize = 10.sp, color = IosTextSecondary)
+                            Text(
+                                it.take(5),
+                                style = MaterialTheme.typography.labelSmall,
+                                fontSize = 10.sp,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
                         }
                     }
+
                     CalendarEventType.APPOINTMENT -> {
                         event.extendedProperties?.assignedUsers?.firstOrNull()?.let {
-                            Text(it, style = MaterialTheme.typography.labelSmall, color = IosTextSecondary, textAlign = TextAlign.End)
+                            Text(
+                                it,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                textAlign = TextAlign.End
+                            )
                         }
                         val dateStr = buildString {
                             event.extendedProperties?.startTime?.let { append(it.take(5)); append(" / ") }
                             event.extendedProperties?.startDate?.let { append(it.take(10)) }
                         }
                         if (dateStr.isNotBlank()) {
-                            Text(dateStr, style = MaterialTheme.typography.labelSmall, fontSize = 10.sp, color = IosTextSecondary)
+                            Text(
+                                dateStr,
+                                style = MaterialTheme.typography.labelSmall,
+                                fontSize = 10.sp,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
                         }
                     }
+
                     else -> {
                         event.extendedProperties?.startDate?.let {
-                            Text(it.take(10), style = MaterialTheme.typography.labelSmall, fontSize = 10.sp, color = IosTextSecondary)
+                            Text(
+                                it.take(10),
+                                style = MaterialTheme.typography.labelSmall,
+                                fontSize = 10.sp,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
                         }
                     }
                 }
@@ -789,18 +869,18 @@ fun IosCalendarEventCard(dayEvent: DayEvent) {
 
 fun calendarEventTypeColor(type: CalendarEventType): Color = when (type) {
     CalendarEventType.APPOINTMENT -> Color(0xFF3AAD66)
-    CalendarEventType.HEARING     -> Color(0xFF3AABD6)
-    CalendarEventType.TASK        -> Color(0xFFE4B24F)
+    CalendarEventType.HEARING -> Color(0xFF3AABD6)
+    CalendarEventType.TASK -> Color(0xFFE4B24F)
     CalendarEventType.CASE_APPEAL -> Color(0xFFC5C4E8)
-    CalendarEventType.AGENCY      -> Color(0xFF9C88D4)
-    CalendarEventType.NA          -> Color(0xFF636366)
+    CalendarEventType.AGENCY -> Color(0xFF9C88D4)
+    CalendarEventType.NA -> Color(0xFF636366)
 }
 
 fun calendarEventTypeName(type: CalendarEventType): String = when (type) {
     CalendarEventType.APPOINTMENT -> "موعد"
-    CalendarEventType.HEARING     -> "جلسة"
-    CalendarEventType.TASK        -> "مهمة"
+    CalendarEventType.HEARING -> "جلسة"
+    CalendarEventType.TASK -> "مهمة"
     CalendarEventType.CASE_APPEAL -> "قضية"
-    CalendarEventType.AGENCY      -> "وكالة"
-    CalendarEventType.NA          -> "أخرى"
+    CalendarEventType.AGENCY -> "وكالة"
+    CalendarEventType.NA -> "أخرى"
 }
