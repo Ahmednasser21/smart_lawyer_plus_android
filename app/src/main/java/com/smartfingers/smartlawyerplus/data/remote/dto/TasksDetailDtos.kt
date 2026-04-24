@@ -5,6 +5,7 @@ import com.google.gson.annotations.SerializedName
 data class TaskDetailsDto(
     @SerializedName("id") val id: Int?,
     @SerializedName("name") val name: String?,
+    @SerializedName("picture") val picture: String?,
     @SerializedName("taskNumber") val taskNumber: String?,
     @SerializedName("priority") val priority: String?,
     @SerializedName("isSecret") val isSecret: Boolean?,

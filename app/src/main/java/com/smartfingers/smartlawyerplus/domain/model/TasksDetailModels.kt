@@ -3,6 +3,7 @@ package com.smartfingers.smartlawyerplus.domain.model
 data class TaskDetails(
     val id: Int,
     val name: String,
+    val picture: String?,
     val taskNumber: String?,
     val priority: String?,
     val isSecret: Boolean,

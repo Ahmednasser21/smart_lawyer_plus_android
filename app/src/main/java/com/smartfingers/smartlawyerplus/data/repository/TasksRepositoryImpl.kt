@@ -20,6 +20,7 @@ class TasksRepositoryImpl @Inject constructor(
             val d = r.data
             Result.Success(TaskDetails(
                 id = d.id ?: taskId, name = d.name ?: "",
+                picture = d.picture,
                 taskNumber = d.taskNumber, priority = d.priority,
                 isSecret = d.isSecret ?: false, taskType = d.taskType,
                 taskStatus = d.taskStatus,
