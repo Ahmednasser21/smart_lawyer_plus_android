@@ -16,4 +16,8 @@ interface TasksRepository {
     suspend fun getTaskEmployees(): Result<List<TaskEmployee>>
     suspend fun addTask(request: AddTaskRequest): Result<Int>
     suspend fun editTask(id: String, request: AddTaskRequest): Result<Int>
+    suspend fun deleteTaskReply(replyId: Int): Result<Boolean>
+    suspend fun closeTaskReply(replyId: Int): Result<Boolean>
+    suspend fun deleteTask(taskId: Int): Result<Boolean>
+    suspend fun updateTaskStatus(taskId: Int, status: Int): Result<Int>
 }

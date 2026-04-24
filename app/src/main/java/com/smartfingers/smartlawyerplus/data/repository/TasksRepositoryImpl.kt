@@ -156,4 +156,31 @@ class TasksRepositoryImpl @Inject constructor(
         consultationId = consultationId, executiveCaseId = executiveCaseId,
         projectGeneralId = projectGeneralId,
     )
+
+    override suspend fun deleteTaskReply(replyId: Int): Result<Boolean> = runCatching {
+        val r = api.deleteTaskReply("${base()}/api/taskReply/$replyId")
+        if (r.isSuccess == true) Result.Success(r.data ?: false)
+        else Result.Error(r.errorList?.firstOrNull() ?: "Error")
+    }.getOrElse { Result.Error(it.message ?: "Network error") }
+
+    override suspend fun closeTaskReply(replyId: Int): Result<Boolean> = runCatching {
+        val r = api.closeTaskReply("${base()}/api/taskReply/close/$replyId")
+        if (r.isSuccess == true) Result.Success(r.data ?: false)
+        else Result.Error(r.errorList?.firstOrNull() ?: "Error")
+    }.getOrElse { Result.Error(it.message ?: "Network error") }
+
+    override suspend fun deleteTask(taskId: Int): Result<Boolean> = runCatching {
+        val r = api.deleteTask("${base()}/api/tasks/$taskId")
+        if (r.isSuccess == true) Result.Success(true)
+        else Result.Error(r.errorList?.firstOrNull() ?: "Error")
+    }.getOrElse { Result.Error(it.message ?: "Network error") }
+
+    override suspend fun updateTaskStatus(taskId: Int, status: Int): Result<Int> = runCatching {
+        val r = api.updateTaskStatus(
+            "${base()}/api/tasks/updateTaskStatus",
+            CloseTaskBody(taskId = "$taskId", taskStatus = status)
+        )
+        if (r.isSuccess == true) Result.Success(r.data ?: 0)
+        else Result.Error(r.errorList?.firstOrNull() ?: "Error")
+    }.getOrElse { Result.Error(it.message ?: "Network error") }
 }

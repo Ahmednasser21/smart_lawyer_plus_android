@@ -129,12 +129,17 @@ fun AppNavGraph(navController: NavHostController) {
             )
         }
         composable(NavRoutes.TaskDetails.route) { backStack ->
-            val taskId = backStack.arguments?.getString("taskId")?.toIntOrNull() ?: return@composable
-            TaskDetailsScreen(taskId = taskId, onBack = { navController.popBackStack() })
+            val taskId =
+                backStack.arguments?.getString("taskId")?.toIntOrNull() ?: return@composable
+            TaskDetailsScreen(
+                taskId = taskId,
+                onBack = { navController.popBackStack() },
+                onNavigateToAddTask = { navController.navigate(NavRoutes.AddTask.route) })
         }
 
         composable(NavRoutes.SessionDetails.route) { backStack ->
-            val sessionId = backStack.arguments?.getString("sessionId")?.toIntOrNull() ?: return@composable
+            val sessionId =
+                backStack.arguments?.getString("sessionId")?.toIntOrNull() ?: return@composable
             val session = navController.previousBackStackEntry
                 ?.savedStateHandle
                 ?.get<Session>("session")
@@ -146,12 +151,16 @@ fun AppNavGraph(navController: NavHostController) {
         }
 
         composable(NavRoutes.AppointmentDetails.route) { backStack ->
-            val apptId = backStack.arguments?.getString("appointmentId")?.toIntOrNull() ?: return@composable
-            AppointmentDetailsScreen(appointmentId = apptId, onBack = { navController.popBackStack() })
+            val apptId =
+                backStack.arguments?.getString("appointmentId")?.toIntOrNull() ?: return@composable
+            AppointmentDetailsScreen(
+                appointmentId = apptId,
+                onBack = { navController.popBackStack() })
         }
 
         composable(NavRoutes.CaseDetails.route) { backStack ->
-            val caseId = backStack.arguments?.getString("caseId")?.toIntOrNull() ?: return@composable
+            val caseId =
+                backStack.arguments?.getString("caseId")?.toIntOrNull() ?: return@composable
             CaseDetailsScreen(caseId = caseId, onBack = { navController.popBackStack() })
         }
 

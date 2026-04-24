@@ -165,3 +165,8 @@ data class AddAppointmentDto(
     @SerializedName("projectGeneralId") val projectGeneralId: String?,
     @SerializedName("clientRequestId") val clientRequestId: String?,
 )
+data class CloseTaskBody(
+    @SerializedName("taskId") val taskId: String,
+    @SerializedName("taskStatus") val taskStatus: Int, // send as Int not String
+    @SerializedName("cmd") val cmd: String = "close", // required field
+)

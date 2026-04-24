@@ -61,4 +61,19 @@ interface TasksDetailApiService {
 
     @POST
     suspend fun addAppointment(@Url url: String, @Body body: AddAppointmentDto): AppResponseDto<Int>
+
+    @DELETE
+    suspend fun deleteTaskReply(@Url url: String): AppResponseDto<Boolean>
+
+    @PUT
+    suspend fun closeTaskReply(@Url url: String): AppResponseDto<Boolean>
+
+    @DELETE
+    suspend fun deleteTask(@Url url: String): AppResponseDto<Int>
+
+    @PUT
+    suspend fun updateTaskStatus(@Url url: String, @Body body: CloseTaskBody): AppResponseDto<Int>
+
+    @PUT
+    suspend fun updateTaskStatus(@Url url: String, @Body body: Map<String, String>): AppResponseDto<Int>
 }

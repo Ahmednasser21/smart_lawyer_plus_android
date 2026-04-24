@@ -93,3 +93,19 @@ class GetPartiesForAddUseCase @Inject constructor(private val repo: Appointments
 class GetAppointmentCasesUseCase @Inject constructor(private val repo: AppointmentsAddRepository) {
     suspend operator fun invoke() = repo.getCasesForAdd()
 }
+
+class DeleteTaskReplyUseCase @Inject constructor(private val repo: TasksRepository) {
+    suspend operator fun invoke(replyId: Int) = repo.deleteTaskReply(replyId)
+}
+
+class CloseTaskReplyUseCase @Inject constructor(private val repo: TasksRepository) {
+    suspend operator fun invoke(replyId: Int) = repo.closeTaskReply(replyId)
+}
+
+class DeleteTaskUseCase @Inject constructor(private val repo: TasksRepository) {
+    suspend operator fun invoke(taskId: Int) = repo.deleteTask(taskId)
+}
+
+class CloseTaskUseCase @Inject constructor(private val repo: TasksRepository) {
+    suspend operator fun invoke(taskId: Int) = repo.updateTaskStatus(taskId, 5)
+}

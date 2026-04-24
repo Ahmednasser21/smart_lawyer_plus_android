@@ -12,6 +12,9 @@ data class TaskDetailsUiState(
     val selectedTab: TaskDetailsTab = TaskDetailsTab.DATA,
     val isLoadingReplies: Boolean = false,
     val error: String = "",
+    val showDeleteReplyConfirm: Boolean = false,
+    val showCloseTaskConfirm: Boolean = false,
+    val pendingTaskId: Int? = null,
 )
 
 enum class TaskDetailsTab { DATA, RESPONSES }
