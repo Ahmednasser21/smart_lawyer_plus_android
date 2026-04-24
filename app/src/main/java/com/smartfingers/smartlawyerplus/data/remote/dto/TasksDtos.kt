@@ -7,6 +7,12 @@ data class TasksResponseDto(
     @SerializedName("items") val items: List<TaskItemDto>?,
 )
 
+data class ApiResponse<T>(
+    @SerializedName("isSuccess") val isSuccess: Boolean?,
+    @SerializedName("statusCode") val statusCode: Int?,
+    @SerializedName("data") val data: T?,
+)
+
 data class TaskItemDto(
     @SerializedName("id") val id: Int?,
     @SerializedName("name") val name: String?,

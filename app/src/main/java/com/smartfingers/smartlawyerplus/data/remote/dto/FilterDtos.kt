@@ -26,7 +26,11 @@ data class FilterItemDto(
     @SerializedName("id") val id: Int?,
     @SerializedName("name") val name: String?,
 )
-
+data class EmployeesResponseDto(
+    @SerializedName("isSuccess") val isSuccess: Boolean?,
+    @SerializedName("statusCode") val statusCode: Int?,
+    @SerializedName("data") val data: List<EmployeeDto>?,
+)
 data class EmployeeDto(
     @SerializedName("id") val id: String?,
     @SerializedName("name") val name: String?,

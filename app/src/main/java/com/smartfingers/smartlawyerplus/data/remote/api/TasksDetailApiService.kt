@@ -24,7 +24,7 @@ interface TasksDetailApiService {
     suspend fun getTaskPriorities(@Url url: String): List<TaskPriorityDto>
 
     @GET
-    suspend fun getTaskCases(@Url url: String): List<TaskItemDto>
+    suspend fun getTaskCases(@Url url: String): ApiResponse<List<TaskItemDto>>
 
     @GET
     suspend fun getTaskConsultations(@Url url: String): List<TaskItemDto>
@@ -36,7 +36,7 @@ interface TasksDetailApiService {
     suspend fun getTaskProjectGenerals(@Url url: String): List<TaskItemDto>
 
     @GET
-    suspend fun getEmployees(@Url url: String): List<EmployeeDto>
+    suspend fun getEmployees(@Url url: String): EmployeesResponseDto
 
     @POST
     suspend fun addTask(@Url url: String, @Body body: AddTaskDto): AppResponseDto<Int>

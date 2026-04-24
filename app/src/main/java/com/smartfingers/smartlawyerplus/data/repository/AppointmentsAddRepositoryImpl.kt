@@ -22,7 +22,8 @@ class AppointmentsAddRepositoryImpl @Inject constructor(
     }.getOrElse { Result.Error(it.message ?: "Network error") }
 
     override suspend fun getEmployeesForAdd(): Result<List<TaskEmployee>> = runCatching {
-        val list = api.getEmployees("${base()}/api/Employees/List")
+        val response = api.getEmployees("${base()}/api/Employees/List")
+        val list = response.data ?: emptyList()
         Result.Success(list.map { TaskEmployee(it.id ?: "", it.name ?: "") })
     }.getOrElse { Result.Error(it.message ?: "Network error") }
 
@@ -34,7 +35,8 @@ class AppointmentsAddRepositoryImpl @Inject constructor(
     }.getOrElse { Result.Error(it.message ?: "Network error") }
 
     override suspend fun getCasesForAdd(): Result<List<TaskCase>> = runCatching {
-        val list = api.getTaskCases("${base()}/api/cases/for-select")
+        val response = api.getTaskCases("${base()}/api/cases/for-select")
+        val list = response.data ?: emptyList()
         Result.Success(list.map { TaskCase(it.id ?: 0, it.name ?: "") })
     }.getOrElse { Result.Error(it.message ?: "Network error") }
 

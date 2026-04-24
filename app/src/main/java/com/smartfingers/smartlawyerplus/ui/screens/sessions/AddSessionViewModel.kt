@@ -1,5 +1,6 @@
 package com.smartfingers.smartlawyerplus.ui.screens.sessions
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.smartfingers.smartlawyerplus.domain.model.*
@@ -22,12 +23,18 @@ class AddSessionViewModel @Inject constructor(
     private val _state = MutableStateFlow(AddSessionUiState())
     val state: StateFlow<AddSessionUiState> = _state
 
-    init { loadData() }
+    init {
+        loadData()
+    }
 
     private fun loadData() {
         viewModelScope.launch {
             when (val r = getCases()) {
                 is Result.Success -> _state.update { it.copy(cases = r.data) }
+                is Result.Error -> {
+                    _state.update { it.copy(error = r.message) }
+                    Log.e("Cases Error", "loadData: ${r.message}", )
+                }
                 else -> Unit
             }
         }
@@ -46,6 +53,10 @@ class AddSessionViewModel @Inject constructor(
         viewModelScope.launch {
             when (val r = getEmployees()) {
                 is Result.Success -> _state.update { it.copy(employees = r.data) }
+                is Result.Error -> {
+                    _state.update { it.copy(error = r.message) }
+                    Log.e("GetEmployees", "loadData: ${r.message}" )
+                }
                 else -> Unit
             }
         }
@@ -59,6 +70,7 @@ class AddSessionViewModel @Inject constructor(
         if (list.any { it.id == e.id }) list.removeAll { it.id == e.id } else list.add(e)
         s.copy(selectedEmployees = list)
     }
+
     fun onHearingNumberChange(v: String) = _state.update { it.copy(hearingNumber = v) }
     fun onCourtCircleChange(v: String) = _state.update { it.copy(courtCircle = v) }
     fun onJudgeNameChange(v: String) = _state.update { it.copy(judgeName = v) }
