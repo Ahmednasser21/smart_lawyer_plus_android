@@ -10,7 +10,10 @@ data class CalendarUiState(
     val months: List<CalendarMonth> = emptyList(),
     val currentMonthIndex: Int = 0,
 
-    // Selected day events (shown in list below calendar)
+    // Calendar type
+    val isHijri: Boolean = false,
+
+    // Selected day events
     val selectedDayEvents: List<DayEvent> = emptyList(),
 
     // Filter dropdowns
@@ -21,8 +24,12 @@ data class CalendarUiState(
     val isLoadingEmployees: Boolean = false,
     val isLoadingItemTypes: Boolean = false,
 
-    // Loading state per month
+    // Loading
     val isLoadingEvents: Boolean = false,
+
+    // User info
+    val userName: String = "",
+    val userPicture: String = "",
 
     val error: String = "",
 )

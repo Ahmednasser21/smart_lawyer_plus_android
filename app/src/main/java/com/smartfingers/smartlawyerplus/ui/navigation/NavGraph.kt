@@ -104,6 +104,9 @@ fun AppNavGraph(navController: NavHostController) {
 
         composable(NavRoutes.Calendar.route) {
             CalendarScreen(
+                onNotificationsClick = {
+                    navController.navigate(NavRoutes.Notifications.route)
+                },
                 onBack = { navController.popBackStack() },
             )
         }

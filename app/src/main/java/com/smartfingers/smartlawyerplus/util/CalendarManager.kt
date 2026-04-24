@@ -4,98 +4,147 @@ import com.smartfingers.smartlawyerplus.domain.model.CalendarDay
 import com.smartfingers.smartlawyerplus.domain.model.CalendarMonth
 import java.time.LocalDate
 import java.time.YearMonth
+import java.time.chrono.HijrahChronology
+import java.time.chrono.HijrahDate
 import java.time.format.DateTimeFormatter
-import java.time.format.TextStyle
+import java.time.temporal.ChronoField
 import java.util.Locale
 
 object CalendarManager {
 
-    private val gregorianHeaderFormatter = DateTimeFormatter.ofPattern("MMMM yyyy", Locale("ar"))
-    private val dayFormatter = DateTimeFormatter.ofPattern("d", Locale.ENGLISH)
+    fun getMonths(
+        start: LocalDate = LocalDate.now(),
+        count: Int,
+        isHijri: Boolean = false,
+    ): List<CalendarMonth> = if (isHijri) getHijriMonths(start, count) else getGregorianMonths(start, count)
 
-    /**
-     * Generates [count] months starting from [start], mirroring iOS CalendarManager.getMonths().
-     */
-    fun getMonths(start: LocalDate = LocalDate.now(), count: Int): List<CalendarMonth> {
+    // ─────────────────────────────── Gregorian ────────────────────────────────
+
+    private fun getGregorianMonths(start: LocalDate, count: Int): List<CalendarMonth> {
         val months = mutableListOf<CalendarMonth>()
         var current = start.withDayOfMonth(1)
         repeat(count) {
-            months.add(buildMonth(current))
+            months.add(buildGregorianMonth(current))
             current = current.plusMonths(1)
         }
         return months
     }
 
-    private fun buildMonth(firstOfMonth: LocalDate): CalendarMonth {
+    private fun buildGregorianMonth(firstOfMonth: LocalDate): CalendarMonth {
         val yearMonth = YearMonth.from(firstOfMonth)
-        val days = generateDaysForMonth(yearMonth)
         val title = firstOfMonth.format(DateTimeFormatter.ofPattern("MMMM yyyy", Locale("ar")))
-        return CalendarMonth(
-            days = days,
-            monthTitle = title,
-            date = firstOfMonth,
-        )
+        return CalendarMonth(days = generateGregorianDays(yearMonth), monthTitle = title, date = firstOfMonth)
     }
 
-    /**
-     * Mirrors iOS generateDaysInMonth — fills leading empty days so the grid always
-     * starts on Sunday (weekday 1 in iOS Calendar).
-     * Java DayOfWeek: MONDAY=1 … SUNDAY=7. We map to Sunday-first grid:
-     * Sunday→0, Monday→1 … Saturday→6
-     */
-    private fun generateDaysForMonth(yearMonth: YearMonth): List<CalendarDay> {
+    private fun generateGregorianDays(yearMonth: YearMonth): List<CalendarDay> {
         val firstDay = yearMonth.atDay(1)
-        // Convert to Sunday-first offset (0=Sun,1=Mon,...,6=Sat)
-        val firstDayOfWeek = (firstDay.dayOfWeek.value % 7) // Sun=0, Mon=1 … Sat=6
         val today = LocalDate.now()
-
+        val firstDayColumn = satFirstCol(firstDay.dayOfWeek.value)
         val days = mutableListOf<CalendarDay>()
 
-        // Leading days from previous month
-        val prevMonth = yearMonth.minusMonths(1)
-        val daysInPrevMonth = prevMonth.lengthOfMonth()
-        for (i in firstDayOfWeek - 1 downTo 0) {
-            val date = prevMonth.atDay(daysInPrevMonth - i)
-            days.add(
-                CalendarDay(
-                    date = date,
-                    number = date.dayOfMonth.toString(),
-                    isWithinDisplayedMonth = false,
-                    isSelected = date == today,
-                )
-            )
+        // Leading: previous month tail
+        if (firstDayColumn > 0) {
+            val prev = yearMonth.minusMonths(1)
+            val daysInPrev = prev.lengthOfMonth()
+            for (i in firstDayColumn - 1 downTo 0) {
+                val date = prev.atDay(daysInPrev - i)
+                days += CalendarDay(date, date.dayOfMonth.toString(), isWithinDisplayedMonth = false, isSelected = false)
+            }
         }
 
-        // Current month days
+        // Current month
         for (d in 1..yearMonth.lengthOfMonth()) {
             val date = yearMonth.atDay(d)
-            days.add(
-                CalendarDay(
-                    date = date,
-                    number = d.toString(),
-                    isWithinDisplayedMonth = true,
-                    isSelected = date == today,
-                )
-            )
+            days += CalendarDay(date, d.toString(), isWithinDisplayedMonth = true, isSelected = date == today)
         }
 
-        // Trailing days from next month to complete the last row
-        val remaining = (7 - (days.size % 7)) % 7
-        val nextMonth = yearMonth.plusMonths(1)
-        for (d in 1..remaining) {
-            val date = nextMonth.atDay(d)
-            days.add(
-                CalendarDay(
-                    date = date,
-                    number = d.toString(),
-                    isWithinDisplayedMonth = false,
-                    isSelected = false,
-                )
-            )
+        // Trailing: next month head
+        val rem = days.size % 7
+        if (rem != 0) {
+            val next = yearMonth.plusMonths(1)
+            repeat(7 - rem) { i ->
+                val date = next.atDay(i + 1)
+                days += CalendarDay(date, (i + 1).toString(), isWithinDisplayedMonth = false, isSelected = false)
+            }
         }
-
         return days
     }
+
+    // ──────────────────────────────── Hijri ───────────────────────────────────
+
+    private fun getHijriMonths(start: LocalDate, count: Int): List<CalendarMonth> {
+        val months = mutableListOf<CalendarMonth>()
+        val hijriStart = HijrahDate.from(start)
+        var hYear  = hijriStart.get(ChronoField.YEAR)
+        var hMonth = hijriStart.get(ChronoField.MONTH_OF_YEAR)
+        repeat(count) {
+            months.add(buildHijriMonth(hYear, hMonth))
+            hMonth++
+            if (hMonth > 12) { hMonth = 1; hYear++ }
+        }
+        return months
+    }
+
+    private fun buildHijriMonth(hYear: Int, hMonth: Int): CalendarMonth {
+        val firstHijri = HijrahDate.of(hYear, hMonth, 1)
+        val gregorianDate = LocalDate.from(HijrahChronology.INSTANCE.date(firstHijri))
+        val title = "${arabicHijriMonth(hMonth)} $hYear هـ"
+        return CalendarMonth(days = generateHijriDays(hYear, hMonth), monthTitle = title, date = gregorianDate)
+    }
+
+    private fun generateHijriDays(hYear: Int, hMonth: Int): List<CalendarDay> {
+        val firstHijri   = HijrahDate.of(hYear, hMonth, 1)
+        val daysInMonth  = firstHijri.lengthOfMonth()
+        val today        = LocalDate.now()
+        val todayHijri   = HijrahDate.from(today)
+        val firstGreg    = LocalDate.from(HijrahChronology.INSTANCE.date(firstHijri))
+        val firstCol     = satFirstCol(firstGreg.dayOfWeek.value)
+        val days         = mutableListOf<CalendarDay>()
+
+        // Leading
+        if (firstCol > 0) {
+            var pm = hMonth - 1; var py = hYear
+            if (pm < 1) { pm = 12; py-- }
+            val prevLen = HijrahDate.of(py, pm, 1).lengthOfMonth()
+            for (i in firstCol - 1 downTo 0) {
+                val dn = prevLen - i
+                val gDate = LocalDate.from(HijrahChronology.INSTANCE.date(HijrahDate.of(py, pm, dn)))
+                days += CalendarDay(gDate, dn.toString(), isWithinDisplayedMonth = false, isSelected = false)
+            }
+        }
+
+        // Current
+        for (d in 1..daysInMonth) {
+            val hd    = HijrahDate.of(hYear, hMonth, d)
+            val gDate = LocalDate.from(HijrahChronology.INSTANCE.date(hd))
+            days += CalendarDay(gDate, d.toString(), isWithinDisplayedMonth = true, isSelected = hd == todayHijri)
+        }
+
+        // Trailing
+        val rem = days.size % 7
+        if (rem != 0) {
+            var nm = hMonth + 1; var ny = hYear
+            if (nm > 12) { nm = 1; ny++ }
+            repeat(7 - rem) { i ->
+                val dn    = i + 1
+                val gDate = LocalDate.from(HijrahChronology.INSTANCE.date(HijrahDate.of(ny, nm, dn)))
+                days += CalendarDay(gDate, dn.toString(), isWithinDisplayedMonth = false, isSelected = false)
+            }
+        }
+        return days
+    }
+
+    // ─────────────────────────────── Helpers ─────────────────────────────────
+
+    private fun satFirstCol(dayOfWeekValue: Int): Int = when (dayOfWeekValue) {
+        6 -> 0; 5 -> 1; 4 -> 2; 3 -> 3; 2 -> 4; 1 -> 5; 7 -> 6; else -> 0
+    }
+
+    private fun arabicHijriMonth(m: Int): String = listOf(
+        "محرم", "صفر", "ربيع الأول", "ربيع الثاني",
+        "جمادى الأولى", "جمادى الآخرة", "رجب", "شعبان",
+        "رمضان", "شوال", "ذو القعدة", "ذو الحجة"
+    ).getOrElse(m - 1) { "" }
 
     fun formatDateForApi(date: LocalDate): String =
         date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
