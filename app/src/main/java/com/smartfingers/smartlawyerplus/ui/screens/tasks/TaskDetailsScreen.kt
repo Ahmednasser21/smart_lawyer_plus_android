@@ -39,7 +39,7 @@ fun TaskDetailsScreen(
             CenterAlignedTopAppBar(
                 title = {
                     Text(
-                        text = "تفاصيل المهمه",
+                        text = "عرض مهمة",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold,
                     )

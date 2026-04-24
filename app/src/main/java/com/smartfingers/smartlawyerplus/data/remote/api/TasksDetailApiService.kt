@@ -12,7 +12,7 @@ interface TasksDetailApiService {
     suspend fun getTaskProjectInfo(@Url url: String): AppResponseDto<TaskProjectInfoDto>
 
     @GET
-    suspend fun getTaskReplies(@Url url: String): List<TaskRepliesDto>
+    suspend fun getTaskReplies(@Url url: String): ApiResponse<List<TaskRepliesDto>>
 
     @GET
     suspend fun getNewTaskNumber(@Url url: String): AppResponseDto<Int>

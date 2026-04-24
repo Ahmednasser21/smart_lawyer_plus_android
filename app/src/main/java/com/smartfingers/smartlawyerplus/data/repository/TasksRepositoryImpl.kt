@@ -58,7 +58,8 @@ class TasksRepositoryImpl @Inject constructor(
     }.getOrElse { Result.Error(it.message ?: "Network error") }
 
     override suspend fun getTaskReplies(taskId: Int): Result<List<TaskReply>> = runCatching {
-        val list = api.getTaskReplies("${base()}/api/taskReply?taskId=$taskId")
+        val response = api.getTaskReplies("${base()}/api/taskReply?taskId=$taskId")
+        val list = response.data ?: emptyList()
         val replies = list.flatMap { group ->
             group.taskReplies?.map { dto ->
                 TaskReply(
