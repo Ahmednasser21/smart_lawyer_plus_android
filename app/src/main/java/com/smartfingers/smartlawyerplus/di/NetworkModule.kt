@@ -4,6 +4,8 @@ import com.smartfingers.smartlawyerplus.data.local.AppPreferences
 import com.smartfingers.smartlawyerplus.data.remote.api.AuthApiService
 import com.smartfingers.smartlawyerplus.data.remote.api.SessionsApiService
 import com.smartfingers.smartlawyerplus.data.remote.api.TasksApiService
+import com.smartfingers.smartlawyerplus.data.remote.interceptor.AuthInterceptor
+import com.smartfingers.smartlawyerplus.util.SessionExpiredManager
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -26,7 +28,10 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideOkHttpClient(prefs: AppPreferences): OkHttpClient {
+    fun provideOkHttpClient(
+        prefs: AppPreferences,
+        authInterceptor: AuthInterceptor,
+    ): OkHttpClient {
         val trustAllCerts = arrayOf<TrustManager>(object : X509TrustManager {
             override fun checkClientTrusted(chain: Array<X509Certificate>, authType: String) {}
             override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String) {}
@@ -42,16 +47,7 @@ object NetworkModule {
                     level = HttpLoggingInterceptor.Level.BODY
                 }
             )
-            .addInterceptor { chain ->
-                val token = kotlinx.coroutines.runBlocking { prefs.getTokenOnce() }
-                val language = kotlinx.coroutines.runBlocking { prefs.getLanguageOnce() }
-                val request = chain.request().newBuilder()
-                    .addHeader("Authorization", "Bearer $token")
-                    .addHeader("Accept-Language", language)
-                    .addHeader("Content-Type", "application/json")
-                    .build()
-                chain.proceed(request)
-            }
+            .addInterceptor(authInterceptor)
             .sslSocketFactory(sslContext.socketFactory, trustAllCerts[0] as X509TrustManager)
             .hostnameVerifier { _, _ -> true }
             .connectTimeout(30, TimeUnit.SECONDS)
@@ -82,4 +78,11 @@ object NetworkModule {
     @Singleton
     fun provideSessionsApiService(retrofit: Retrofit): SessionsApiService =
         retrofit.create(SessionsApiService::class.java)
+
+    @Provides
+    @Singleton
+    fun provideAuthInterceptor(
+        prefs: AppPreferences,
+        sessionExpiredManager: SessionExpiredManager,
+    ): AuthInterceptor = AuthInterceptor(prefs, sessionExpiredManager)
 }

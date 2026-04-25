@@ -5,16 +5,18 @@ import com.smartfingers.smartlawyerplus.data.remote.api.TasksDetailApiService
 import com.smartfingers.smartlawyerplus.data.remote.dto.*
 import com.smartfingers.smartlawyerplus.domain.model.*
 import com.smartfingers.smartlawyerplus.domain.repository.TasksRepository
+import com.smartfingers.smartlawyerplus.util.AppErrorState
 import javax.inject.Inject
 
 class TasksRepositoryImpl @Inject constructor(
     private val prefs: AppPreferences,
     private val api: TasksDetailApiService,
-) : TasksRepository {
+    appErrorState: AppErrorState
+) : TasksRepository, BaseRepository(appErrorState) {
 
     private suspend fun base() = "${prefs.getBaseUrlOnce()}${prefs.getAppUrlOnce()}"
 
-    override suspend fun getTaskDetails(taskId: Int): Result<TaskDetails> = runCatching {
+    override suspend fun getTaskDetails(taskId: Int): Result<TaskDetails> = safeApiCall {
         val r = api.getTaskDetails("${base()}/api/tasks/get-details/$taskId")
         if (r.isSuccess == true && r.data != null) {
             val d = r.data
@@ -40,9 +42,9 @@ class TasksRepositoryImpl @Inject constructor(
                 executiveCaseId = d.executiveCaseId, projectGeneralId = d.projectGeneralId,
             ))
         } else Result.Error(r.errorList?.firstOrNull() ?: "Error")
-    }.getOrElse { Result.Error(it.message ?: "Network error") }
+    }
 
-    override suspend fun getTaskProjectInfo(taskId: Int): Result<TaskProjectInfo> = runCatching {
+    override suspend fun getTaskProjectInfo(taskId: Int): Result<TaskProjectInfo> = safeApiCall {
         val r = api.getTaskProjectInfo("${base()}/api/tasks/get-project-details/$taskId")
         if (r.isSuccess == true && r.data != null) {
             val d = r.data
@@ -56,9 +58,9 @@ class TasksRepositoryImpl @Inject constructor(
                 executiveCaseClients = d.executiveCaseClients,
             ))
         } else Result.Error(r.errorList?.firstOrNull() ?: "Error")
-    }.getOrElse { Result.Error(it.message ?: "Network error") }
+    }
 
-    override suspend fun getTaskReplies(taskId: Int): Result<List<TaskReply>> = runCatching {
+    override suspend fun getTaskReplies(taskId: Int): Result<List<TaskReply>> = safeApiCall {
         val response = api.getTaskReplies("${base()}/api/taskReply?taskId=$taskId")
         val list = response.data ?: emptyList()
         val replies = list.flatMap { group ->
@@ -86,66 +88,66 @@ class TasksRepositoryImpl @Inject constructor(
             } ?: emptyList()
         }
         Result.Success(replies)
-    }.getOrElse { Result.Error(it.message ?: "Network error") }
+    }
 
-    override suspend fun getNewTaskNumber(): Result<Int> = runCatching {
+    override suspend fun getNewTaskNumber(): Result<Int> = safeApiCall {
         val r = api.getNewTaskNumber("${base()}/api/tasks/getNewTaskNumber")
         if (r.isSuccess == true) Result.Success(r.data ?: 0)
         else Result.Error(r.errorList?.firstOrNull() ?: "Error")
-    }.getOrElse { Result.Error(it.message ?: "Network error") }
+    }
 
-    override suspend fun getTaskCategories(): Result<List<TaskCategory>> = runCatching {
+    override suspend fun getTaskCategories(): Result<List<TaskCategory>> = safeApiCall {
         val r = api.getTaskCategories("${base()}/api/taskCategories?sortBy=id&isSortAscending=false&page=1&pageSize=999999999")
         if (r.isSuccess == true) {
             Result.Success(r.data?.items?.map { TaskCategory(it.id ?: 0, it.name ?: "") } ?: emptyList())
         } else Result.Error(r.errorList?.firstOrNull() ?: "Error")
-    }.getOrElse { Result.Error(it.message ?: "Network error") }
+    }
 
-    override suspend fun getTaskPriorities(): Result<List<TaskPriority>> = runCatching {
+    override suspend fun getTaskPriorities(): Result<List<TaskPriority>> = safeApiCall {
         val list = api.getTaskPriorities("${base()}/api/enums/task-priorities")
         Result.Success(list.map { TaskPriority(it.id ?: 0, it.name ?: "") })
-    }.getOrElse { Result.Error(it.message ?: "Network error") }
+    }
 
-    override suspend fun getTaskCases(): Result<List<TaskCase>> = runCatching {
+    override suspend fun getTaskCases(): Result<List<TaskCase>> = safeApiCall {
         val response = api.getTaskCases("${base()}/api/cases/for-select")
         val list = response.data ?: emptyList()
         Result.Success(list.map { TaskCase(it.id ?: 0, it.name ?: "") })
-    }.getOrElse { Result.Error(it.message ?: "Network error") }
+    }
 
-    override suspend fun getTaskConsultations(): Result<List<TaskConsultation>> = runCatching {
+    override suspend fun getTaskConsultations(): Result<List<TaskConsultation>> = safeApiCall {
         val list = api.getTaskConsultations("${base()}/api/consultations/for-select")
         Result.Success(list.map { TaskConsultation(it.id ?: 0, it.name ?: "") })
-    }.getOrElse { Result.Error(it.message ?: "Network error") }
+    }
 
-    override suspend fun getTaskExecutiveCases(): Result<List<TaskExecutiveCase>> = runCatching {
+    override suspend fun getTaskExecutiveCases(): Result<List<TaskExecutiveCase>> = safeApiCall {
         val list = api.getTaskExecutiveCases("${base()}/api/ExecutiveCases/for-select")
         Result.Success(list.map { TaskExecutiveCase(it.id ?: 0, it.name ?: "") })
-    }.getOrElse { Result.Error(it.message ?: "Network error") }
+    }
 
-    override suspend fun getTaskProjectGenerals(): Result<List<TaskProjectGeneral>> = runCatching {
+    override suspend fun getTaskProjectGenerals(): Result<List<TaskProjectGeneral>> = safeApiCall {
         val list = api.getTaskProjectGenerals("${base()}/api/ProjectGenerals/for-select")
         Result.Success(list.map { TaskProjectGeneral(it.id ?: 0, it.name ?: "") })
-    }.getOrElse { Result.Error(it.message ?: "Network error") }
+    }
 
-    override suspend fun getTaskEmployees(): Result<List<TaskEmployee>> = runCatching {
+    override suspend fun getTaskEmployees(): Result<List<TaskEmployee>> = safeApiCall {
         val response = api.getEmployees("${base()}/api/Employees/List")
         val list = response.data ?: emptyList()
         Result.Success(list.map { TaskEmployee(it.id ?: "", it.name ?: "") })
-    }.getOrElse { Result.Error(it.message ?: "Network error") }
+    }
 
-    override suspend fun addTask(request: AddTaskRequest): Result<Int> = runCatching {
+    override suspend fun addTask(request: AddTaskRequest): Result<Int> = safeApiCall {
         val dto = request.toDto()
         val r = api.addTask("${base()}/api/tasks", dto)
         if (r.isSuccess == true) Result.Success(r.data ?: 0)
         else Result.Error(r.errorList?.firstOrNull() ?: "Error")
-    }.getOrElse { Result.Error(it.message ?: "Network error") }
+    }
 
-    override suspend fun editTask(id: String, request: AddTaskRequest): Result<Int> = runCatching {
+    override suspend fun editTask(id: String, request: AddTaskRequest): Result<Int> = safeApiCall {
         val dto = request.toDto()
         val r = api.editTask("${base()}/api/tasks", dto)
         if (r.isSuccess == true) Result.Success(r.data ?: 0)
         else Result.Error(r.errorList?.firstOrNull() ?: "Error")
-    }.getOrElse { Result.Error(it.message ?: "Network error") }
+    }
 
     private fun AddTaskRequest.toDto() = AddTaskDto(
         name = name, taskNumber = taskNumber, taskUsers = taskUsers,
@@ -157,30 +159,30 @@ class TasksRepositoryImpl @Inject constructor(
         projectGeneralId = projectGeneralId,
     )
 
-    override suspend fun deleteTaskReply(replyId: Int): Result<Boolean> = runCatching {
+    override suspend fun deleteTaskReply(replyId: Int): Result<Boolean> = safeApiCall {
         val r = api.deleteTaskReply("${base()}/api/taskReply/$replyId")
         if (r.isSuccess == true) Result.Success(r.data ?: false)
         else Result.Error(r.errorList?.firstOrNull() ?: "Error")
-    }.getOrElse { Result.Error(it.message ?: "Network error") }
+    }
 
-    override suspend fun closeTaskReply(replyId: Int): Result<Boolean> = runCatching {
+    override suspend fun closeTaskReply(replyId: Int): Result<Boolean> = safeApiCall {
         val r = api.closeTaskReply("${base()}/api/taskReply/close/$replyId")
         if (r.isSuccess == true) Result.Success(r.data ?: false)
         else Result.Error(r.errorList?.firstOrNull() ?: "Error")
-    }.getOrElse { Result.Error(it.message ?: "Network error") }
+    }
 
-    override suspend fun deleteTask(taskId: Int): Result<Boolean> = runCatching {
+    override suspend fun deleteTask(taskId: Int): Result<Boolean> = safeApiCall {
         val r = api.deleteTask("${base()}/api/tasks/$taskId")
         if (r.isSuccess == true) Result.Success(true)
         else Result.Error(r.errorList?.firstOrNull() ?: "Error")
-    }.getOrElse { Result.Error(it.message ?: "Network error") }
+    }
 
-    override suspend fun updateTaskStatus(taskId: Int, status: Int): Result<Int> = runCatching {
+    override suspend fun updateTaskStatus(taskId: Int, status: Int): Result<Int> = safeApiCall {
         val r = api.updateTaskStatus(
             "${base()}/api/tasks/updateTaskStatus",
             CloseTaskBody(taskId = "$taskId", taskStatus = status)
         )
         if (r.isSuccess == true) Result.Success(r.data ?: 0)
         else Result.Error(r.errorList?.firstOrNull() ?: "Error")
-    }.getOrElse { Result.Error(it.message ?: "Network error") }
+    }
 }

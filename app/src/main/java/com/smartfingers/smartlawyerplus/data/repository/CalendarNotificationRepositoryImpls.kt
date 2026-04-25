@@ -13,13 +13,15 @@ import com.smartfingers.smartlawyerplus.domain.model.NotificationsPage
 import com.smartfingers.smartlawyerplus.domain.model.Result
 import com.smartfingers.smartlawyerplus.domain.repository.CalendarRepository
 import com.smartfingers.smartlawyerplus.domain.repository.NotificationsRepository
+import com.smartfingers.smartlawyerplus.util.AppErrorState
 import javax.inject.Inject
 
 class CalendarRepositoryImpl @Inject constructor(
     private val prefs: AppPreferences,
     private val calendarApi: CalendarApiService,
     private val sessionsApi: SessionsApiService,
-) : CalendarRepository {
+    appErrorState: AppErrorState
+) : CalendarRepository, BaseRepository(appErrorState) {
 
     private suspend fun baseUrl(): String =
         "${prefs.getBaseUrlOnce()}${prefs.getAppUrlOnce()}"
@@ -29,7 +31,7 @@ class CalendarRepositoryImpl @Inject constructor(
         endDate: String,
         userId: String?,
         typeId: String?,
-    ): Result<List<CalendarEvent>> = runCatching {
+    ): Result<List<CalendarEvent>> = safeApiCall {
         val userParam = userId ?: ""
         val typeParam = typeId ?: ""
         val url = "${baseUrl()}/api/Calendar/GetCalendarData" +
@@ -61,15 +63,15 @@ class CalendarRepositoryImpl @Inject constructor(
                 },
             )
         })
-    }.getOrElse { Result.Error(it.message ?: "Network error") }
+    }
 
-    override suspend fun getCalendarItemTypes(): Result<List<CalendarItemType>> = runCatching {
+    override suspend fun getCalendarItemTypes(): Result<List<CalendarItemType>> = safeApiCall {
         val url = "${baseUrl()}/api/Enums/GetCalendarItemTypes"
         val response = calendarApi.getCalendarItemTypes(url)
         Result.Success(response.map { CalendarItemType(id = it.id ?: 0, name = it.name ?: "") })
-    }.getOrElse { Result.Error(it.message ?: "Network error") }
+    }
 
-    override suspend fun getEmployees(): Result<List<FilterOption>> = runCatching {
+    override suspend fun getEmployees(): Result<List<FilterOption>> = safeApiCall {
         val url = "${baseUrl()}/api/Employees/List"
         val response = sessionsApi.getEmployees(url)
         if (response.isSuccess == true) {
@@ -77,7 +79,7 @@ class CalendarRepositoryImpl @Inject constructor(
                 FilterOption(id = it.id ?: "", name = it.name ?: "")
             } ?: emptyList())
         } else Result.Error(response.errorList?.firstOrNull() ?: "Failed")
-    }.getOrElse { Result.Error(it.message ?: "Network error") }
+    }
 }
 
 class NotificationsRepositoryImpl @Inject constructor(
@@ -121,5 +123,5 @@ class NotificationsRepositoryImpl @Inject constructor(
         } else {
             Result.Error(response.errorList?.firstOrNull() ?: "Failed to load notifications")
         }
-    }.getOrElse { Result.Error(it.message ?: "Network error") }
+    }.getOrElse { Result.Error(it.message ?: "Failed to load notifications") }
 }

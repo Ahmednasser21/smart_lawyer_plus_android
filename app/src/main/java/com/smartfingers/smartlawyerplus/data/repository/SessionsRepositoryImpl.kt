@@ -14,18 +14,20 @@ import com.smartfingers.smartlawyerplus.domain.model.LastHearing
 import com.smartfingers.smartlawyerplus.domain.model.Result
 import com.smartfingers.smartlawyerplus.domain.model.Session
 import com.smartfingers.smartlawyerplus.domain.repository.SessionsRepository
+import com.smartfingers.smartlawyerplus.util.AppErrorState
 import javax.inject.Inject
 
 class SessionsRepositoryImpl @Inject constructor(
     private val prefs: AppPreferences,
     private val api: SessionsApiService,
-) : SessionsRepository {
+    appErrorState: AppErrorState,
+) : SessionsRepository, BaseRepository(appErrorState) {
 
     private suspend fun baseUrl(): String =
         "${prefs.getBaseUrlOnce()}${prefs.getAppUrlOnce()}"
 
     override suspend fun getSessions(filter: HearingFilter): Result<Pair<List<Session>, Int>> =
-        runCatching {
+        safeApiCall {
             val url = buildUrl(filter)
             val response = api.getHearings(url)
             if (response.isSuccess == true) {
@@ -53,23 +55,23 @@ class SessionsRepositoryImpl @Inject constructor(
             } else {
                 Result.Error(response.errorList?.firstOrNull() ?: "Failed to load sessions")
             }
-        }.getOrElse { Result.Error(it.message ?: "Network error") }
+        }
 
-    override suspend fun getHearingStatuses(): Result<List<HearingStatus>> = runCatching {
+    override suspend fun getHearingStatuses(): Result<List<HearingStatus>> = safeApiCall {
         val url = "${baseUrl()}/api/Enums/hearing-statuses"
         val response = api.getHearingStatuses(url)
         Result.Success(
             response.map { HearingStatus(id = it.id ?: 0, name = it.name ?: "") }
         )
-    }.getOrElse { Result.Error(it.message ?: "Network error") }
+    }
 
-    override suspend fun getHearingPeriods(): Result<List<HearingPeriod>> = runCatching {
+    override suspend fun getHearingPeriods(): Result<List<HearingPeriod>> = safeApiCall {
         val url = "${baseUrl()}/api/Enums/dashboard-period-types"
         val response = api.getHearingPeriods(url)
         Result.Success(
             response.map { HearingPeriod(id = it.id ?: 0, name = it.name ?: "") }
         )
-    }.getOrElse { Result.Error(it.message ?: "Network error") }
+    }
 
     private suspend fun buildUrl(filter: HearingFilter): String {
         val base = "${baseUrl()}/api/Hearings"
@@ -89,7 +91,7 @@ class SessionsRepositoryImpl @Inject constructor(
         return "$base?${params.joinToString("&")}"
     }
 
-    override suspend fun getCourts(): Result<List<FilterOption>> = runCatching {
+    override suspend fun getCourts(): Result<List<FilterOption>> = safeApiCall{
         val url = "${baseUrl()}/api/courts"
         val response = api.getCourts(url)
         if (response.isSuccess == true) {
@@ -97,9 +99,9 @@ class SessionsRepositoryImpl @Inject constructor(
                 FilterOption(id = "${it.id ?: 0}", name = it.name ?: "")
             } ?: emptyList())
         } else Result.Error(response.errorList?.firstOrNull() ?: "Failed")
-    }.getOrElse { Result.Error(it.message ?: "Network error") }
+    }
 
-    override suspend fun getCases(): Result<List<FilterOption>> = runCatching {
+    override suspend fun getCases(): Result<List<FilterOption>> = safeApiCall {
         val url = "${baseUrl()}/api/cases/for-select"
         val response = api.getCases(url)
         if (response.isSuccess == true) {
@@ -108,9 +110,9 @@ class SessionsRepositoryImpl @Inject constructor(
             } ?: emptyList()
             Result.Success(items)
         } else Result.Error(response.errorList?.firstOrNull() ?: "Failed")
-    }.getOrElse { Result.Error(it.message ?: "Network error") }
+    }
 
-    override suspend fun getHearingTypes(): Result<List<FilterOption>> = runCatching {
+    override suspend fun getHearingTypes(): Result<List<FilterOption>> = safeApiCall {
         val url = "${baseUrl()}/api/hearingTypes"
         val response = api.getHearingTypes(url)
         if (response.isSuccess == true) {
@@ -118,9 +120,9 @@ class SessionsRepositoryImpl @Inject constructor(
                 FilterOption(id = "${it.id ?: 0}", name = it.name ?: "")
             } ?: emptyList())
         } else Result.Error(response.errorList?.firstOrNull() ?: "Failed")
-    }.getOrElse { Result.Error(it.message ?: "Network error") }
+    }
 
-    override suspend fun getSubHearingTypes(): Result<List<FilterOption>> = runCatching {
+    override suspend fun getSubHearingTypes(): Result<List<FilterOption>> = safeApiCall{
         val url = "${baseUrl()}/api/subHearingTypes"
         val response = api.getSubHearingTypes(url)
         if (response.isSuccess == true) {
@@ -128,9 +130,9 @@ class SessionsRepositoryImpl @Inject constructor(
                 FilterOption(id = "${it.id ?: 0}", name = it.name ?: "")
             } ?: emptyList())
         } else Result.Error(response.errorList?.firstOrNull() ?: "Failed")
-    }.getOrElse { Result.Error(it.message ?: "Network error") }
+    }
 
-    override suspend fun getEmployees(): Result<List<FilterOption>> = runCatching {
+    override suspend fun getEmployees(): Result<List<FilterOption>> = safeApiCall {
         val url = "${baseUrl()}/api/Employees/List"
         val response = api.getEmployees(url)
         if (response.isSuccess == true) {
@@ -138,9 +140,9 @@ class SessionsRepositoryImpl @Inject constructor(
                 FilterOption(id = it.id ?: "", name = it.name ?: "")
             } ?: emptyList())
         } else Result.Error(response.errorList?.firstOrNull() ?: "Failed")
-    }.getOrElse { Result.Error(it.message ?: "Network error") }
+    }
 
-    override suspend fun getBranches(): Result<List<FilterOption>> = runCatching {
+    override suspend fun getBranches(): Result<List<FilterOption>> = safeApiCall {
         val url = "${baseUrl()}/api/branches"
         val response = api.getBranches(url)
         if (response.isSuccess == true) {
@@ -148,9 +150,8 @@ class SessionsRepositoryImpl @Inject constructor(
                 FilterOption(id = "${it.id ?: 0}", name = it.name ?: "")
             } ?: emptyList())
         } else Result.Error(response.errorList?.firstOrNull() ?: "Failed")
-    }.getOrElse { Result.Error(it.message ?: "Network error") }
-
-    override suspend fun getParties(): Result<List<FilterOption>> = runCatching {
+    }
+    override suspend fun getParties(): Result<List<FilterOption>> = safeApiCall {
         val url = "${baseUrl()}/api/parties"
         val response = api.getParties(url)
         if (response.isSuccess == true) {
@@ -158,9 +159,9 @@ class SessionsRepositoryImpl @Inject constructor(
                 FilterOption(id = "${it.id ?: 0}", name = it.name ?: "")
             } ?: emptyList())
         } else Result.Error(response.errorList?.firstOrNull() ?: "Failed")
-    }.getOrElse { Result.Error(it.message ?: "Network error") }
+    }
 
-    override suspend fun getResultCounts(): Result<List<FilterOption>> = runCatching {
+    override suspend fun getResultCounts(): Result<List<FilterOption>> = safeApiCall {
         Result.Success(
             listOf(
                 FilterOption("10", "10"),
@@ -169,14 +170,14 @@ class SessionsRepositoryImpl @Inject constructor(
                 FilterOption("100", "100"),
             )
         )
-    }.getOrElse { Result.Error(it.message ?: "Network error") }
+    }
 
-    override suspend fun getDiscounts(): Result<List<FilterOption>> = runCatching {
+    override suspend fun getDiscounts(): Result<List<FilterOption>> = safeApiCall {
         val url = "${baseUrl()}/api/discounts"
         Result.Success(emptyList<FilterOption>())
-    }.getOrElse { Result.Error(it.message ?: "Network error") }
+    }
 
-    override suspend fun getHearingDetails(hearingId: Int): Result<HearingDetails> = runCatching {
+    override suspend fun getHearingDetails(hearingId: Int): Result<HearingDetails> = safeApiCall {
         val url = "${baseUrl()}/api/Hearings/details/$hearingId"
         val response = api.getHearingDetails(url)
         if (response.isSuccess == true && response.data != null) {
@@ -228,10 +229,10 @@ class SessionsRepositoryImpl @Inject constructor(
         } else {
             Result.Error(response.errorList?.firstOrNull() ?: "Failed to load hearing details")
         }
-    }.getOrElse { Result.Error(it.message ?: "Network error") }
+    }
 
     override suspend fun getLastHearingNumberByCaseId(caseId: String): Result<LastHearing> =
-        runCatching {
+        safeApiCall {
             val url = "${baseUrl()}/api/Hearings/lastHearingNumberByCaseId?CaseId=$caseId"
             val response = api.getLastHearingNumberByCaseId(url)
             if (response.isSuccess == true && response.data != null) {
@@ -252,9 +253,9 @@ class SessionsRepositoryImpl @Inject constructor(
             } else {
                 Result.Error(response.errorList?.firstOrNull() ?: "Failed")
             }
-        }.getOrElse { Result.Error(it.message ?: "Network error") }
+        }
 
-    override suspend fun getLastHearingById(hearingId: Int): Result<LastHearing> = runCatching {
+    override suspend fun getLastHearingById(hearingId: Int): Result<LastHearing> = safeApiCall {
         val url = "${baseUrl()}/api/hearings/$hearingId"
         val response = api.getLastHearingById(url)
         if (response.isSuccess == true && response.data != null) {
@@ -275,9 +276,9 @@ class SessionsRepositoryImpl @Inject constructor(
         } else {
             Result.Error(response.errorList?.firstOrNull() ?: "Failed")
         }
-    }.getOrElse { Result.Error(it.message ?: "Network error") }
+    }
 
-    override suspend fun getHearingActionSamples(): Result<List<HearingActionSample>> = runCatching {
+    override suspend fun getHearingActionSamples(): Result<List<HearingActionSample>> = safeApiCall {
         val url = "${baseUrl()}/api/HearingActionSamples?page=1&pageSize=999999999"
         val response = api.getHearingActionSamples(url)
         if (response.isSuccess == true) {
@@ -287,13 +288,13 @@ class SessionsRepositoryImpl @Inject constructor(
                 } ?: emptyList()
             )
         } else Result.Error(response.errorList?.firstOrNull() ?: "Failed")
-    }.getOrElse { Result.Error(it.message ?: "Network error") }
+    }
 
-    override suspend fun addHearingActionSample(name: String): Result<Int> = runCatching {
+    override suspend fun addHearingActionSample(name: String): Result<Int> = safeApiCall {
         val url = "${baseUrl()}/api/HearingActionSamples"
         val response = api.addHearingActionSample(url, HearingActionSampleBodyDto(name = name))
         if (response.isSuccess == true) Result.Success(response.data ?: 0)
         else Result.Error(response.errorList?.firstOrNull() ?: "Failed")
-    }.getOrElse { Result.Error(it.message ?: "Network error") }
+    }
 
 }

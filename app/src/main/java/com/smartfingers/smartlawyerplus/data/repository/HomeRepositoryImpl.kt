@@ -6,12 +6,14 @@ import com.smartfingers.smartlawyerplus.domain.model.RecentHearing
 import com.smartfingers.smartlawyerplus.domain.model.Task
 import com.smartfingers.smartlawyerplus.domain.model.Result
 import com.smartfingers.smartlawyerplus.domain.repository.HomeRepository
+import com.smartfingers.smartlawyerplus.util.AppErrorState
 import javax.inject.Inject
 
 class HomeRepositoryImpl @Inject constructor(
     private val prefs: AppPreferences,
     private val api: TasksApiService,
-) : HomeRepository {
+    appErrorState: AppErrorState,
+) : HomeRepository, BaseRepository(appErrorState) {
 
     private suspend fun baseUrl(): String =
         "${prefs.getBaseUrlOnce()}${prefs.getAppUrlOnce()}"
@@ -21,7 +23,7 @@ class HomeRepositoryImpl @Inject constructor(
         pageSize: Int,
         taskFilterId: Int,
         taskScope: Int,
-    ): Result<Pair<List<Task>, Int>> = runCatching {
+    ): Result<Pair<List<Task>, Int>> = safeApiCall {
         val url = "${baseUrl()}/api/Tasks?Page=$page&PageSize=$pageSize" +
                 "&taskFilter=$taskFilterId&sortBy=time&isSortAscending=true" +
                 "&showFilters=false&taskScope=$taskScope"
@@ -47,9 +49,9 @@ class HomeRepositoryImpl @Inject constructor(
         } else {
             Result.Error(response.errorList?.firstOrNull() ?: "Failed to load tasks")
         }
-    }.getOrElse { Result.Error(it.message ?: "Network error") }
+    }
 
-    override suspend fun getRecentHearings(): Result<List<RecentHearing>> = runCatching {
+    override suspend fun getRecentHearings(): Result<List<RecentHearing>> = safeApiCall {
         val url = "${baseUrl()}/api/Hearings?sortBy=startDate&isSortAscending=true&Page=0&PageSize=5&Status=1"
         val response = api.getHearings(url)
         if (response.isSuccess == true) {
@@ -59,5 +61,5 @@ class HomeRepositoryImpl @Inject constructor(
         } else {
             Result.Error(response.errorList?.firstOrNull() ?: "Failed")
         }
-    }.getOrElse { Result.Error(it.message ?: "Network error") }
+    }
 }

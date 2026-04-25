@@ -9,12 +9,14 @@ import com.smartfingers.smartlawyerplus.domain.model.CaseListItem
 import com.smartfingers.smartlawyerplus.domain.model.CaseStatusFilter
 import com.smartfingers.smartlawyerplus.domain.model.Result
 import com.smartfingers.smartlawyerplus.domain.repository.CasesRepository
+import com.smartfingers.smartlawyerplus.util.AppErrorState
 import javax.inject.Inject
 
 class CasesRepositoryImpl @Inject constructor(
     private val prefs: AppPreferences,
     private val api: CasesApiService,
-) : CasesRepository {
+    appErrorState: AppErrorState,
+) : CasesRepository, BaseRepository(appErrorState) {
 
     private suspend fun baseUrl(): String =
         "${prefs.getBaseUrlOnce()}${prefs.getAppUrlOnce()}"
@@ -32,7 +34,7 @@ class CasesRepositoryImpl @Inject constructor(
         page: Int,
         pageSize: Int,
         caseStatus: Int,
-    ): Result<Pair<List<CaseListItem>, Int>> = runCatching {
+    ): Result<Pair<List<CaseListItem>, Int>> = safeApiCall {
         val url = "${baseUrl()}/api/cases" +
                 "?sortBy=id&isSortAscending=false" +
                 "&page=$page&pageSize=$pageSize" +
@@ -63,9 +65,9 @@ class CasesRepositoryImpl @Inject constructor(
         } else {
             Result.Error(response.errorList?.firstOrNull() ?: "فشل تحميل القضايا")
         }
-    }.getOrElse { Result.Error(it.message ?: "خطأ في الاتصال") }
+    }
 
-    override suspend fun getCaseDetails(caseId: Int): Result<CaseDetails> = runCatching {
+    override suspend fun getCaseDetails(caseId: Int): Result<CaseDetails> = safeApiCall {
         val url = "${baseUrl()}/api/Cases/details/$caseId"
         val response = api.getCaseDetails(url)
         if (response.isSuccess == true && response.data != null) {
@@ -99,13 +101,13 @@ class CasesRepositoryImpl @Inject constructor(
         } else {
             Result.Error(response.errorList?.firstOrNull() ?: "فشل تحميل تفاصيل القضية")
         }
-    }.getOrElse { Result.Error(it.message ?: "خطأ في الاتصال") }
+    }
 
     override suspend fun getCaseAttachments(
         caseId: Int,
         page: Int,
         pageSize: Int,
-    ): Result<Pair<List<CaseAttachment>, Int>> = runCatching {
+    ): Result<Pair<List<CaseAttachment>, Int>> = safeApiCall {
         val url = "${baseUrl()}/api/attachments?page=$page&pageSize=$pageSize&caseId=$caseId"
         val response = api.getCaseAttachments(url)
         if (response.isSuccess == true) {
@@ -124,13 +126,13 @@ class CasesRepositoryImpl @Inject constructor(
         } else {
             Result.Error(response.errorList?.firstOrNull() ?: "فشل تحميل المرفقات")
         }
-    }.getOrElse { Result.Error(it.message ?: "خطأ في الاتصال") }
+    }
 
     override suspend fun getCaseClients(
         caseId: Int,
         page: Int,
         pageSize: Int,
-    ): Result<Pair<List<CaseClient>, Int>> = runCatching {
+    ): Result<Pair<List<CaseClient>, Int>> = safeApiCall {
         val url = "${baseUrl()}/api/parties/forproject-list" +
                 "?sortBy=id&isSortAscending=false" +
                 "&page=$page&pageSize=$pageSize&projectId=$caseId"
@@ -150,5 +152,5 @@ class CasesRepositoryImpl @Inject constructor(
         } else {
             Result.Error(response.errorList?.firstOrNull() ?: "فشل تحميل العملاء")
         }
-    }.getOrElse { Result.Error(it.message ?: "خطأ في الاتصال") }
+    }
 }

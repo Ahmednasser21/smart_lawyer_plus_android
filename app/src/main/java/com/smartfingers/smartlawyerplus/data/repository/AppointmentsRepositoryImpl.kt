@@ -8,19 +8,21 @@ import com.smartfingers.smartlawyerplus.domain.model.AppointmentListItem
 import com.smartfingers.smartlawyerplus.domain.model.AppointmentsFilter
 import com.smartfingers.smartlawyerplus.domain.model.Result
 import com.smartfingers.smartlawyerplus.domain.repository.AppointmentsRepository
+import com.smartfingers.smartlawyerplus.util.AppErrorState
 import javax.inject.Inject
 
 class AppointmentsRepositoryImpl @Inject constructor(
     private val prefs: AppPreferences,
     private val api: AppointmentsApiService,
-) : AppointmentsRepository {
+    appErrorState: AppErrorState,
+) : AppointmentsRepository, BaseRepository(appErrorState) {
 
     private suspend fun baseUrl(): String =
         "${prefs.getBaseUrlOnce()}${prefs.getAppUrlOnce()}"
 
     override suspend fun getAppointments(
         filter: AppointmentsFilter,
-    ): Result<Pair<List<AppointmentListItem>, Int>> = runCatching {
+    ): Result<Pair<List<AppointmentListItem>, Int>> = safeApiCall {
         val url = "${baseUrl()}/api/Appointments" +
                 "?sortBy=startTime&isSortAscending=true" +
                 "&page=${filter.page}&pageSize=${filter.pageSize}" +
@@ -49,10 +51,10 @@ class AppointmentsRepositoryImpl @Inject constructor(
         } else {
             Result.Error(response.errorList?.firstOrNull() ?: "فشل تحميل المواعيد")
         }
-    }.getOrElse { Result.Error(it.message ?: "خطأ في الاتصال") }
+    }
 
     override suspend fun getAppointmentDetails(appointmentId: Int): Result<AppointmentDetails> =
-        runCatching {
+        safeApiCall {
             val url = "${baseUrl()}/api/Appointments/details/$appointmentId"
             val response = api.getAppointmentDetails(url)
             if (response.isSuccess == true && response.data != null) {
@@ -93,5 +95,5 @@ class AppointmentsRepositoryImpl @Inject constructor(
             } else {
                 Result.Error(response.errorList?.firstOrNull() ?: "فشل تحميل تفاصيل الموعد")
             }
-        }.getOrElse { Result.Error(it.message ?: "خطأ في الاتصال") }
+        }
 }

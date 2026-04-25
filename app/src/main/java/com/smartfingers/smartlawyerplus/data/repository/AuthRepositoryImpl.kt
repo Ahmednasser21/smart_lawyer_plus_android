@@ -12,6 +12,7 @@ import com.smartfingers.smartlawyerplus.domain.model.LoginCredentials
 import com.smartfingers.smartlawyerplus.domain.model.PasswordResetRequest
 import com.smartfingers.smartlawyerplus.domain.model.Result
 import com.smartfingers.smartlawyerplus.domain.repository.AuthRepository
+import com.smartfingers.smartlawyerplus.util.AppErrorState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
@@ -19,11 +20,12 @@ import javax.inject.Inject
 class AuthRepositoryImpl @Inject constructor(
     private val prefs: AppPreferences,
     private val api: AuthApiService,
-) : AuthRepository {
+    appErrorState: AppErrorState,
+) : AuthRepository, BaseRepository(appErrorState) {
     
     private fun buildBaseUrl(code: String) = "https://$code-api.smart-lawyer.net/"
 
-    override suspend fun initApp(link: String, code: String): Result<AppConfig> = runCatching {
+    override suspend fun initApp(link: String, code: String): Result<AppConfig> = safeApiCall {
         val baseUrl = buildBaseUrl(code)
         val url = "$baseUrl$link/api/SystemSettings/theme"
         val response = api.initApp(url)
@@ -47,9 +49,9 @@ class AuthRepositoryImpl @Inject constructor(
         } else {
             Result.Error(response.errorList?.firstOrNull() ?: "Initialization failed")
         }
-    }.getOrElse { Result.Error(it.message ?: "Network error") }
+    }
 
-    override suspend fun login(credentials: LoginCredentials): Result<AuthSession> = runCatching {
+    override suspend fun login(credentials: LoginCredentials): Result<AuthSession> = safeApiCall {
         val baseUrl = prefs.getBaseUrlOnce()
         val appUrl = prefs.getAppUrlOnce()
         val url = "$baseUrl$appUrl/api/auth/login"
@@ -67,12 +69,12 @@ class AuthRepositoryImpl @Inject constructor(
         } else {
             Result.Error(response.errorList?.firstOrNull() ?: "Login failed")
         }
-    }.getOrElse { Result.Error(it.message ?: "Network error") }
+    }
 
     override suspend fun refreshToken(): Result<AuthSession> =
         Result.Error("Not implemented")
 
-    override suspend fun sendOtp(email: String): Result<Boolean> = runCatching {
+    override suspend fun sendOtp(email: String): Result<Boolean> = safeApiCall {
         val baseUrl = prefs.getBaseUrlOnce()
         val appUrl = prefs.getAppUrlOnce()
         val url = "$baseUrl$appUrl/api/auth/send-reset-password-email"
@@ -82,9 +84,9 @@ class AuthRepositoryImpl @Inject constructor(
         } else {
             Result.Error(response.errorList?.firstOrNull() ?: "Failed to send OTP")
         }
-    }.getOrElse { Result.Error(it.message ?: "Network error") }
+    }
 
-    override suspend fun verifyOtp(request: PasswordResetRequest): Result<Boolean> = runCatching {
+    override suspend fun verifyOtp(request: PasswordResetRequest): Result<Boolean> = safeApiCall {
         val baseUrl = prefs.getBaseUrlOnce()
         val appUrl = prefs.getAppUrlOnce()
         val url = "$baseUrl$appUrl/api/auth/send-reset-password-code"
@@ -97,9 +99,9 @@ class AuthRepositoryImpl @Inject constructor(
         } else {
             Result.Error(response.errorList?.firstOrNull() ?: "Invalid OTP")
         }
-    }.getOrElse { Result.Error(it.message ?: "Network error") }
+    }
 
-    override suspend fun changePassword(request: PasswordResetRequest): Result<Boolean> = runCatching {
+    override suspend fun changePassword(request: PasswordResetRequest): Result<Boolean> = safeApiCall {
         val baseUrl = prefs.getBaseUrlOnce()
         val appUrl = prefs.getAppUrlOnce()
         val url = "$baseUrl$appUrl/api/auth/reset-password"
@@ -112,7 +114,7 @@ class AuthRepositoryImpl @Inject constructor(
         } else {
             Result.Error(response.errorList?.firstOrNull() ?: "Password change failed")
         }
-    }.getOrElse { Result.Error(it.message ?: "Network error") }
+    }
 
     override suspend fun getCachedUser(): LoggedUser? {
         val token = prefs.getTokenOnce()
