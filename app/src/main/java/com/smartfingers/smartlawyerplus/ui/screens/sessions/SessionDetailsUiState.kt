@@ -8,5 +8,5 @@ data class SessionDetailsUiState(
     val hearingDetails: HearingDetails? = null,
     val isLoading: Boolean = false,
     val error: String = "",
-    val selectedTab: Int = 0,
+    val selectedTab: Int = 1,
 )

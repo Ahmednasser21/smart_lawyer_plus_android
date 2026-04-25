@@ -17,6 +17,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -49,29 +50,24 @@ fun SessionDetailsScreen(
                     )
                 },
                 navigationIcon = {
-                    val reportId = uiState.hearingDetails?.hearingReportId
-                    IconButton(onClick = { /* handled by DropdownMenu below */ }) {}
-                },
-                actions = {
-                    // Report menu button
                     var showMenu by remember { mutableStateOf(false) }
                     val reportId = uiState.hearingDetails?.hearingReportId
                     Box {
-                        IconButton(onClick = { showMenu = true }) {
-                            Box(
-                                modifier = Modifier
-                                    .size(36.dp)
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(Primary),
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.MoreVert,
-                                    contentDescription = "Menu",
-                                    tint = Color.White,
-                                )
-                            }
+                        IconButton(
+                            onClick = { showMenu = true },
+                            modifier = Modifier
+                                .padding(16.dp)
+                                .size(36.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(Primary),
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.MoreVert,
+                                contentDescription = null,
+                                tint = Color.White
+                            )
                         }
+
                         DropdownMenu(
                             expanded = showMenu,
                             onDismissRequest = { showMenu = false },
@@ -91,6 +87,8 @@ fun SessionDetailsScreen(
                             )
                         }
                     }
+                },
+                actions = {
                     IconButton(onClick = onBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
@@ -113,7 +111,7 @@ fun SessionDetailsScreen(
                 .background(MaterialTheme.colorScheme.background),
         ) {
             // ── Tab bar ───────────────────────────────────────────────────────
-            val tabs = listOf("بيانات الجلسة", "الإجراءات والمستندات")
+            val tabs = listOf("الإجراءات والمستندات", "بيانات الجلسة")
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -152,6 +150,7 @@ fun SessionDetailsScreen(
                         CircularProgressIndicator(color = Primary)
                     }
                 }
+
                 uiState.error.isNotEmpty() -> {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -165,13 +164,14 @@ fun SessionDetailsScreen(
                         }
                     }
                 }
+
                 else -> {
                     when (uiState.selectedTab) {
-                        0 -> SessionDataTab(
+                        0 -> SessionDocsTab(details = uiState.hearingDetails)
+                        1 -> SessionDataTab(
                             details = uiState.hearingDetails,
                             session = session,
                         )
-                        1 -> SessionDocsTab(details = uiState.hearingDetails)
                     }
                 }
             }
@@ -186,12 +186,13 @@ private fun SessionDataTab(details: HearingDetails?, session: Session) {
     val items = if (details != null) {
         buildList {
             add(Triple("القضية", details.caseName ?: "-", true)) // full width
-            add(Triple("الحالة", details.statusName ?: statusName(details.status), false))
             add(Triple("المكلف بالجلسة", details.assignedUsers.firstOrNull() ?: "-", false))
-            add(Triple("رقم الجلسة", "${details.hearingNumber ?: "-"}", false))
+            add(Triple("الحالة", details.statusName ?: statusName(details.status), false))
             add(Triple("نوع الجلسة", details.hearingTypeName ?: "-", false))
+            add(Triple("رقم الجلسة", "${details.hearingNumber ?: "-"}", false))
+            add(Triple("الدائرة", details.courtCircle ?: "-", false))
             add(Triple("نوع الجلسة الفرعي", details.subHearingTypeName ?: "-", false))
-            add(Triple("دائرة المحكمة", details.courtCircle ?: "-", false))
+            add(Triple("إلي تاريخ الجلسة", details.endDate?.take(10) ?: "-", false))
             add(
                 Triple(
                     "تاريخ الجلسة",
@@ -202,16 +203,14 @@ private fun SessionDataTab(details: HearingDetails?, session: Session) {
                     false,
                 )
             )
-            add(Triple("تاريخ الانتهاء", details.endDate?.take(10) ?: "-", false))
-            add(Triple("اسم القاضي", details.judgeName ?: "-", false))
             add(Triple("المحكمة", details.courtName ?: "-", false))
-            add(Triple("بريد الدائرة", details.judgeOfficeNumber ?: "-", false))
+            add(Triple("اسم القاضي", details.judgeName ?: "-", false))
             add(Triple("تاريخ الإنشاء", details.createdOn?.take(10) ?: "-", false))
-            add(Triple("تاريخ آخر تحديث", details.updatedOn?.take(10) ?: "-", false))
-            add(Triple("أنشئ بواسطة", details.createdBy ?: "-", false))
+            add(Triple("بريد الدائرة", details.judgeOfficeNumber ?: "-", false))
+            add(Triple("إضافة بواسطة", details.createdBy ?: "-", false))
+            add(Triple("تاريخ آخر تعديل", details.updatedOn?.take(10) ?: "-", false))
         }
     } else {
-        // fallback to session object while loading
         buildList {
             add(Triple("القضية", session.caseName ?: "-", true))
             add(Triple("الحالة", statusName(session.status), false))
@@ -239,7 +238,6 @@ private fun SessionDataTab(details: HearingDetails?, session: Session) {
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        // Full-width items first
         items.filter { it.third }.forEach { (key, value, _) ->
             item {
                 SessionDetailCard(
@@ -290,7 +288,7 @@ private fun SessionDetailCard(key: String, value: String, modifier: Modifier) {
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier
-                .padding(8.dp)
+                .padding(vertical = 16.dp)
                 .fillMaxWidth(),
             textAlign = TextAlign.Center,
         )
@@ -348,21 +346,34 @@ private fun SessionDocsTab(details: HearingDetails?) {
 @Composable
 private fun SessionInfoCard(title: String, content: String) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 10.dp)
+            .shadow(
+                elevation = 5.dp,
+                shape = RoundedCornerShape(12.dp),
+                spotColor = MaterialTheme.colorScheme.onSurface
+            ),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.background
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
     ) {
-        Column(modifier = Modifier.padding(12.dp)) {
+        Column(
+            modifier = Modifier.padding(12.dp)
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.End
+        ) {
             Text(
                 text = title,
                 style = MaterialTheme.typography.labelMedium,
                 color = Primary,
                 fontWeight = FontWeight.SemiBold,
             )
-            Spacer(Modifier.height(8.dp))
             Text(
                 text = content,
+                modifier = Modifier.padding(vertical =  16.dp),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurface,
             )
