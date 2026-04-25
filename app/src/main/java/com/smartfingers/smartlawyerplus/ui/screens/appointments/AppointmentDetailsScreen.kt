@@ -58,40 +58,73 @@ fun AppointmentDetailsScreen(
         },
     ) { padding ->
         when {
-            state.isLoading -> Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+            state.isLoading -> Box(
+                Modifier
+                    .fillMaxSize()
+                    .padding(padding),
+                contentAlignment = Alignment.Center
+            ) {
                 CircularProgressIndicator(color = Primary)
             }
+
             state.details != null -> {
                 val d = state.details!!
                 val detailItems = buildList {
-                    add("المكلف" to (d.assignedUsers.firstOrNull() ?: "-"))
                     add("الحالة" to if (d.isFinished) "منتهي" else "مجدول")
-                    add("طلب العميل" to (d.clientRequest ?: "-"))
+                    add("اسم المكلف" to (d.assignedUsers.firstOrNull() ?: "-"))
                     add("المسؤولون" to d.assignedUsers.joinToString(", "))
-                    add("الأطراف" to d.parties.joinToString(", "))
-                    add("النوع" to (d.typeName ?: "-"))
-                    add("تاريخ الموعد" to (d.startDate?.take(10) ?: "-"))
+                    add("طلبات العملاء" to (d.clientRequest ?: "-"))
+                    add("الحدث" to (d.typeName ?: "-"))
+                    add("العملاء" to d.parties.joinToString(", "))
                     add("الوقت المتبقي" to "${d.remainingDays} يوم , ${d.remainingHours} ساعة")
+                    add("تاريخ الموعد" to (d.startDate?.take(10) ?: "-"))
+                    add("إضافة بواسطة" to (d.createdByUser ?: "-"))
                     add("تاريخ الإنشاء" to (d.createdOn?.take(10) ?: "-"))
                     add("تاريخ آخر تعديل" to (d.updatedOn?.take(10) ?: "-"))
                 }
                 val rows = detailItems.chunked(2)
+
                 LazyColumn(
-                    modifier = Modifier.fillMaxSize().padding(padding),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding),
                     contentPadding = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp),
+                    horizontalAlignment = Alignment.End
                 ) {
                     items(rows) { row ->
                         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                             row.forEach { (k, v) ->
-                                ApptDetailCard(k, v, Modifier.weight(1f))
+                                AppDetailCard(k, v, Modifier.weight(1f))
                             }
                             if (row.size == 1) Spacer(Modifier.weight(1f))
                         }
                     }
+
+                    item {
+                        Text(
+                            text = "النماذج",
+                            style = MaterialTheme.typography.titleSmall,
+                            modifier = Modifier.padding(top = 16.dp, bottom = 8.dp),
+                        )
+                    }
+
+                    item {
+                        Text(
+                            text = "المرفقات",
+                            style = MaterialTheme.typography.titleSmall,
+                            modifier = Modifier.padding(top = 8.dp, bottom = 8.dp),
+                        )
+                    }
                 }
             }
-            else -> Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+
+            else -> Box(
+                Modifier
+                    .fillMaxSize()
+                    .padding(padding),
+                contentAlignment = Alignment.Center
+            ) {
                 Text(state.error.ifBlank { "حدث خطأ" }, color = MaterialTheme.colorScheme.error)
             }
         }
@@ -99,11 +132,11 @@ fun AppointmentDetailsScreen(
 }
 
 @Composable
-private fun ApptDetailCard(key: String, value: String, modifier: Modifier) {
+private fun AppDetailCard(key: String, value: String, modifier: Modifier) {
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(8.dp))
-            .background(MaterialTheme.colorScheme.surface)
+            .background(MaterialTheme.colorScheme.background)
             .border(1.dp, Divider, RoundedCornerShape(8.dp)),
     ) {
         Box(
@@ -113,12 +146,20 @@ private fun ApptDetailCard(key: String, value: String, modifier: Modifier) {
                 .padding(6.dp),
             contentAlignment = Alignment.Center,
         ) {
-            Text(key, style = MaterialTheme.typography.labelSmall, color = Color.White, textAlign = TextAlign.Center)
+            Text(
+                key,
+                style = MaterialTheme.typography.labelSmall,
+                color = Color.White,
+                textAlign = TextAlign.Center
+            )
         }
         Text(
-            value, style = MaterialTheme.typography.bodySmall,
+            value,
+            style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.padding(8.dp).fillMaxWidth(),
+            modifier = Modifier
+                .padding(24.dp)
+                .fillMaxWidth(),
             textAlign = TextAlign.Center,
         )
     }
