@@ -1,5 +1,3 @@
-// app/src/main/java/com/smartfingers/smartlawyerplus/ui/screens/appointments/AddAppointmentScreen.kt
-
 package com.smartfingers.smartlawyerplus.ui.screens.appointments
 
 import android.app.DatePickerDialog
@@ -32,7 +30,6 @@ import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.smartfingers.smartlawyerplus.domain.model.AppointmentType
 import com.smartfingers.smartlawyerplus.domain.model.Party
-import com.smartfingers.smartlawyerplus.domain.model.TaskCase
 import com.smartfingers.smartlawyerplus.domain.model.TaskEmployee
 import com.smartfingers.smartlawyerplus.ui.components.SmartLawyerButton
 import com.smartfingers.smartlawyerplus.ui.components.SmartLawyerOutlinedButton
@@ -54,7 +51,6 @@ fun AddAppointmentScreen(
 
     LaunchedEffect(state.success) { if (state.success) onSaved() }
 
-    // Dialogs
     if (state.showAddClientDialog) {
         AddClientDialog(
             onConfirm = { name, phone, tax -> viewModel.addClient(name, phone, tax) },
@@ -131,16 +127,16 @@ fun AddAppointmentScreen(
                 horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                ProjectTypeRadio("بدون", state.projectType == ProjectType.WITHOUT) {
-                    viewModel.onProjectTypeSelected(ProjectType.WITHOUT)
+                ProjectTypeRadio("طلبات عملاء", state.projectType == ProjectType.CUSTOMER_REQUESTS) {
+                    viewModel.onProjectTypeSelected(ProjectType.CUSTOMER_REQUESTS)
                 }
                 Spacer(Modifier.width(16.dp))
                 ProjectTypeRadio("قضية", state.projectType == ProjectType.CASE) {
                     viewModel.onProjectTypeSelected(ProjectType.CASE)
                 }
                 Spacer(Modifier.width(16.dp))
-                ProjectTypeRadio("طلبات عملاء", state.projectType == ProjectType.CUSTOMER_REQUESTS) {
-                    viewModel.onProjectTypeSelected(ProjectType.CUSTOMER_REQUESTS)
+                ProjectTypeRadio("بدون", state.projectType == ProjectType.WITHOUT) {
+                    viewModel.onProjectTypeSelected(ProjectType.WITHOUT)
                 }
             }
 
@@ -150,16 +146,17 @@ fun AddAppointmentScreen(
                 horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                ProjectTypeRadio("استشارة", state.projectType == ProjectType.CONSULTATION) {
-                    viewModel.onProjectTypeSelected(ProjectType.CONSULTATION)
+                ProjectTypeRadio("مشاريع أخرى", state.projectType == ProjectType.OTHER_PROJECTS) {
+                    viewModel.onProjectTypeSelected(ProjectType.OTHER_PROJECTS)
                 }
+
                 Spacer(Modifier.width(16.dp))
                 ProjectTypeRadio("طلبات عملاء", state.projectType == ProjectType.CUSTOMER_REQUESTS) {
                     viewModel.onProjectTypeSelected(ProjectType.CUSTOMER_REQUESTS)
                 }
                 Spacer(Modifier.width(16.dp))
-                ProjectTypeRadio("مشاريع أخرى", state.projectType == ProjectType.OTHER_PROJECTS) {
-                    viewModel.onProjectTypeSelected(ProjectType.OTHER_PROJECTS)
+                ProjectTypeRadio("استشارة", state.projectType == ProjectType.CONSULTATION) {
+                    viewModel.onProjectTypeSelected(ProjectType.CONSULTATION)
                 }
             }
 
@@ -185,7 +182,7 @@ fun AddAppointmentScreen(
 
             // ── 5. Appointment Type with Add button ───────────────────────────
             AppointmentDropdownWithAdd(
-                label = "النوع",
+                label = "الحدث",
                 selected = state.selectedType?.name ?: "",
                 options = state.types,
                 onSelect = viewModel::onTypeSelected,

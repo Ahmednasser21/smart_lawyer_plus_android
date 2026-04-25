@@ -445,7 +445,7 @@ fun SectionLabel(text: String) {
         fontWeight = FontWeight.Medium,
         color = Primary,
         modifier = Modifier.fillMaxWidth(),
-        textAlign = TextAlign.End,
+        textAlign = TextAlign.Start,
     )
 }
 

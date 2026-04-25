@@ -7,19 +7,20 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AttachFile
 import androidx.compose.material.icons.filled.CheckBox
 import androidx.compose.material.icons.filled.CheckBoxOutlineBlank
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.InsertDriveFile
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -27,15 +28,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.smartfingers.smartlawyerplus.domain.model.FormTemplate
-import com.smartfingers.smartlawyerplus.domain.model.HearingType
-import com.smartfingers.smartlawyerplus.domain.model.JudgmentType
 import com.smartfingers.smartlawyerplus.domain.model.ReportAttachment
 import com.smartfingers.smartlawyerplus.ui.components.SmartLawyerButton
 import com.smartfingers.smartlawyerplus.ui.components.SmartLawyerOutlinedButton
@@ -97,316 +97,321 @@ fun AddReportScreen(
             viewModel.clearError()
         }
     }
-
-    Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-        topBar = {
-            CenterAlignedTopAppBar(
-                title = {
-                    Text(
-                        text = if (uiState.isEditMode) "تعديل التقرير" else "إضافة تقرير",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
-                    )
-                },
-                actions = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                            contentDescription = "Back",
-                            tint = Primary,
-                            modifier = Modifier.size(28.dp),
+    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
+        Scaffold(
+            snackbarHost = { SnackbarHost(snackbarHostState) },
+            topBar = {
+                CenterAlignedTopAppBar(
+                    title = {
+                        Text(
+                            text = if (uiState.isEditMode) "تعديل التقرير" else "إضافة تقرير",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold,
                         )
-                    }
-                },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background,
-                ),
-            )
-        },
-    ) { padding ->
-
-        when {
-            uiState.isLoadingReport -> {
-                Box(
-                    Modifier
-                        .fillMaxSize()
-                        .padding(padding),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    CircularProgressIndicator(color = Primary)
-                }
-            }
-            else -> {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(padding)
-                        .background(MaterialTheme.colorScheme.background)
-                        .verticalScroll(rememberScrollState())
-                        .padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                ) {
-
-                    // ── 1. Hearing type dropdown with add button ───────────────
-                    SectionLabel("نوع الجلسة")
-                    DropdownWithAddButton(
-                        label = "اختر نوع الجلسة",
-                        selected = uiState.selectedHearingType?.name ?: "",
-                        options = uiState.hearingTypes,
-                        getLabel = { it.name },
-                        onSelect = viewModel::onHearingTypeSelected,
-                        onAddNew = viewModel::openAddHearingTypeDialog,
-                    )
-
-                    // ── 2. Print model dropdown ───────────────────────────────
-                    SectionLabel("نموذج الطباعة")
-                    ReportDropdownField(
-                        label = "اختر نموذج الطباعة",
-                        selected = uiState.selectedFormTemplate?.title ?: "",
-                        options = uiState.formTemplates,
-                        getLabel = { it.title },
-                        onSelect = viewModel::onFormTemplateSelected,
-                    )
-
-                    // ── 3. Session summary ────────────────────────────────────
-                    SectionLabel("ملخص إجراءات الجلسة")
-                    OutlinedTextField(
-                        value = uiState.sessionSummary,
-                        onValueChange = viewModel::onSessionSummaryChange,
-                        placeholder = {
-                            Text(
-                                "أدخل ملخص إجراءات الجلسة",
-                                color = TextSecondary,
-                                style = MaterialTheme.typography.bodySmall,
+                    },
+                    navigationIcon ={
+                        IconButton(onClick = onBack) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                                contentDescription = "Back",
+                                tint = Primary,
+                                modifier = Modifier.size(28.dp),
                             )
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(120.dp),
-                        maxLines = 5,
-                        shape = RoundedCornerShape(8.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Primary,
-                            unfocusedBorderColor = Divider,
-                        ),
-                    )
+                        }
+                    },
+                    actions = {
+                    },
+                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.background,
+                    ),
+                )
+            },
+        ) { padding ->
 
-                    // ── 4. Court decision ─────────────────────────────────────
-                    SectionLabel("قرار المحكمة")
-                    OutlinedTextField(
-                        value = uiState.courtDecision,
-                        onValueChange = viewModel::onCourtDecisionChange,
-                        placeholder = {
-                            Text(
-                                "أدخل قرار المحكمة",
-                                color = TextSecondary,
-                                style = MaterialTheme.typography.bodySmall,
-                            )
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(120.dp),
-                        maxLines = 5,
-                        shape = RoundedCornerShape(8.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Primary,
-                            unfocusedBorderColor = Divider,
-                        ),
-                    )
-
-                    // ── 5. Decision section (animated, shown when "نطق بالحكم") ─
-                    AnimatedVisibility(
-                        visible = uiState.showDecisionSection,
-                        enter = expandVertically(),
-                        exit = shrinkVertically(),
+            when {
+                uiState.isLoadingReport -> {
+                    Box(
+                        Modifier
+                            .fillMaxSize()
+                            .padding(padding),
+                        contentAlignment = Alignment.Center,
                     ) {
-                        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                        CircularProgressIndicator(color = Primary)
+                    }
+                }
 
-                            // Judgment type dropdown
-                            SectionLabel("تفاصيل الحكم")
-                            ReportDropdownField(
-                                label = "اختر نوع الحكم",
-                                selected = uiState.selectedJudgmentType?.name ?: "",
-                                options = uiState.judgmentTypes,
-                                getLabel = { it.name },
-                                onSelect = viewModel::onJudgmentTypeSelected,
-                            )
+                else -> {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(padding)
+                            .background(MaterialTheme.colorScheme.background)
+                            .verticalScroll(rememberScrollState())
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                    ) {
 
-                            // Judgment date picker
-                            SectionLabel("تاريخ استلام الحكم")
-                            OutlinedButton(
-                                onClick = {
-                                    val cal = Calendar.getInstance()
-                                    DatePickerDialog(
-                                        context,
-                                        { _, y, m, d ->
-                                            viewModel.onJudgmentDateSelected(
-                                                "$y-${(m + 1).toString().padStart(2, '0')}-${
-                                                    d.toString().padStart(2, '0')
-                                                }"
-                                            )
-                                        },
-                                        cal.get(Calendar.YEAR),
-                                        cal.get(Calendar.MONTH),
-                                        cal.get(Calendar.DAY_OF_MONTH),
-                                    ).show()
-                                },
-                                modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(8.dp),
-                                border = androidx.compose.foundation.BorderStroke(1.dp, Divider),
-                            ) {
+                        // ── 1. Hearing type dropdown with add button ───────────────
+                        SectionLabel("نوع الجلسة")
+                        DropdownWithAddButton(
+                            label = "اختر نوع الجلسة",
+                            selected = uiState.selectedHearingType?.name ?: "",
+                            options = uiState.hearingTypes,
+                            getLabel = { it.name },
+                            onSelect = viewModel::onHearingTypeSelected,
+                            onAddNew = viewModel::openAddHearingTypeDialog,
+                        )
+
+                        // ── 2. Print model dropdown ───────────────────────────────
+                        SectionLabel("نموذج الطباعة")
+                        ReportDropdownField(
+                            label = "اختر نموذج الطباعة",
+                            selected = uiState.selectedFormTemplate?.title ?: "",
+                            options = uiState.formTemplates,
+                            getLabel = { it.title },
+                            onSelect = viewModel::onFormTemplateSelected,
+                        )
+
+                        // ── 3. Session summary ────────────────────────────────────
+                        SectionLabel("ملخص وقائع الجلسة")
+                        OutlinedTextField(
+                            value = uiState.sessionSummary,
+                            onValueChange = viewModel::onSessionSummaryChange,
+                            placeholder = {
+                                Text(
+                                    "أدخل ملخص وقائع الجلسة",
+                                    color = TextSecondary,
+                                    style = MaterialTheme.typography.bodySmall,
+                                )
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(120.dp),
+                            maxLines = 5,
+                            shape = RoundedCornerShape(8.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = Primary,
+                                unfocusedBorderColor = Divider,
+                            ),
+                        )
+
+                        // ── 4. Court decision ─────────────────────────────────────
+                        SectionLabel("قرار المحكمة")
+                        OutlinedTextField(
+                            value = uiState.courtDecision,
+                            onValueChange = viewModel::onCourtDecisionChange,
+                            placeholder = {
+                                Text(
+                                    "أدخل قرار المحكمة",
+                                    color = TextSecondary,
+                                    style = MaterialTheme.typography.bodySmall,
+                                )
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(120.dp),
+                            maxLines = 5,
+                            shape = RoundedCornerShape(8.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = Primary,
+                                unfocusedBorderColor = Divider,
+                            ),
+                        )
+
+                        // ── 5. Decision section (animated, shown when "نطق بالحكم") ─
+                        AnimatedVisibility(
+                            visible = uiState.showDecisionSection,
+                            enter = expandVertically(),
+                            exit = shrinkVertically(),
+                        ) {
+                            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+
+                                // Judgment type dropdown
+                                SectionLabel("تفاصيل الحكم")
+                                ReportDropdownField(
+                                    label = "اختر نوع الحكم",
+                                    selected = uiState.selectedJudgmentType?.name ?: "",
+                                    options = uiState.judgmentTypes,
+                                    getLabel = { it.name },
+                                    onSelect = viewModel::onJudgmentTypeSelected,
+                                )
+
+                                // Judgment date picker
+                                SectionLabel("تاريخ استلام الحكم")
+                                OutlinedButton(
+                                    onClick = {
+                                        val cal = Calendar.getInstance()
+                                        DatePickerDialog(
+                                            context,
+                                            { _, y, m, d ->
+                                                viewModel.onJudgmentDateSelected(
+                                                    "$y-${(m + 1).toString().padStart(2, '0')}-${
+                                                        d.toString().padStart(2, '0')
+                                                    }"
+                                                )
+                                            },
+                                            cal.get(Calendar.YEAR),
+                                            cal.get(Calendar.MONTH),
+                                            cal.get(Calendar.DAY_OF_MONTH),
+                                        ).show()
+                                    },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    shape = RoundedCornerShape(8.dp),
+                                    border = androidx.compose.foundation.BorderStroke(
+                                        1.dp,
+                                        Divider
+                                    ),
+                                ) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                    ) {
+                                        Text(
+                                            text = uiState.judgmentDate.ifBlank { "تاريخ استلام الحكم (م)" },
+                                            color = if (uiState.judgmentDate.isBlank()) TextSecondary
+                                            else MaterialTheme.colorScheme.onBackground,
+                                        )
+                                    }
+                                }
+
+                                // Judgment summary text
+                                SectionLabel("ملخص نطق الحكم")
+                                OutlinedTextField(
+                                    value = uiState.judgmentSummary,
+                                    onValueChange = viewModel::onJudgmentSummaryChange,
+                                    placeholder = {
+                                        Text(
+                                            "أدخل ملخص نطق الحكم",
+                                            color = TextSecondary,
+                                            style = MaterialTheme.typography.bodySmall,
+                                        )
+                                    },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(100.dp),
+                                    maxLines = 4,
+                                    shape = RoundedCornerShape(8.dp),
+                                    colors = OutlinedTextFieldDefaults.colors(
+                                        focusedBorderColor = Primary,
+                                        unfocusedBorderColor = Divider,
+                                    ),
+                                )
+
+                                // Checkboxes row
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    horizontalArrangement = Arrangement.spacedBy(32.dp),
                                 ) {
-                                    Text(
-                                        text = if (uiState.judgmentDate.isBlank())
-                                            "تاريخ استلام الحكم (م)"
-                                        else uiState.judgmentDate,
-                                        color = if (uiState.judgmentDate.isBlank()) TextSecondary
-                                        else MaterialTheme.colorScheme.onBackground,
-                                    )
-                                }
-                            }
-
-                            // Judgment summary text
-                            SectionLabel("ملخص نطق الحكم")
-                            OutlinedTextField(
-                                value = uiState.judgmentSummary,
-                                onValueChange = viewModel::onJudgmentSummaryChange,
-                                placeholder = {
-                                    Text(
-                                        "أدخل ملخص نطق الحكم",
-                                        color = TextSecondary,
-                                        style = MaterialTheme.typography.bodySmall,
-                                    )
-                                },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(100.dp),
-                                maxLines = 4,
-                                shape = RoundedCornerShape(8.dp),
-                                colors = OutlinedTextFieldDefaults.colors(
-                                    focusedBorderColor = Primary,
-                                    unfocusedBorderColor = Divider,
-                                ),
-                            )
-
-                            // Checkboxes row
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(32.dp),
-                            ) {
-                                // Appealable
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier.clickable { viewModel.onAppealableToggle() },
-                                ) {
-                                    Icon(
-                                        imageVector = if (uiState.isAppealable)
-                                            Icons.Default.CheckBox
-                                        else Icons.Default.CheckBoxOutlineBlank,
-                                        contentDescription = null,
-                                        tint = Primary,
-                                    )
-                                    Spacer(Modifier.width(6.dp))
-                                    Text(
-                                        "قابل للاستئناف",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = Primary,
-                                    )
-                                }
-                                // Urgent appeal
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier.clickable {
-                                        if (uiState.isAppealable)
-                                            viewModel.onUrgentAppealToggle()
-                                    },
-                                ) {
-                                    Icon(
-                                        imageVector = if (uiState.isUrgentAppeal)
-                                            Icons.Default.CheckBox
-                                        else Icons.Default.CheckBoxOutlineBlank,
-                                        contentDescription = null,
-                                        tint = if (uiState.isAppealable) Primary
-                                        else TextSecondary,
-                                    )
-                                    Spacer(Modifier.width(6.dp))
-                                    Text(
-                                        "استئناف مستعجل",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = if (uiState.isAppealable) Primary
-                                        else TextSecondary,
-                                    )
+                                    // Appealable
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.clickable { viewModel.onAppealableToggle() },
+                                    ) {
+                                        Icon(
+                                            imageVector = if (uiState.isAppealable)
+                                                Icons.Default.CheckBox
+                                            else Icons.Default.CheckBoxOutlineBlank,
+                                            contentDescription = null,
+                                            tint = Primary,
+                                        )
+                                        Spacer(Modifier.width(6.dp))
+                                        Text(
+                                            "قابل للاستئناف",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = Primary,
+                                        )
+                                    }
+                                    // Urgent appeal
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.clickable {
+                                            if (uiState.isAppealable)
+                                                viewModel.onUrgentAppealToggle()
+                                        },
+                                    ) {
+                                        Icon(
+                                            imageVector = if (uiState.isUrgentAppeal)
+                                                Icons.Default.CheckBox
+                                            else Icons.Default.CheckBoxOutlineBlank,
+                                            contentDescription = null,
+                                            tint = if (uiState.isAppealable) Primary
+                                            else TextSecondary,
+                                        )
+                                        Spacer(Modifier.width(6.dp))
+                                        Text(
+                                            "استئناف مستعجل",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = if (uiState.isAppealable) Primary
+                                            else TextSecondary,
+                                        )
+                                    }
                                 }
                             }
                         }
-                    }
 
-                    // ── 6. Upload docs button ─────────────────────────────────
-                    SectionLabel("المرفقات")
-                    OutlinedButton(
-                        onClick = { filePickerLauncher.launch("*/*") },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(8.dp),
-                        border = androidx.compose.foundation.BorderStroke(
-                            1.dp,
-                            if (uiState.isUploadingFile) Primary else Divider,
-                        ),
-                        enabled = !uiState.isUploadingFile,
-                    ) {
-                        if (uiState.isUploadingFile) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(18.dp),
-                                strokeWidth = 2.dp,
-                                color = Primary,
-                            )
-                            Spacer(Modifier.width(8.dp))
-                            Text("جاري الرفع...", color = TextSecondary)
-                        } else {
-                            Icon(
-                                Icons.Default.AttachFile,
-                                contentDescription = null,
-                                tint = Primary,
-                            )
-                            Spacer(Modifier.width(8.dp))
-                            Text(
-                                "إرفاق ملف",
-                                color = MaterialTheme.colorScheme.onBackground,
-                            )
-                        }
-                    }
-
-                    // ── 7. Attachments list ───────────────────────────────────
-                    if (uiState.attachments.isNotEmpty()) {
-                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            uiState.attachments.forEach { att ->
-                                ReportAttachmentRow(
-                                    attachment = att,
-                                    onRemove = { viewModel.removeAttachment(att.id) },
+                        // ── 6. Upload docs button ─────────────────────────────────
+                        SectionLabel("المرفقات")
+                        OutlinedButton(
+                            onClick = { filePickerLauncher.launch("*/*") },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(8.dp),
+                            border = androidx.compose.foundation.BorderStroke(
+                                1.dp,
+                                if (uiState.isUploadingFile) Primary else Divider,
+                            ),
+                            enabled = !uiState.isUploadingFile,
+                        ) {
+                            if (uiState.isUploadingFile) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(18.dp),
+                                    strokeWidth = 2.dp,
+                                    color = Primary,
+                                )
+                                Spacer(Modifier.width(8.dp))
+                                Text("جاري الرفع...", color = TextSecondary)
+                            } else {
+                                Icon(
+                                    Icons.Default.AttachFile,
+                                    contentDescription = null,
+                                    tint = Primary,
+                                )
+                                Spacer(Modifier.width(8.dp))
+                                Text(
+                                    "إرفاق ملف",
+                                    color = MaterialTheme.colorScheme.onBackground,
                                 )
                             }
                         }
-                    }
 
-                    // ── 8. Save / Cancel buttons ──────────────────────────────
-                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        SmartLawyerButton(
-                            text = "حفظ",
-                            onClick = viewModel::save,
-                            isLoading = uiState.isLoading,
-                            modifier = Modifier.weight(1f),
-                        )
-                        SmartLawyerOutlinedButton(
-                            text = "إلغاء",
-                            onClick = onBack,
-                            modifier = Modifier.weight(1f),
-                        )
-                    }
+                        // ── 7. Attachments list ───────────────────────────────────
+                        if (uiState.attachments.isNotEmpty()) {
+                            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                uiState.attachments.forEach { att ->
+                                    ReportAttachmentRow(
+                                        attachment = att,
+                                        onRemove = { viewModel.removeAttachment(att.id) },
+                                    )
+                                }
+                            }
+                        }
 
-                    Spacer(Modifier.height(24.dp))
+                        // ── 8. Save / Cancel buttons ──────────────────────────────
+                        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            SmartLawyerButton(
+                                text = "حفظ",
+                                onClick = viewModel::save,
+                                isLoading = uiState.isLoading,
+                                modifier = Modifier.weight(1f),
+                            )
+                            SmartLawyerOutlinedButton(
+                                text = "إلغاء",
+                                onClick = onBack,
+                                modifier = Modifier.weight(1f),
+                            )
+                        }
+
+                        Spacer(Modifier.height(24.dp))
+                    }
                 }
             }
         }
@@ -447,7 +452,11 @@ private fun <T> ReportDropdownField(
                         .clickable { expanded = !expanded },
                     contentAlignment = Alignment.Center,
                 ) {
-                    Text("▼", color = Color.White, style = MaterialTheme.typography.labelSmall)
+                    Icon(
+                        imageVector = Icons.Default.KeyboardArrowDown,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurface,
+                    )
                 }
             },
             modifier = Modifier
@@ -532,7 +541,11 @@ private fun <T> DropdownWithAddButton(
                             .clickable { expanded = !expanded },
                         contentAlignment = Alignment.Center,
                     ) {
-                        Text("▼", color = Color.White, style = MaterialTheme.typography.labelSmall)
+                        Icon(
+                            imageVector = Icons.Default.KeyboardArrowDown,
+                            contentDescription = null,
+                            tint = Color.White,
+                        )
                     }
                 },
                 modifier = Modifier
@@ -586,7 +599,11 @@ private fun <T> DropdownWithAddButton(
                 .clickable { onAddNew() },
             contentAlignment = Alignment.Center,
         ) {
-            Text("+", color = Color.White, style = MaterialTheme.typography.titleMedium)
+            Icon(
+                imageVector = Icons.Default.Add,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurface,
+            )
         }
     }
 }
