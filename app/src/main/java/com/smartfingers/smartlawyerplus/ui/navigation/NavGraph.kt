@@ -2,8 +2,10 @@ package com.smartfingers.smartlawyerplus.ui.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import com.smartfingers.smartlawyerplus.domain.model.Session
 import com.smartfingers.smartlawyerplus.ui.screens.appointments.AddAppointmentScreen
 import com.smartfingers.smartlawyerplus.ui.screens.appointments.AppointmentDetailsScreen
@@ -21,7 +23,6 @@ import com.smartfingers.smartlawyerplus.ui.screens.sessions.SessionDetailsScreen
 import com.smartfingers.smartlawyerplus.ui.screens.splash.SplashScreen
 import com.smartfingers.smartlawyerplus.ui.screens.tasks.AddTaskScreen
 import com.smartfingers.smartlawyerplus.ui.screens.tasks.TaskDetailsScreen
-import com.smartfingers.smartlawyerplus.ui.screens.tasks.TasksScreen
 
 @Composable
 fun AppNavGraph(navController: NavHostController) {
@@ -129,20 +130,25 @@ fun AppNavGraph(navController: NavHostController) {
                 },
             )
         }
+
         composable(NavRoutes.TaskDetails.route) { backStack ->
             val taskId =
                 backStack.arguments?.getString("taskId")?.toIntOrNull() ?: return@composable
             TaskDetailsScreen(
                 taskId = taskId,
                 onBack = { navController.popBackStack() },
-                onNavigateToAddTask = { navController.navigate(NavRoutes.AddTask.route) })
+                onNavigateToAddTask = { navController.navigate(NavRoutes.AddTask.route) },
+            )
         }
 
-        composable(NavRoutes.SessionDetails.route) { backStack ->
-            backStack.arguments?.getString("sessionId")?.toIntOrNull() ?: return@composable
-            val session = navController.previousBackStackEntry
-                ?.savedStateHandle
-                ?.get<Session>("session")
+        composable(
+            route = NavRoutes.SessionDetails.route,
+            arguments = listOf(
+                navArgument("sessionId") { type = NavType.IntType }
+            ),
+        ) { backStack ->
+            // The session is stored in this entry's savedStateHandle by the caller
+            val session = backStack.savedStateHandle.get<Session>("session")
             if (session != null) {
                 SessionDetailsScreen(
                     session = session,
@@ -167,7 +173,8 @@ fun AppNavGraph(navController: NavHostController) {
                 backStack.arguments?.getString("appointmentId")?.toIntOrNull() ?: return@composable
             AppointmentDetailsScreen(
                 appointmentId = apptId,
-                onBack = { navController.popBackStack() })
+                onBack = { navController.popBackStack() },
+            )
         }
 
         composable(NavRoutes.CaseDetails.route) { backStack ->
@@ -196,6 +203,7 @@ fun AppNavGraph(navController: NavHostController) {
                 onSaved = { navController.popBackStack() },
             )
         }
+
         composable(NavRoutes.AddReport.route) { backStack ->
             val hearingId = backStack.arguments?.getString("hearingId")?.toIntOrNull()
                 ?: return@composable
@@ -211,7 +219,7 @@ fun AppNavGraph(navController: NavHostController) {
                 subHearingTypeName = subHearingTypeName,
                 onBack = { navController.popBackStack() },
                 onSaved = {
-                    navController.popBackStack(NavRoutes.Main.route, inclusive = false)
+                    navController.popBackStack(NavRoutes.SessionDetails.route, inclusive = false)
                 },
             )
         }

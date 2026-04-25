@@ -3,6 +3,7 @@ package com.smartfingers.smartlawyerplus.ui.screens.sessions
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.smartfingers.smartlawyerplus.domain.model.*
+import com.smartfingers.smartlawyerplus.domain.usecase.report.UploadReportAttachmentUseCase
 import com.smartfingers.smartlawyerplus.domain.usecase.sessions.AddHearingActionSampleUseCase
 import com.smartfingers.smartlawyerplus.domain.usecase.sessions.GetHearingActionSamplesUseCase
 import com.smartfingers.smartlawyerplus.domain.usecase.sessions.GetLastHearingByIdUseCase
@@ -25,6 +26,7 @@ class AddSessionViewModel @Inject constructor(
     private val getLastHearingById: GetLastHearingByIdUseCase,
     private val getActionSamples: GetHearingActionSamplesUseCase,
     private val addActionSample: AddHearingActionSampleUseCase,
+    private val uploadAttachmentUseCase: UploadReportAttachmentUseCase,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(AddSessionUiState())
@@ -166,7 +168,6 @@ class AddSessionViewModel @Inject constructor(
     fun onCourtCircleChange(v: String) = _state.update { it.copy(courtCircle = v) }
     fun onJudgeNameChange(v: String) = _state.update { it.copy(judgeName = v) }
     fun onJudgeOfficeNumberChange(v: String) = _state.update { it.copy(judgeOfficeNumber = v) }
-    fun onStartDateSelected(d: String) = _state.update { it.copy(startDate = d) }
     fun onStartTimeSelected(t: String) = _state.update { it.copy(startTime = t) }
     fun onHearingDescChange(v: String) = _state.update { it.copy(hearingDesc = v) }
     fun onRequiredDocsChange(v: String) = _state.update { it.copy(requiredDocs = v) }
@@ -333,5 +334,118 @@ class AddSessionViewModel @Inject constructor(
                 else -> Unit
             }
         }
+    }
+    // ── Hijri conversion ──────────────────────────────────────────────────────
+
+    private fun toHijri(gregorian: String): String {
+        return try {
+            val parts = gregorian.split("-")
+            if (parts.size != 3) return ""
+            val localDate = java.time.LocalDate.of(
+                parts[0].toInt(), parts[1].toInt(), parts[2].toInt()
+            )
+            val hijri = java.time.chrono.HijrahDate.from(localDate)
+            val year = hijri.get(java.time.temporal.ChronoField.YEAR)
+            val month = hijri.get(java.time.temporal.ChronoField.MONTH_OF_YEAR)
+            val day = hijri.get(java.time.temporal.ChronoField.DAY_OF_MONTH)
+            "$year-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}"
+        } catch (_: Exception) { "" }
+    }
+
+    fun onStartDateSelected(d: String) {
+        _state.update { it.copy(startDate = d, startDateHijri = toHijri(d)) }
+    }
+
+    // ── Add new hearing type / sub-type / court dialogs ───────────────────────
+
+    fun openAddHearingTypeDialog() =
+        _state.update { it.copy(showAddHearingTypeDialog = true) }
+
+    fun dismissAddHearingTypeDialog() =
+        _state.update { it.copy(showAddHearingTypeDialog = false) }
+
+    fun confirmAddHearingType(name: String) {
+        val newType = com.smartfingers.smartlawyerplus.domain.model.HearingType(
+            id = -(System.currentTimeMillis().toInt()),
+            name = name,
+        )
+        _state.update {
+            it.copy(
+                hearingTypes = it.hearingTypes + newType,
+                selectedHearingType = newType,
+                showAddHearingTypeDialog = false,
+            )
+        }
+    }
+
+    fun openAddSubHearingTypeDialog() =
+        _state.update { it.copy(showAddSubHearingTypeDialog = true) }
+
+    fun dismissAddSubHearingTypeDialog() =
+        _state.update { it.copy(showAddSubHearingTypeDialog = false) }
+
+    fun confirmAddSubHearingType(name: String) {
+        val newType = com.smartfingers.smartlawyerplus.domain.model.HearingType(
+            id = -(System.currentTimeMillis().toInt()),
+            name = name,
+        )
+        _state.update {
+            it.copy(
+                subHearingTypes = it.subHearingTypes + newType,
+                selectedSubHearingType = newType,
+                showAddSubHearingTypeDialog = false,
+            )
+        }
+    }
+
+    fun openAddCourtDialog() =
+        _state.update { it.copy(showAddCourtDialog = true) }
+
+    fun dismissAddCourtDialog() =
+        _state.update { it.copy(showAddCourtDialog = false) }
+
+    fun confirmAddCourt(name: String) {
+        val newCourt = com.smartfingers.smartlawyerplus.domain.model.Court(
+            id = -(System.currentTimeMillis().toInt()),
+            name = name,
+        )
+        _state.update {
+            it.copy(
+                courts = it.courts + newCourt,
+                selectedCourt = newCourt,
+                showAddCourtDialog = false,
+            )
+        }
+    }
+
+    // ── Attachments ───────────────────────────────────────────────────────────
+
+    fun uploadAttachment(filePath: String, mimeType: String) {
+        viewModelScope.launch {
+            _state.update { it.copy(isUploadingAttachment = true) }
+            when (val r = uploadAttachmentUseCase(filePath, mimeType)) {
+                is Result.Success -> _state.update {
+                    it.copy(
+                        isUploadingAttachment = false,
+                        attachments = it.attachments + r.data,
+                    )
+                }
+                is Result.Error -> _state.update {
+                    it.copy(isUploadingAttachment = false, error = r.message)
+                }
+                else -> Unit
+            }
+        }
+    }
+
+    fun removeAttachment(id: Int) {
+        _state.update { it.copy(attachments = it.attachments.filter { a -> a.id != id }) }
+    }
+
+    // ── Add selected actions to task (placeholder — navigate handled by screen) ─
+
+    fun openAddToTaskDialog() {
+        // The iOS version opens a task-picker sheet; for now just a no-op stub
+        // that can be wired to navigation later
     }
 }

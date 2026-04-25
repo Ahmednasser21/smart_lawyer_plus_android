@@ -416,16 +416,6 @@ fun AddReportScreen(
 // ── Reusable composables ───────────────────────────────────────────────────────
 
 @Composable
-private fun SectionLabel(text: String) {
-    Text(
-        text = text,
-        style = MaterialTheme.typography.labelMedium,
-        fontWeight = FontWeight.Medium,
-        color = MaterialTheme.colorScheme.onBackground,
-    )
-}
-
-@Composable
 private fun <T> ReportDropdownField(
     label: String,
     selected: String,

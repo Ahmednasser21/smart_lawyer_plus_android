@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.FormatAlignCenter
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -80,25 +79,46 @@ fun MainScreen(
 
             when (selectedTab) {
                 MainTab.TASKS -> TasksScreen(
-                    onTaskClick = { taskId -> navController.navigate(NavRoutes.TaskDetails.createRoute(taskId)) },
+                    onTaskClick = { taskId ->
+                        navController.navigate(
+                            NavRoutes.TaskDetails.createRoute(
+                                taskId
+                            )
+                        )
+                    },
                     viewModel = viewModel,
                 )
 
                 MainTab.SESSIONS -> SessionsScreen(
                     onSessionClick = { session ->
-                        navController.currentBackStackEntry?.savedStateHandle?.set("session", session)
+                        navController.currentBackStackEntry?.savedStateHandle?.set(
+                            "session",
+                            session
+                        )
                         navController.navigate(NavRoutes.SessionDetails.createRoute(session.id))
                     },
                     onFilterIconReady = { action -> sessionsFilterAction = action },
                 )
 
                 MainTab.APPOINTMENTS -> AppointmentsScreen(
-                    onAppointmentClick = { apptId -> navController.navigate(NavRoutes.AppointmentDetails.createRoute(apptId)) },
+                    onAppointmentClick = { apptId ->
+                        navController.navigate(
+                            NavRoutes.AppointmentDetails.createRoute(
+                                apptId
+                            )
+                        )
+                    },
                     viewModel = appointmentsViewModel,
                 )
 
                 MainTab.CASES -> CasesScreen(
-                    onCaseClick = { caseId -> navController.navigate(NavRoutes.CaseDetails.createRoute(caseId)) },
+                    onCaseClick = { caseId ->
+                        navController.navigate(
+                            NavRoutes.CaseDetails.createRoute(
+                                caseId
+                            )
+                        )
+                    },
                     viewModel = casesViewModel,
                 )
             }
@@ -119,9 +139,16 @@ fun MainScreen(
                 contentAlignment = Alignment.BottomCenter,
             ) {
                 FabMenuItems(
-                    onAddTask = { showFabMenu = false; navController.navigate(NavRoutes.AddTask.route) },
-                    onAddSession = { showFabMenu = false; navController.navigate(NavRoutes.AddSession.route) },
-                    onAddAppointment = { showFabMenu = false; navController.navigate(NavRoutes.AddAppointmentNav.route) },
+                    onAddTask = {
+                        showFabMenu = false; navController.navigate(NavRoutes.AddTask.route)
+                    },
+                    onAddSession = {
+                        showFabMenu = false; navController.navigate(NavRoutes.AddSession.route)
+                    },
+                    onAddAppointment = {
+                        showFabMenu =
+                            false; navController.navigate(NavRoutes.AddAppointmentNav.route)
+                    },
                 )
             }
         }
