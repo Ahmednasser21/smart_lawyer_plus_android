@@ -35,4 +35,12 @@ sealed class NavRoutes(val route: String) {
 
     data object Calendar : NavRoutes("calendar")
     data object Notifications : NavRoutes("notifications")
+
+    data object AddReport : NavRoutes("add_report/{hearingId}/{reportId}/{subHearingTypeName}") {
+        fun createRoute(
+            hearingId: Int,
+            reportId: Int?,
+            subHearingTypeName: String?,
+        ) = "add_report/$hearingId/${reportId ?: -1}/${subHearingTypeName?.let { java.net.URLEncoder.encode(it, "UTF-8") } ?: "none"}"
+    }
 }

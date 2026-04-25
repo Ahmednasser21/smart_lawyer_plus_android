@@ -109,3 +109,6 @@ class DeleteTaskUseCase @Inject constructor(private val repo: TasksRepository) {
 class CloseTaskUseCase @Inject constructor(private val repo: TasksRepository) {
     suspend operator fun invoke(taskId: Int) = repo.updateTaskStatus(taskId, 5)
 }
+class GetSubHearingTypesForAddUseCase @Inject constructor(private val repo: SessionsAddRepository) {
+    suspend operator fun invoke() = repo.getSubHearingTypesForAdd()
+}

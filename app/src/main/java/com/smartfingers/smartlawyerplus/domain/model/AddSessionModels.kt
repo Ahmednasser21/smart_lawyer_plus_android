@@ -1,5 +1,9 @@
 package com.smartfingers.smartlawyerplus.domain.model
 
+
+data class HearingType(val id: Int, val name: String)
+data class Court(val id: Int, val name: String)
+
 data class AddSessionRequest(
     val caseId: String?,
     val assignedUserIds: String?,
@@ -14,7 +18,10 @@ data class AddSessionRequest(
     val judgeOfficeNumber: String?,
     val hearingDesc: String?,
     val requiredDocs: String?,
+    val hearingDescs: List<HearingDescRequest> = emptyList(),
 )
 
-data class HearingType(val id: Int, val name: String)
-data class Court(val id: Int, val name: String)
+data class HearingDescRequest(
+    val text: String?,
+    val checked: Boolean = false,
+)

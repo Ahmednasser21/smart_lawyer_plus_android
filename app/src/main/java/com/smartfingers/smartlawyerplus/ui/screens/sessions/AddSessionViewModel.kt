@@ -1,23 +1,30 @@
 package com.smartfingers.smartlawyerplus.ui.screens.sessions
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.smartfingers.smartlawyerplus.domain.model.*
+import com.smartfingers.smartlawyerplus.domain.usecase.sessions.AddHearingActionSampleUseCase
+import com.smartfingers.smartlawyerplus.domain.usecase.sessions.GetHearingActionSamplesUseCase
+import com.smartfingers.smartlawyerplus.domain.usecase.sessions.GetLastHearingByIdUseCase
+import com.smartfingers.smartlawyerplus.domain.usecase.sessions.GetLastHearingNumberByCaseIdUseCase
 import com.smartfingers.smartlawyerplus.domain.usecase.tasks.*
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-
 @HiltViewModel
 class AddSessionViewModel @Inject constructor(
     private val getHearingTypes: GetHearingTypesForAddUseCase,
+    private val getSubHearingTypes: GetSubHearingTypesForAddUseCase,
     private val getCourts: GetCourtsForAddUseCase,
     private val getCases: GetSessionCasesUseCase,
     private val getEmployees: GetSessionEmployeesUseCase,
     private val addSession: AddSessionUseCase,
+    private val getLastHearingNumberByCaseId: GetLastHearingNumberByCaseIdUseCase,
+    private val getLastHearingById: GetLastHearingByIdUseCase,
+    private val getActionSamples: GetHearingActionSamplesUseCase,
+    private val addActionSample: AddHearingActionSampleUseCase,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(AddSessionUiState())
@@ -31,16 +38,19 @@ class AddSessionViewModel @Inject constructor(
         viewModelScope.launch {
             when (val r = getCases()) {
                 is Result.Success -> _state.update { it.copy(cases = r.data) }
-                is Result.Error -> {
-                    _state.update { it.copy(error = r.message) }
-                    Log.e("Cases Error", "loadData: ${r.message}", )
-                }
+                is Result.Error -> _state.update { it.copy(error = r.message) }
                 else -> Unit
             }
         }
         viewModelScope.launch {
             when (val r = getHearingTypes()) {
                 is Result.Success -> _state.update { it.copy(hearingTypes = r.data) }
+                else -> Unit
+            }
+        }
+        viewModelScope.launch {
+            when (val r = getSubHearingTypes()) {
+                is Result.Success -> _state.update { it.copy(subHearingTypes = r.data) }
                 else -> Unit
             }
         }
@@ -53,18 +63,99 @@ class AddSessionViewModel @Inject constructor(
         viewModelScope.launch {
             when (val r = getEmployees()) {
                 is Result.Success -> _state.update { it.copy(employees = r.data) }
-                is Result.Error -> {
-                    _state.update { it.copy(error = r.message) }
-                    Log.e("GetEmployees", "loadData: ${r.message}" )
-                }
+                is Result.Error -> _state.update { it.copy(error = r.message) }
                 else -> Unit
             }
         }
     }
 
-    fun onCaseSelected(c: TaskCase?) = _state.update { it.copy(selectedCase = c) }
-    fun onHearingTypeSelected(h: HearingType?) = _state.update { it.copy(selectedHearingType = h) }
+
+    fun onCaseSelected(c: TaskCase?) {
+        _state.update { it.copy(selectedCase = c) }
+        if (c != null) autoFillFromLastHearing(c.id.toString())
+    }
+
+    private fun autoFillFromLastHearing(caseId: String) {
+        viewModelScope.launch {
+            _state.update { it.copy(isAutoFilling = true) }
+            // reset previous values
+            _state.update {
+                it.copy(
+                    selectedCourt = null,
+                    selectedHearingType = null,
+                    selectedSubHearingType = null,
+                    selectedEmployees = emptyList(),
+                    hearingNumber = "",
+                    courtCircle = "",
+                    judgeName = "",
+                    judgeOfficeNumber = "",
+                )
+            }
+            when (val r = getLastHearingNumberByCaseId(caseId)) {
+                is Result.Success -> {
+                    val lastNum = r.data
+                    if ((lastNum.id ?: 0) > 0) {
+                        lastNum.hearingNumber?.let { n ->
+                            _state.update { it.copy(hearingNumber = "${n + 1}") }
+                        }
+                        lastNum.courtCircle?.let { cc ->
+                            _state.update { it.copy(courtCircle = cc) }
+                        }
+                        lastNum.id?.let { loadLastHearingById(it) }
+                    }
+                }
+                else -> Unit
+            }
+            _state.update { it.copy(isAutoFilling = false) }
+        }
+    }
+
+    private suspend fun loadLastHearingById(hearingId: Int) {
+        when (val r = getLastHearingById(hearingId)) {
+            is Result.Success -> {
+                val lh = r.data
+                val s = _state.value
+                // court
+                lh.courtId?.let { cId ->
+                    val court = s.courts.firstOrNull { it.id == cId }
+                    _state.update { it.copy(selectedCourt = court) }
+                }
+                // hearing type
+                lh.hearingTypeId?.let { htId ->
+                    val ht = s.hearingTypes.firstOrNull { it.id == htId }
+                    _state.update { it.copy(selectedHearingType = ht) }
+                }
+                // sub hearing type
+                lh.subHearingTypeId?.let { sId ->
+                    val st = s.subHearingTypes.firstOrNull { it.id == sId }
+                    _state.update { it.copy(selectedSubHearingType = st) }
+                }
+                // employees
+                lh.assignedUserIds?.let { ids ->
+                    val idList = ids.split(",").map { it.trim() }
+                    val matched = s.employees.filter { it.id in idList }
+                    _state.update { it.copy(selectedEmployees = matched) }
+                }
+                // judge & circle
+                lh.judgeName?.let { j -> _state.update { it.copy(judgeName = j) } }
+                lh.judgeOfficeNumber?.let { jo ->
+                    _state.update { it.copy(judgeOfficeNumber = jo) }
+                }
+            }
+            else -> Unit
+        }
+    }
+
+    // ── Field updates ─────────────────────────────────────────────────────────
+
+    fun onHearingTypeSelected(h: HearingType?) =
+        _state.update { it.copy(selectedHearingType = h) }
+
+    fun onSubHearingTypeSelected(h: HearingType?) =
+        _state.update { it.copy(selectedSubHearingType = h) }
+
     fun onCourtSelected(c: Court?) = _state.update { it.copy(selectedCourt = c) }
+
     fun onEmployeeToggled(e: TaskEmployee) = _state.update { s ->
         val list = s.selectedEmployees.toMutableList()
         if (list.any { it.id == e.id }) list.removeAll { it.id == e.id } else list.add(e)
@@ -74,9 +165,145 @@ class AddSessionViewModel @Inject constructor(
     fun onHearingNumberChange(v: String) = _state.update { it.copy(hearingNumber = v) }
     fun onCourtCircleChange(v: String) = _state.update { it.copy(courtCircle = v) }
     fun onJudgeNameChange(v: String) = _state.update { it.copy(judgeName = v) }
+    fun onJudgeOfficeNumberChange(v: String) = _state.update { it.copy(judgeOfficeNumber = v) }
     fun onStartDateSelected(d: String) = _state.update { it.copy(startDate = d) }
     fun onStartTimeSelected(t: String) = _state.update { it.copy(startTime = t) }
     fun onHearingDescChange(v: String) = _state.update { it.copy(hearingDesc = v) }
+    fun onRequiredDocsChange(v: String) = _state.update { it.copy(requiredDocs = v) }
+
+    // ── Actions Required management ───────────────────────────────────────────
+
+    fun addActionRequired() {
+        _state.update {
+            it.copy(actionsRequired = it.actionsRequired + SessionActionRequired())
+        }
+    }
+
+    fun removeActionRequired(id: String) {
+        _state.update {
+            it.copy(actionsRequired = it.actionsRequired.filter { a -> a.id != id })
+        }
+    }
+
+    fun updateActionText(id: String, text: String) {
+        _state.update {
+            it.copy(
+                actionsRequired = it.actionsRequired.map { a ->
+                    if (a.id == id) a.copy(text = text) else a
+                }
+            )
+        }
+    }
+
+    fun toggleActionChecked(id: String) {
+        _state.update {
+            it.copy(
+                actionsRequired = it.actionsRequired.map { a ->
+                    if (a.id == id) a.copy(isChecked = !a.isChecked) else a
+                }
+            )
+        }
+    }
+
+    fun toggleActionSelected(id: String) {
+        _state.update {
+            it.copy(
+                actionsRequired = it.actionsRequired.map { a ->
+                    if (a.id == id) a.copy(isSelected = !a.isSelected) else a
+                }
+            )
+        }
+    }
+
+    // ── Action samples dialog ─────────────────────────────────────────────────
+
+    fun openActionSamplesDialog(targetIndex: Int) {
+        val samples = _state.value.actionSamples
+        if (samples.isEmpty()) {
+            viewModelScope.launch {
+                _state.update { it.copy(isLoadingActionSamples = true) }
+                when (val r = getActionSamples()) {
+                    is Result.Success -> _state.update {
+                        it.copy(
+                            actionSamples = r.data,
+                            isLoadingActionSamples = false,
+                            showActionSamplesDialog = true,
+                            actionSamplesTargetIndex = targetIndex,
+                        )
+                    }
+                    else -> _state.update { it.copy(isLoadingActionSamples = false) }
+                }
+            }
+        } else {
+            _state.update {
+                it.copy(
+                    showActionSamplesDialog = true,
+                    actionSamplesTargetIndex = targetIndex,
+                )
+            }
+        }
+    }
+
+    fun dismissActionSamplesDialog() {
+        _state.update { it.copy(showActionSamplesDialog = false, actionSamplesTargetIndex = -1) }
+    }
+
+    fun selectActionSample(sample: HearingActionSample) {
+        val targetIndex = _state.value.actionSamplesTargetIndex
+        if (targetIndex >= 0) {
+            _state.update {
+                val list = it.actionsRequired.toMutableList()
+                if (targetIndex < list.size) {
+                    list[targetIndex] = list[targetIndex].copy(text = sample.name)
+                }
+                it.copy(
+                    actionsRequired = list,
+                    showActionSamplesDialog = false,
+                    actionSamplesTargetIndex = -1,
+                )
+            }
+        }
+    }
+
+    // ── Add new action dialog ─────────────────────────────────────────────────
+
+    fun openAddActionDialog(targetIndex: Int) {
+        _state.update {
+            it.copy(showAddActionDialog = true, addActionTargetIndex = targetIndex)
+        }
+    }
+
+    fun dismissAddActionDialog() {
+        _state.update { it.copy(showAddActionDialog = false, addActionTargetIndex = -1) }
+    }
+
+    fun confirmAddNewAction(name: String) {
+        val targetIndex = _state.value.addActionTargetIndex
+        viewModelScope.launch {
+            when (val r = addActionSample(name)) {
+                is Result.Success -> {
+                    // invalidate cache
+                    _state.update {
+                        val list = it.actionsRequired.toMutableList()
+                        if (targetIndex >= 0 && targetIndex < list.size) {
+                            list[targetIndex] = list[targetIndex].copy(text = name)
+                        }
+                        it.copy(
+                            actionsRequired = list,
+                            actionSamples = emptyList(),
+                            showAddActionDialog = false,
+                            addActionTargetIndex = -1,
+                        )
+                    }
+                }
+                else -> _state.update {
+                    it.copy(showAddActionDialog = false, addActionTargetIndex = -1)
+                }
+            }
+        }
+    }
+
+    // ── Save ──────────────────────────────────────────────────────────────────
 
     fun save() {
         val s = _state.value
@@ -87,15 +314,18 @@ class AddSessionViewModel @Inject constructor(
                 assignedUserIds = s.selectedEmployees.joinToString(",") { it.id },
                 hearingNumber = s.hearingNumber.ifBlank { null },
                 hearingTypeId = s.selectedHearingType?.id?.toString(),
-                subHearingTypeId = null,
+                subHearingTypeId = s.selectedSubHearingType?.id?.toString(),
                 courtId = s.selectedCourt?.id?.toString(),
                 courtCircle = s.courtCircle.ifBlank { null },
                 startDate = s.startDate.ifBlank { null },
                 startTime = s.startTime.ifBlank { null },
                 judgeName = s.judgeName.ifBlank { null },
-                judgeOfficeNumber = null,
+                judgeOfficeNumber = s.judgeOfficeNumber.ifBlank { null },
                 hearingDesc = s.hearingDesc.ifBlank { null },
-                requiredDocs = null,
+                requiredDocs = s.requiredDocs.ifBlank { null },
+                hearingDescs = s.actionsRequired.map {
+                    HearingDescRequest(text = it.text, checked = it.isChecked)
+                },
             )
             when (val r = addSession(request)) {
                 is Result.Success -> _state.update { it.copy(isLoading = false, success = true) }

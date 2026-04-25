@@ -76,4 +76,6 @@ interface TasksDetailApiService {
 
     @PUT
     suspend fun updateTaskStatus(@Url url: String, @Body body: Map<String, String>): AppResponseDto<Int>
+    @GET
+    suspend fun getSubHearingTypes(@Url url: String): AppResponseDto<HearingTypesResponseDto>
 }

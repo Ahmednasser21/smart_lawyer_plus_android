@@ -1,9 +1,12 @@
 package com.smartfingers.smartlawyerplus.domain.repository
 
 import com.smartfingers.smartlawyerplus.domain.model.FilterOption
+import com.smartfingers.smartlawyerplus.domain.model.HearingActionSample
+import com.smartfingers.smartlawyerplus.domain.model.HearingDetails
 import com.smartfingers.smartlawyerplus.domain.model.HearingFilter
 import com.smartfingers.smartlawyerplus.domain.model.HearingPeriod
 import com.smartfingers.smartlawyerplus.domain.model.HearingStatus
+import com.smartfingers.smartlawyerplus.domain.model.LastHearing
 import com.smartfingers.smartlawyerplus.domain.model.Result
 import com.smartfingers.smartlawyerplus.domain.model.Session
 
@@ -20,4 +23,9 @@ interface SessionsRepository {
     suspend fun getParties(): Result<List<FilterOption>>
     suspend fun getResultCounts(): Result<List<FilterOption>>
     suspend fun getDiscounts(): Result<List<FilterOption>>
+    suspend fun getHearingDetails(hearingId: Int): Result<HearingDetails>
+    suspend fun getLastHearingNumberByCaseId(caseId: String): Result<LastHearing>
+    suspend fun getLastHearingById(hearingId: Int): Result<LastHearing>
+    suspend fun getHearingActionSamples(): Result<List<HearingActionSample>>
+    suspend fun addHearingActionSample(name: String): Result<Int>
 }

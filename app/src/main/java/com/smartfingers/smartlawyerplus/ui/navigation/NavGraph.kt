@@ -15,6 +15,7 @@ import com.smartfingers.smartlawyerplus.ui.screens.login.LoginScreen
 import com.smartfingers.smartlawyerplus.ui.screens.main.MainScreen
 import com.smartfingers.smartlawyerplus.ui.screens.notifications.NotificationsScreen
 import com.smartfingers.smartlawyerplus.ui.screens.onboarding.OnboardingScreen
+import com.smartfingers.smartlawyerplus.ui.screens.sessions.AddReportScreen
 import com.smartfingers.smartlawyerplus.ui.screens.sessions.AddSessionScreen
 import com.smartfingers.smartlawyerplus.ui.screens.sessions.SessionDetailsScreen
 import com.smartfingers.smartlawyerplus.ui.screens.splash.SplashScreen
@@ -138,13 +139,24 @@ fun AppNavGraph(navController: NavHostController) {
         }
 
         composable(NavRoutes.SessionDetails.route) { backStack ->
-            val sessionId =
-                backStack.arguments?.getString("sessionId")?.toIntOrNull() ?: return@composable
+            backStack.arguments?.getString("sessionId")?.toIntOrNull() ?: return@composable
             val session = navController.previousBackStackEntry
                 ?.savedStateHandle
                 ?.get<Session>("session")
             if (session != null) {
-                SessionDetailsScreen(session = session, onBack = { navController.popBackStack() })
+                SessionDetailsScreen(
+                    session = session,
+                    onBack = { navController.popBackStack() },
+                    onNavigateToAddReport = { hearingId, reportId ->
+                        navController.navigate(
+                            NavRoutes.AddReport.createRoute(
+                                hearingId = hearingId,
+                                reportId = reportId,
+                                subHearingTypeName = session.subHearingTypeName,
+                            )
+                        )
+                    },
+                )
             } else {
                 navController.popBackStack()
             }
@@ -182,6 +194,25 @@ fun AppNavGraph(navController: NavHostController) {
             AddAppointmentScreen(
                 onBack = { navController.popBackStack() },
                 onSaved = { navController.popBackStack() },
+            )
+        }
+        composable(NavRoutes.AddReport.route) { backStack ->
+            val hearingId = backStack.arguments?.getString("hearingId")?.toIntOrNull()
+                ?: return@composable
+            val reportId = backStack.arguments?.getString("reportId")?.toIntOrNull()
+                ?.takeIf { it != -1 }
+            val subHearingTypeName = backStack.arguments?.getString("subHearingTypeName")
+                ?.let { java.net.URLDecoder.decode(it, "UTF-8") }
+                ?.takeIf { it != "none" }
+
+            AddReportScreen(
+                hearingId = hearingId,
+                reportId = reportId,
+                subHearingTypeName = subHearingTypeName,
+                onBack = { navController.popBackStack() },
+                onSaved = {
+                    navController.popBackStack(NavRoutes.Main.route, inclusive = false)
+                },
             )
         }
     }

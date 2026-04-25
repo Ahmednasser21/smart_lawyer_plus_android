@@ -2,10 +2,15 @@ package com.smartfingers.smartlawyerplus.data.repository
 
 import com.smartfingers.smartlawyerplus.data.local.AppPreferences
 import com.smartfingers.smartlawyerplus.data.remote.api.SessionsApiService
+import com.smartfingers.smartlawyerplus.data.remote.dto.HearingActionSampleBodyDto
 import com.smartfingers.smartlawyerplus.domain.model.FilterOption
+import com.smartfingers.smartlawyerplus.domain.model.HearingActionSample
+import com.smartfingers.smartlawyerplus.domain.model.HearingAttachment
+import com.smartfingers.smartlawyerplus.domain.model.HearingDetails
 import com.smartfingers.smartlawyerplus.domain.model.HearingFilter
 import com.smartfingers.smartlawyerplus.domain.model.HearingPeriod
 import com.smartfingers.smartlawyerplus.domain.model.HearingStatus
+import com.smartfingers.smartlawyerplus.domain.model.LastHearing
 import com.smartfingers.smartlawyerplus.domain.model.Result
 import com.smartfingers.smartlawyerplus.domain.model.Session
 import com.smartfingers.smartlawyerplus.domain.repository.SessionsRepository
@@ -170,4 +175,125 @@ class SessionsRepositoryImpl @Inject constructor(
         val url = "${baseUrl()}/api/discounts"
         Result.Success(emptyList<FilterOption>())
     }.getOrElse { Result.Error(it.message ?: "Network error") }
+
+    override suspend fun getHearingDetails(hearingId: Int): Result<HearingDetails> = runCatching {
+        val url = "${baseUrl()}/api/Hearings/details/$hearingId"
+        val response = api.getHearingDetails(url)
+        if (response.isSuccess == true && response.data != null) {
+            val d = response.data
+            Result.Success(
+                HearingDetails(
+                    id = d.id ?: hearingId,
+                    hearingNumber = d.hearingNumber,
+                    courtCircle = d.courtCircle,
+                    hearingDesc = d.hearingDesc,
+                    hearingDescs = d.hearingDescs ?: emptyList(),
+                    requiredDocs = d.requiredDocs,
+                    startDate = d.startDate,
+                    startDateHijri = d.startDateHijri,
+                    startTime = d.startTime,
+                    endDate = d.endDate,
+                    endDateHijri = d.endDateHijri,
+                    endTime = d.endTime,
+                    judgeName = d.judgeName,
+                    judgeOfficeNumber = d.judgeOfficeNumber,
+                    status = d.status,
+                    statusName = d.statusName,
+                    hearingTypeName = d.hearingTypeName,
+                    subHearingTypeName = d.subHearingTypeName,
+                    courtName = d.courtName,
+                    assignedUsers = d.assignedUsers ?: emptyList(),
+                    caseName = d.caseName,
+                    caseId = d.caseId,
+                    createdBy = d.createdBy,
+                    createdOn = d.createdOn,
+                    updatedOn = d.updatedOn,
+                    hearingReportId = d.hearingReportId,
+                    hearingReportStatus = d.hearingReportStatus,
+                    remainingDays = d.remainingDays,
+                    attachments = d.attachments?.map { att ->
+                        HearingAttachment(
+                            id = att.id ?: 0,
+                            name = att.name,
+                            path = att.path,
+                            size = att.size,
+                            createdOn = att.createdOn,
+                            createdBy = att.createdBy,
+                            isApproved = att.isApproved ?: false,
+                            projectName = att.projectName,
+                        )
+                    } ?: emptyList(),
+                )
+            )
+        } else {
+            Result.Error(response.errorList?.firstOrNull() ?: "Failed to load hearing details")
+        }
+    }.getOrElse { Result.Error(it.message ?: "Network error") }
+
+    override suspend fun getLastHearingNumberByCaseId(caseId: String): Result<LastHearing> =
+        runCatching {
+            val url = "${baseUrl()}/api/Hearings/lastHearingNumberByCaseId?CaseId=$caseId"
+            val response = api.getLastHearingNumberByCaseId(url)
+            if (response.isSuccess == true && response.data != null) {
+                val d = response.data
+                Result.Success(
+                    LastHearing(
+                        id = d.id,
+                        hearingNumber = d.hearingNumber,
+                        courtId = d.courtId,
+                        hearingTypeId = null,
+                        subHearingTypeId = null,
+                        courtCircle = d.circleName,
+                        judgeName = null,
+                        judgeOfficeNumber = null,
+                        assignedUserIds = d.assignedUserIds?.joinToString(","),
+                    )
+                )
+            } else {
+                Result.Error(response.errorList?.firstOrNull() ?: "Failed")
+            }
+        }.getOrElse { Result.Error(it.message ?: "Network error") }
+
+    override suspend fun getLastHearingById(hearingId: Int): Result<LastHearing> = runCatching {
+        val url = "${baseUrl()}/api/hearings/$hearingId"
+        val response = api.getLastHearingById(url)
+        if (response.isSuccess == true && response.data != null) {
+            val d = response.data
+            Result.Success(
+                LastHearing(
+                    id = d.id,
+                    hearingNumber = d.hearingNumber,
+                    courtId = d.courtId,
+                    hearingTypeId = d.hearingTypeId,
+                    subHearingTypeId = d.subHearingTypeId,
+                    courtCircle = d.courtCircle,
+                    judgeName = d.judgeName,
+                    judgeOfficeNumber = d.judgeOfficeNumber,
+                    assignedUserIds = d.assignedUserIds,
+                )
+            )
+        } else {
+            Result.Error(response.errorList?.firstOrNull() ?: "Failed")
+        }
+    }.getOrElse { Result.Error(it.message ?: "Network error") }
+
+    override suspend fun getHearingActionSamples(): Result<List<HearingActionSample>> = runCatching {
+        val url = "${baseUrl()}/api/HearingActionSamples?page=1&pageSize=999999999"
+        val response = api.getHearingActionSamples(url)
+        if (response.isSuccess == true) {
+            Result.Success(
+                response.data?.items?.map {
+                    HearingActionSample(id = it.id ?: 0, name = it.name ?: "")
+                } ?: emptyList()
+            )
+        } else Result.Error(response.errorList?.firstOrNull() ?: "Failed")
+    }.getOrElse { Result.Error(it.message ?: "Network error") }
+
+    override suspend fun addHearingActionSample(name: String): Result<Int> = runCatching {
+        val url = "${baseUrl()}/api/HearingActionSamples"
+        val response = api.addHearingActionSample(url, HearingActionSampleBodyDto(name = name))
+        if (response.isSuccess == true) Result.Success(response.data ?: 0)
+        else Result.Error(response.errorList?.firstOrNull() ?: "Failed")
+    }.getOrElse { Result.Error(it.message ?: "Network error") }
+
 }

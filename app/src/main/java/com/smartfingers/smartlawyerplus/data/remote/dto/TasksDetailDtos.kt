@@ -149,7 +149,13 @@ data class AddSessionDto(
     @SerializedName("judgeOfficeNumber") val judgeOfficeNumber: String?,
     @SerializedName("hearingDesc") val hearingDesc: String?,
     @SerializedName("requiredDocs") val requiredDocs: String?,
+    @SerializedName("hearingDescs") val hearingDescs: List<HearingDescDto>?,
     @SerializedName("status") val status: Int = 1,
+)
+
+data class HearingDescDto(
+    @SerializedName("text") val text: String?,
+    @SerializedName("checked") val checked: Boolean = false,
 )
 
 data class AddAppointmentDto(
@@ -169,4 +175,88 @@ data class CloseTaskBody(
     @SerializedName("taskId") val taskId: String,
     @SerializedName("taskStatus") val taskStatus: Int, // send as Int not String
     @SerializedName("cmd") val cmd: String = "close", // required field
+)
+
+data class ReportBodyDto(
+    @SerializedName("id") val id: Int? = null,
+    @SerializedName("hearingTypeId") val hearingTypeId: String?,
+    @SerializedName("hearingId") val hearingId: String?,
+    @SerializedName("status") val status: String? = "1",
+    @SerializedName("statement") val statement: String?,
+    @SerializedName("report") val report: String?,
+    @SerializedName("attachments") val attachments: List<ReportAttachmentDto>? = emptyList(),
+    @SerializedName("judgmentReceiptDate") val judgmentReceiptDate: String?,
+    @SerializedName("judgmentText") val judgmentText: String?,
+    @SerializedName("judgmentType") val judgmentType: String?,
+    @SerializedName("formTemplateId") val formTemplateId: String?,
+    @SerializedName("prStringSettingsTemplateId") val prStringSettingsTemplateId: String?,
+    @SerializedName("isAddNextCaseEnabled") val isAddNextCaseEnabled: Boolean? = true,
+    @SerializedName("isAddNextCaseUrgent") val isAddNextCaseUrgent: Boolean? = false,
+)
+
+data class ReportAttachmentDto(
+    @SerializedName("id") val id: Int?,
+    @SerializedName("name") val name: String?,
+    @SerializedName("path") val path: String?,
+    @SerializedName("size") val size: Int?,
+    @SerializedName("isDraft") val isDraft: Boolean?,
+    @SerializedName("createdOn") val createdOn: String?,
+    @SerializedName("createdBy") val createdBy: String?,
+    @SerializedName("isApproved") val isApproved: Boolean?,
+    @SerializedName("projectName") val projectName: String?,
+)
+
+data class ReportResponseDto(
+    @SerializedName("id") val id: Int?,
+    @SerializedName("hearingId") val hearingId: Int?,
+    @SerializedName("hearingTypeId") val hearingTypeId: Int?,
+    @SerializedName("status") val status: Int?,
+    @SerializedName("statusName") val statusName: String?,
+    @SerializedName("statement") val statement: String?,
+    @SerializedName("report") val report: String?,
+    @SerializedName("requiredDocs") val requiredDocs: String?,
+    @SerializedName("judgmentReceiptDate") val judgmentReceiptDate: String?,
+    @SerializedName("judgmentReceiptDateHijri") val judgmentReceiptDateHijri: String?,
+    @SerializedName("judgmentText") val judgmentText: String?,
+    @SerializedName("judgmentType") val judgmentType: Int?,
+    @SerializedName("judgmentTypeName") val judgmentTypeName: String?,
+    @SerializedName("formTemplateId") val formTemplateId: Int?,
+    @SerializedName("printSettingsTemplateId") val printSettingsTemplateId: Int?,
+    @SerializedName("isAddNextCaseEnabled") val isAddNextCaseEnabled: Boolean?,
+    @SerializedName("isAddNextCaseUrgent") val isAddNextCaseUrgent: Boolean?,
+    @SerializedName("attachments") val attachments: List<ReportAttachmentDto>?,
+    @SerializedName("createdBy") val createdBy: String?,
+    @SerializedName("createdOn") val createdOn: String?,
+    @SerializedName("updatedOn") val updatedOn: String?,
+)
+
+data class FormTemplatesResponseDto(
+    @SerializedName("totalItems") val totalItems: Int?,
+    @SerializedName("items") val items: List<FormTemplateItemDto>?,
+)
+
+data class FormTemplateItemDto(
+    @SerializedName("id") val id: Int?,
+    @SerializedName("title") val title: String?,
+    @SerializedName("name") val name: String?,
+    @SerializedName("type") val type: Int?,
+    @SerializedName("typeName") val typeName: String?,
+    @SerializedName("body") val body: String?,
+)
+
+data class JudgmentTypeDto(
+    @SerializedName("id") val id: Int?,
+    @SerializedName("name") val name: String?,
+)
+
+data class UploadedAttachmentDto(
+    @SerializedName("id") val id: Int?,
+    @SerializedName("name") val name: String?,
+    @SerializedName("path") val path: String?,
+    @SerializedName("size") val size: Int?,
+    @SerializedName("isDraft") val isDraft: Boolean?,
+    @SerializedName("createdOn") val createdOn: String?,
+    @SerializedName("createdBy") val createdBy: String?,
+    @SerializedName("isApproved") val isApproved: Boolean?,
+    @SerializedName("projectName") val projectName: String?,
 )
