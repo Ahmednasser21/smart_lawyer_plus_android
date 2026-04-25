@@ -4,21 +4,27 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.smartfingers.smartlawyerplus.R
 import com.smartfingers.smartlawyerplus.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -29,7 +35,14 @@ fun CaseDetailsScreen(
     viewModel: CaseDetailsViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsState()
-    val tabs = listOf("بيانات القضية", "المستندات", "بيانات العملاء")
+
+    val tabs = listOf("بيانات العملاء", "المرفقات", "بيانات القضية")
+
+    val tabEntries = listOf(
+        CaseDetailsTab.CLIENTS,
+        CaseDetailsTab.DOCS,
+        CaseDetailsTab.DATA,
+    )
 
     LaunchedEffect(caseId) { viewModel.loadDetails(caseId) }
 
@@ -38,10 +51,26 @@ fun CaseDetailsScreen(
             CenterAlignedTopAppBar(
                 title = {
                     Text(
-                        text = "تفاصيل القضية",
+                        text = "عرض القضية",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold,
                     )
+                },
+                navigationIcon = {
+                    IconButton(
+                        onClick = { },
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .size(36.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(Primary),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.MoreVert,
+                            contentDescription = null,
+                            tint = Color.White
+                        )
+                    }
                 },
                 actions = {
                     IconButton(onClick = onBack) {
@@ -71,7 +100,7 @@ fun CaseDetailsScreen(
                     .padding(horizontal = 16.dp, vertical = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                CaseDetailsTab.entries.forEachIndexed { idx, tab ->
+                tabEntries.forEachIndexed { idx, tab ->
                     val label = tabs[idx]
                     val isSelected = state.selectedTab == tab
                     Box(
@@ -80,7 +109,7 @@ fun CaseDetailsScreen(
                             .height(40.dp)
                             .clip(RoundedCornerShape(8.dp))
                             .background(if (isSelected) Primary else MaterialTheme.colorScheme.surfaceVariant)
-                            .clickable { viewModel.selectTab(tab) },
+                            .clickable { viewModel.selectTab(tab) }, // Now index 0 correctly selects DATA
                         contentAlignment = Alignment.Center,
                     ) {
                         Text(
@@ -92,7 +121,6 @@ fun CaseDetailsScreen(
                     }
                 }
             }
-
             when (state.selectedTab) {
                 CaseDetailsTab.DATA -> CaseDataContent(state, caseId)
                 CaseDetailsTab.DOCS -> CaseDocsContent(state, caseId, viewModel)
@@ -112,22 +140,23 @@ private fun CaseDataContent(state: CaseDetailsUiState, caseId: Int) {
     }
     val d = state.details ?: return
     val detailItems = buildList {
-        add("رقم القضية" to (d.caseNumberInSource ?: "-"))
         add("اسم القضية" to d.name)
+        add("رقم القضية" to (d.caseNumberInSource ?: "-"))
+        add("درجة الترافع" to (d.litigationTypeName ?: "-"))
         add("الحالة" to (d.statusName ?: "-"))
-        add("درجة التقاضي" to (d.litigationTypeName ?: "-"))
-        add("المُصلح" to (d.reformerName ?: "-"))
         add("الفرع" to (d.branch ?: "-"))
-        add("الوضع القانوني" to (d.legalStatusName ?: "-"))
-        add("مصدر القضية" to (d.caseSource ?: "-"))
+        add("اسم المُصلح" to (d.reformerName ?: "-"))
+        add("جهة نظرالقضية" to (d.caseSource ?: "-"))
+        add("صفة العميل" to (d.legalStatusName ?: "-"))
+        add("اسم الدائرة" to (d.circleName ?: "-"))
         add("المحكمة" to (d.court ?: "-"))
-        add("الدائرة" to (d.circleName ?: "-"))
-        add("تاريخ البدء" to "${d.startDate?.take(10) ?: ""} / ${d.startDateHijri ?: ""}")
         add("عدد الجلسات" to "${d.hearingsCount}")
-        add("الأيام المتبقية" to "${d.restDaysToCreateNextCase?.toInt() ?: 0} يوم")
-        add("الفئة" to (d.caseCategory ?: "-"))
-        add("النوع" to (d.caseKind ?: "-"))
-        add("النوع الفرعي" to (d.caseSubKind ?: "-"))
+        add("تاريخ قيد الدعوى" to "${d.startDate?.take(10) ?: ""} / ${d.startDateHijri ?: ""}")
+        add("رقم المعاملة في المنشأة" to "-")
+        add("الوقت المتبقي للإعتراض" to "${d.restDaysToCreateNextCase?.toInt() ?: 0} يوم")
+        add(" نوع الدعوى" to (d.caseKind ?: "-"))
+        add("تصنيف القضية الرئيسي" to (d.caseCategory ?: "-"))
+        add("تصنيف القضية الفرعي" to (d.caseSubKind ?: "-"))
     }
     val rows = detailItems.chunked(2)
     LazyColumn(
@@ -150,7 +179,7 @@ private fun CaseDetailCard(key: String, value: String, modifier: Modifier) {
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(8.dp))
-            .background(MaterialTheme.colorScheme.surface)
+            .background(MaterialTheme.colorScheme.background)
             .border(1.dp, Divider, RoundedCornerShape(8.dp)),
     ) {
         Box(
@@ -160,12 +189,19 @@ private fun CaseDetailCard(key: String, value: String, modifier: Modifier) {
                 .padding(6.dp),
             contentAlignment = Alignment.Center,
         ) {
-            Text(key, style = MaterialTheme.typography.labelSmall, color = Color.White, textAlign = TextAlign.Center)
+            Text(
+                key,
+                style = MaterialTheme.typography.labelSmall,
+                color = Color.White,
+                textAlign = TextAlign.Center
+            )
         }
         Text(
             value, style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.padding(8.dp).fillMaxWidth(),
+            modifier = Modifier
+                .padding(24.dp)
+                .fillMaxWidth(),
             textAlign = TextAlign.Center,
         )
     }
@@ -187,7 +223,11 @@ private fun CaseDocsContent(
     }
     if (state.attachments.isEmpty()) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("لا توجد مستندات", style = MaterialTheme.typography.bodyMedium, color = TextSecondary)
+            Text(
+                "لا توجد مستندات",
+                style = MaterialTheme.typography.bodyMedium,
+                color = TextSecondary
+            )
         }
         return
     }
@@ -202,15 +242,29 @@ private fun CaseDocsContent(
                 elevation = CardDefaults.cardElevation(2.dp),
             ) {
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(12.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(12.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Column {
-                        Text(att.name ?: "-", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Medium)
-                        Text(att.createdOn?.take(10) ?: "", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
+                        Text(
+                            att.name ?: "-",
+                            style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Text(
+                            att.createdOn?.take(10) ?: "",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = TextSecondary
+                        )
                     }
-                    Text(att.type ?: "", style = MaterialTheme.typography.labelSmall, color = Primary)
+                    Text(
+                        att.type ?: "",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Primary
+                    )
                 }
             }
         }
@@ -233,7 +287,11 @@ private fun CaseClientsContent(
     }
     if (state.clients.isEmpty()) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("لا يوجد عملاء", style = MaterialTheme.typography.bodyMedium, color = TextSecondary)
+            Text(
+                "لا يوجد عملاء",
+                style = MaterialTheme.typography.bodyMedium,
+                color = TextSecondary
+            )
         }
         return
     }
@@ -243,18 +301,69 @@ private fun CaseClientsContent(
     ) {
         items(state.clients) { client ->
             Card(
-                shape = RoundedCornerShape(8.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                elevation = CardDefaults.cardElevation(2.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 10.dp)
+                    .shadow(
+                        elevation = 5.dp,
+                        shape = RoundedCornerShape(12.dp),
+                        spotColor = MaterialTheme.colorScheme.onSurface
+                    ),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.background
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
             ) {
-                Column(modifier = Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text(client.legalStatusName ?: "", style = MaterialTheme.typography.labelSmall, color = Primary)
-                        Text(client.name ?: "-", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold)
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Row(
+                        Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            client.legalStatusName ?: "",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Primary
+                        )
+                        Text(
+                            client.name ?: "-",
+                            modifier = Modifier.padding(end = 16.dp),
+                            style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Box(
+                            modifier = Modifier
+                                .padding(8.dp)
+                                .size(36.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.primaryContainer),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.icons8_avatar_100),
+                                contentDescription = null,
+                                tint = Color.Unspecified,
+                                modifier = Modifier.fillMaxSize(),
+                            )
+                        }
                     }
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text(client.mobile ?: "", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
-                        Text(client.identityValue ?: "", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
+                        Text(
+                            client.mobile ?: "",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = TextSecondary
+                        )
+                        Text(
+                            client.identityValue ?: "",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = TextSecondary
+                        )
                     }
                 }
             }
