@@ -744,12 +744,8 @@ private fun ActionsRequiredCard(
             ) {
                 // "إضافة" button on left (RTL)
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    SmallChipButton(text = "إضافة المحدد للمهام", onClick = onAddSelectedToTask)
                     SmallChipButton(text = "إضافة", onClick = onAdd)
-                    SmallChipButton(
-                        text = "إضافة للمهام",
-                        onClick = onAddSelectedToTask,
-                        color = Secondary,
-                    )
                 }
                 Text(
                     text = "الإجراءات المطلوبة في الجلسة",
@@ -801,7 +797,7 @@ private fun ActionRequiredRow(
         }
 
         // Choose from samples
-        SmallChipButton(text = "اختيار", onClick = onChooseSample, color = Secondary)
+        SmallChipButton(text = "اختيار إجراء جاهز", onClick = onChooseSample)
 
         // Add new action
         Box(
