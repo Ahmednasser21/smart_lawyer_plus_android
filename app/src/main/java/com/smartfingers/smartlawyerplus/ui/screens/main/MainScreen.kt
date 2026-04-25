@@ -16,6 +16,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FormatAlignCenter
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -56,12 +57,13 @@ fun MainScreen(
     appointmentsViewModel: AppointmentsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    var selectedTab by remember { mutableStateOf(MainTab.TASKS) }
+
+    var selectedTab by rememberSaveable { mutableStateOf(MainTab.TASKS) }
+
     var showFabMenu by remember { mutableStateOf(false) }
     var sessionsFilterAction by remember { mutableStateOf<(() -> Unit)?>(null) }
 
     Box(modifier = Modifier.fillMaxSize()) {
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -79,18 +81,13 @@ fun MainScreen(
 
             when (selectedTab) {
                 MainTab.TASKS -> TasksScreen(
-                    onTaskClick = { taskId ->
-                        navController.navigate(
-                            NavRoutes.TaskDetails.createRoute(
-                                taskId
-                            )
-                        )
-                    },
+                    onTaskClick = { id -> navController.navigate(NavRoutes.TaskDetails.createRoute(id)) },
                     viewModel = viewModel,
                 )
 
                 MainTab.SESSIONS -> SessionsScreen(
                     onSessionClick = { session ->
+                        // Put object in savedStateHandle for the next screen to pick up
                         navController.currentBackStackEntry?.savedStateHandle?.set("session", session)
                         navController.navigate(NavRoutes.SessionDetails.createRoute(session.id))
                     },
@@ -98,24 +95,12 @@ fun MainScreen(
                 )
 
                 MainTab.APPOINTMENTS -> AppointmentsScreen(
-                    onAppointmentClick = { apptId ->
-                        navController.navigate(
-                            NavRoutes.AppointmentDetails.createRoute(
-                                apptId
-                            )
-                        )
-                    },
+                    onAppointmentClick = { id -> navController.navigate(NavRoutes.AppointmentDetails.createRoute(id)) },
                     viewModel = appointmentsViewModel,
                 )
 
                 MainTab.CASES -> CasesScreen(
-                    onCaseClick = { caseId ->
-                        navController.navigate(
-                            NavRoutes.CaseDetails.createRoute(
-                                caseId
-                            )
-                        )
-                    },
+                    onCaseClick = { id -> navController.navigate(NavRoutes.CaseDetails.createRoute(id)) },
                     viewModel = casesViewModel,
                 )
             }

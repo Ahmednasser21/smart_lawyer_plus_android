@@ -132,12 +132,8 @@ fun AppNavGraph(navController: NavHostController) {
         composable(NavRoutes.Main.route) {
             MainScreen(
                 navController = navController,
-                onNotificationsClick = {
-                    navController.navigate(NavRoutes.Notifications.route)
-                },
-                onCalendarClick = {
-                    navController.navigate(NavRoutes.Calendar.route)
-                },
+                onNotificationsClick = { navController.navigate(NavRoutes.Notifications.route) },
+                onCalendarClick = { navController.navigate(NavRoutes.Calendar.route) },
             )
         }
 
@@ -153,32 +149,31 @@ fun AppNavGraph(navController: NavHostController) {
 
         composable(
             route = NavRoutes.SessionDetails.route,
-            arguments = listOf(
-                navArgument("sessionId") { type = NavType.IntType }
-            ),
+            arguments = listOf(navArgument("sessionId") { type = NavType.IntType })
         ) { backStack ->
+            // Try to get the session object if it exists (for immediate UI),
+            // but don't crash if it's missing.
             val session = navController.previousBackStackEntry
                 ?.savedStateHandle
                 ?.get<Session>("session")
 
-            if (session != null) {
-                SessionDetailsScreen(
-                    session = session,
-                    onBack = { navController.popBackStack() },
-                    onNavigateToAddReport = { hearingId, reportId ->
-                        backStack.savedStateHandle["session"] = session
-                        navController.navigate(
-                            NavRoutes.AddReport.createRoute(
-                                hearingId = hearingId,
-                                reportId = reportId,
-                                subHearingTypeName = session.subHearingTypeName,
-                            )
+            val sessionId = backStack.arguments?.getInt("sessionId") ?: -1
+
+            SessionDetailsScreen(
+                sessionId = sessionId,
+                session = session,
+                onBack = { navController.popBackStack() },
+                onNavigateToAddReport = { hearingId, reportId ->
+                    backStack.savedStateHandle["session"] = session
+                    navController.navigate(
+                        NavRoutes.AddReport.createRoute(
+                            hearingId = hearingId,
+                            reportId = reportId,
+                            subHearingTypeName = session?.subHearingTypeName ?: "none"
                         )
-                    },
-                )
-            } else {
-                LaunchedEffect(Unit) { navController.popBackStack() }
-            }
+                    )
+                },
+            )
         }
 
         composable(NavRoutes.AppointmentDetails.route) { backStack ->
@@ -221,10 +216,8 @@ fun AppNavGraph(navController: NavHostController) {
         }
 
         composable(NavRoutes.AddReport.route) { backStack ->
-            val hearingId = backStack.arguments?.getString("hearingId")?.toIntOrNull()
-                ?: return@composable
-            val reportId = backStack.arguments?.getString("reportId")?.toIntOrNull()
-                ?.takeIf { it != -1 }
+            val hearingId = backStack.arguments?.getString("hearingId")?.toIntOrNull() ?: return@composable
+            val reportId = backStack.arguments?.getString("reportId")?.toIntOrNull()?.takeIf { it != -1 }
             val subHearingTypeName = backStack.arguments?.getString("subHearingTypeName")
                 ?.let { java.net.URLDecoder.decode(it, "UTF-8") }
                 ?.takeIf { it != "none" }
@@ -235,7 +228,7 @@ fun AppNavGraph(navController: NavHostController) {
                 subHearingTypeName = subHearingTypeName,
                 onBack = { navController.popBackStack() },
                 onSaved = {
-                    navController.popBackStack(NavRoutes.SessionDetails.route, inclusive = false)
+                    navController.popBackStack()
                 },
             )
         }

@@ -21,16 +21,27 @@ class SessionDetailsViewModel @Inject constructor(
     val uiState: StateFlow<SessionDetailsUiState> = _uiState
 
     fun init(session: Session) {
-        _uiState.update { it.copy(session = session) }
-        loadDetails(session.id)
+        if (_uiState.value.session?.id != session.id) {
+            _uiState.update { it.copy(session = session) }
+            loadDetails(session.id)
+        }
     }
 
-    private fun loadDetails(hearingId: Int) {
+    fun initById(sessionId: Int) {
+        if (_uiState.value.session?.id != sessionId) {
+            loadDetails(sessionId)
+        }
+    }
+
+    fun loadDetails(hearingId: Int) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = "") }
             when (val result = getHearingDetails(hearingId)) {
                 is Result.Success -> _uiState.update {
-                    it.copy(isLoading = false, hearingDetails = result.data)
+                    it.copy(
+                        isLoading = false,
+                        hearingDetails = result.data,
+                    )
                 }
                 is Result.Error -> _uiState.update {
                     it.copy(isLoading = false, error = result.message)
@@ -43,7 +54,7 @@ class SessionDetailsViewModel @Inject constructor(
     fun onTabSelected(tab: Int) = _uiState.update { it.copy(selectedTab = tab) }
 
     fun refresh() {
-        val id = _uiState.value.session?.id ?: return
+        val id = _uiState.value.session?.id ?: _uiState.value.hearingDetails?.id ?: return
         loadDetails(id)
     }
 }

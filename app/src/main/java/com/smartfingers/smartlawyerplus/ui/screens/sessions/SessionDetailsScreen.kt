@@ -30,14 +30,21 @@ import com.smartfingers.smartlawyerplus.ui.theme.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SessionDetailsScreen(
-    session: Session,
+    sessionId: Int,
+    session: Session?,
     onBack: () -> Unit,
     onNavigateToAddReport: (hearingId: Int, reportId: Int?) -> Unit = { _, _ -> },
     viewModel: SessionDetailsViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    LaunchedEffect(session.id) { viewModel.init(session) }
+    LaunchedEffect(sessionId, session) {
+        if (session != null) {
+            viewModel.init(session)
+        } else {
+            viewModel.initById(sessionId)
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -82,7 +89,7 @@ fun SessionDetailsScreen(
                                 },
                                 onClick = {
                                     showMenu = false
-                                    onNavigateToAddReport(session.id, reportId)
+                                    session?.id?.let { onNavigateToAddReport(it, reportId) }
                                 },
                             )
                         }
@@ -168,10 +175,12 @@ fun SessionDetailsScreen(
                 else -> {
                     when (uiState.selectedTab) {
                         0 -> SessionDocsTab(details = uiState.hearingDetails)
-                        1 -> SessionDataTab(
-                            details = uiState.hearingDetails,
-                            session = session,
-                        )
+                        1 -> session?.let {
+                            SessionDataTab(
+                                details = uiState.hearingDetails,
+                                session = it,
+                            )
+                        }
                     }
                 }
             }

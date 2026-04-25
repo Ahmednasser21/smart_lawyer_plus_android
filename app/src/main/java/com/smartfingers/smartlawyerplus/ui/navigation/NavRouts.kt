@@ -11,9 +11,6 @@ sealed class NavRoutes(val route: String) {
         fun createRoute(email: String) = "verify_otp/$email"
     }
 
-    data object ChangePassword : NavRoutes("change_password/{email}/{code}") {
-        fun createRoute(email: String, code: String) = "change_password/$email/$code"
-    }
 
     data object Main : NavRoutes("main")
 
