@@ -91,10 +91,7 @@ fun MainScreen(
 
                 MainTab.SESSIONS -> SessionsScreen(
                     onSessionClick = { session ->
-                        navController.currentBackStackEntry?.savedStateHandle?.set(
-                            "session",
-                            session
-                        )
+                        navController.currentBackStackEntry?.savedStateHandle?.set("session", session)
                         navController.navigate(NavRoutes.SessionDetails.createRoute(session.id))
                     },
                     onFilterIconReady = { action -> sessionsFilterAction = action },

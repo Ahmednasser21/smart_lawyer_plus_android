@@ -156,7 +156,7 @@ fun AppNavGraph(navController: NavHostController) {
             arguments = listOf(
                 navArgument("sessionId") { type = NavType.IntType }
             ),
-        ) {
+        ) { backStack ->
             val session = navController.previousBackStackEntry
                 ?.savedStateHandle
                 ?.get<Session>("session")
@@ -166,6 +166,7 @@ fun AppNavGraph(navController: NavHostController) {
                     session = session,
                     onBack = { navController.popBackStack() },
                     onNavigateToAddReport = { hearingId, reportId ->
+                        backStack.savedStateHandle["session"] = session
                         navController.navigate(
                             NavRoutes.AddReport.createRoute(
                                 hearingId = hearingId,
