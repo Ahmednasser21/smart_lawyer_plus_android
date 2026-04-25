@@ -1,6 +1,8 @@
 package com.smartfingers.smartlawyerplus.ui.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -23,6 +25,7 @@ import com.smartfingers.smartlawyerplus.ui.screens.sessions.SessionDetailsScreen
 import com.smartfingers.smartlawyerplus.ui.screens.splash.SplashScreen
 import com.smartfingers.smartlawyerplus.ui.screens.tasks.AddTaskScreen
 import com.smartfingers.smartlawyerplus.ui.screens.tasks.TaskDetailsScreen
+import androidx.core.net.toUri
 
 @Composable
 fun AppNavGraph(navController: NavHostController) {
@@ -82,6 +85,7 @@ fun AppNavGraph(navController: NavHostController) {
         }
 
         composable(NavRoutes.Login.route) {
+            val context = LocalContext.current
             LoginScreen(
                 onNavigateToMain = {
                     navController.navigate(NavRoutes.Main.route) {
@@ -91,7 +95,13 @@ fun AppNavGraph(navController: NavHostController) {
                 onNavigateToForgotPassword = {
                     navController.navigate(NavRoutes.ForgetPassword.route)
                 },
-                onNavigateToRegister = { /* open browser */ },
+                onNavigateToRegister = {
+                    val intent = android.content.Intent(
+                        android.content.Intent.ACTION_VIEW,
+                        "https://plus.smart-lawyer.net/#/new-request".toUri()
+                    )
+                    context.startActivity(intent)
+                },
             )
         }
 
@@ -146,9 +156,11 @@ fun AppNavGraph(navController: NavHostController) {
             arguments = listOf(
                 navArgument("sessionId") { type = NavType.IntType }
             ),
-        ) { backStack ->
-            // The session is stored in this entry's savedStateHandle by the caller
-            val session = backStack.savedStateHandle.get<Session>("session")
+        ) {
+            val session = navController.previousBackStackEntry
+                ?.savedStateHandle
+                ?.get<Session>("session")
+
             if (session != null) {
                 SessionDetailsScreen(
                     session = session,
@@ -164,7 +176,7 @@ fun AppNavGraph(navController: NavHostController) {
                     },
                 )
             } else {
-                navController.popBackStack()
+                LaunchedEffect(Unit) { navController.popBackStack() }
             }
         }
 
@@ -180,7 +192,10 @@ fun AppNavGraph(navController: NavHostController) {
         composable(NavRoutes.CaseDetails.route) { backStack ->
             val caseId =
                 backStack.arguments?.getString("caseId")?.toIntOrNull() ?: return@composable
-            CaseDetailsScreen(caseId = caseId, onBack = { navController.popBackStack() })
+            CaseDetailsScreen(
+                caseId = caseId,
+                onBack = { navController.popBackStack() },
+            )
         }
 
         composable(NavRoutes.AddTask.route) {

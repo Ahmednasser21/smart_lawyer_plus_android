@@ -1043,7 +1043,6 @@ private fun AddNewActionDialog(onConfirm: (String) -> Unit, onDismiss: () -> Uni
     }
 }
 
-/** Generic add-name dialog reused for hearing type, sub-type, court */
 @Composable
 fun AddNameDialog(
     title: String,

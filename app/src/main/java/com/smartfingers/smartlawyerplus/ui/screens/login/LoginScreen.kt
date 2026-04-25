@@ -3,7 +3,6 @@ package com.smartfingers.smartlawyerplus.ui.screens.login
 import android.graphics.BitmapFactory
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,8 +21,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -49,7 +46,6 @@ import com.smartfingers.smartlawyerplus.ui.components.SmartLawyerOutlinedButton
 import com.smartfingers.smartlawyerplus.ui.components.SmartLawyerTextField
 import com.smartfingers.smartlawyerplus.ui.screens.linkentry.AppLogo
 import com.smartfingers.smartlawyerplus.ui.theme.Primary
-import com.smartfingers.smartlawyerplus.ui.theme.TextSecondary
 
 @Composable
 fun LoginScreen(
@@ -84,7 +80,8 @@ fun LoginScreen(
             if (!logoBase64.isNullOrBlank()) {
                 val bitmap = remember(logoBase64) {
                     try {
-                        val bytes = android.util.Base64.decode(logoBase64, android.util.Base64.DEFAULT)
+                        val bytes =
+                            android.util.Base64.decode(logoBase64, android.util.Base64.DEFAULT)
                         BitmapFactory.decodeByteArray(bytes, 0, bytes.size)?.asImageBitmap()
                     } catch (e: Exception) {
                         null
@@ -141,24 +138,6 @@ fun LoginScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.clickable { viewModel.onRememberMeToggle() },
-                ) {
-                    Checkbox(
-                        checked = uiState.rememberMe,
-                        onCheckedChange = { viewModel.onRememberMeToggle() },
-                        colors = CheckboxDefaults.colors(
-                            checkedColor = Primary,
-                            uncheckedColor = TextSecondary,
-                        ),
-                    )
-                    Text(
-                        text = stringResource(R.string.remember_me),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onBackground,
-                    )
-                }
 
                 TextButton(onClick = onNavigateToForgotPassword) {
                     Text(
