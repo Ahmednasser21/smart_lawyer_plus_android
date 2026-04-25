@@ -148,7 +148,6 @@ class AddReportViewModel @Inject constructor(
 
     fun onSessionSummaryChange(v: String) = _uiState.update { it.copy(sessionSummary = v) }
     fun onCourtDecisionChange(v: String) = _uiState.update { it.copy(courtDecision = v) }
-    fun onJudgmentDateSelected(d: String) = _uiState.update { it.copy(judgmentDate = d) }
     fun onJudgmentSummaryChange(v: String) = _uiState.update { it.copy(judgmentSummary = v) }
 
     fun onAppealableToggle() {
@@ -241,5 +240,31 @@ class AddReportViewModel @Inject constructor(
                 else -> Unit
             }
         }
+    }
+    fun onJudgmentHijriDateSelected(hijri: String) {
+        val greg = fromHijri(hijri)
+        _uiState.update { it.copy(judgmentDate = greg, judgmentDateHijri = hijri) }
+    }
+
+    private fun fromHijri(hijri: String): String {
+        return try {
+            val parts = hijri.split("-")
+            if (parts.size != 3) return ""
+            val hd = java.time.chrono.HijrahDate.of(parts[0].toInt(), parts[1].toInt(), parts[2].toInt())
+            val ld = java.time.LocalDate.from(java.time.chrono.HijrahChronology.INSTANCE.date(hd))
+            "${ld.year}-${ld.monthValue.toString().padStart(2, '0')}-${ld.dayOfMonth.toString().padStart(2, '0')}"
+        } catch (_: Exception) { "" }
+    }
+    private fun toHijri(gregorian: String): String {
+        return try {
+            val parts = gregorian.split("-")
+            if (parts.size != 3) return ""
+            val localDate = java.time.LocalDate.of(parts[0].toInt(), parts[1].toInt(), parts[2].toInt())
+            val hijri = java.time.chrono.HijrahDate.from(localDate)
+            "${hijri.get(java.time.temporal.ChronoField.YEAR)}-${hijri.get(java.time.temporal.ChronoField.MONTH_OF_YEAR).toString().padStart(2, '0')}-${hijri.get(java.time.temporal.ChronoField.DAY_OF_MONTH).toString().padStart(2, '0')}"
+        } catch (_: Exception) { "" }
+    }
+    fun onJudgmentDateSelected(d: String) {
+        _uiState.update { it.copy(judgmentDate = d, judgmentDateHijri = toHijri(d)) }
     }
 }

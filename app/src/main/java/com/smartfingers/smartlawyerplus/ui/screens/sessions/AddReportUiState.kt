@@ -40,4 +40,5 @@ data class AddReportUiState(
 
     // Add new hearing type dialog
     val showAddHearingTypeDialog: Boolean = false,
+    val judgmentDateHijri: String = "",
 )

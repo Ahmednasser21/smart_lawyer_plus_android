@@ -204,12 +204,12 @@ fun AddSessionScreen(
                 onAddNew = viewModel::openAddCourtDialog,
             )
 
-            // ── تاريخ الجلسة (Gregorian + Hijri) ─────────────────────────────
+            // Replace the existing date Row with this:
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                // Gregorian date
+                // Gregorian date picker
                 OutlinedButton(
                     onClick = {
                         val cal = Calendar.getInstance()
@@ -224,7 +224,6 @@ fun AddSessionScreen(
                             cal.get(Calendar.MONTH),
                             cal.get(Calendar.DAY_OF_MONTH),
                         )
-                        // Prevent past dates
                         picker.datePicker.minDate = today.timeInMillis
                         picker.show()
                     },
@@ -233,42 +232,31 @@ fun AddSessionScreen(
                     border = androidx.compose.foundation.BorderStroke(1.dp, Divider),
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            "تاريخ الجلسة (م)",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = TextSecondary,
-                            fontSize = 10.sp,
-                        )
+                        Text("تاريخ الجلسة (م)", style = MaterialTheme.typography.labelSmall, color = TextSecondary, fontSize = 10.sp)
                         Text(
                             text = state.startDate.ifBlank { "--/--/----" },
                             style = MaterialTheme.typography.bodySmall,
-                            color = if (state.startDate.isBlank()) TextSecondary
-                            else MaterialTheme.colorScheme.onBackground,
+                            color = if (state.startDate.isBlank()) TextSecondary else MaterialTheme.colorScheme.onBackground,
                         )
                     }
                 }
-                // Hijri date (read-only, auto-computed from Gregorian)
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(48.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .border(1.dp, Divider, RoundedCornerShape(8.dp))
-                        .padding(horizontal = 12.dp),
-                    contentAlignment = Alignment.Center,
+                // Hijri date picker
+                OutlinedButton(
+                    onClick = {
+                        showHijriDatePickerDialog(context, state.startDateHijri) { hijriDate ->
+                            viewModel.onStartHijriDateSelected(hijriDate)
+                        }
+                    },
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(8.dp),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, Divider),
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            "تاريخ الجلسة (هـ)",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = TextSecondary,
-                            fontSize = 10.sp,
-                        )
+                        Text("تاريخ الجلسة (هـ)", style = MaterialTheme.typography.labelSmall, color = TextSecondary, fontSize = 10.sp)
                         Text(
                             text = state.startDateHijri.ifBlank { "--/--/----" },
                             style = MaterialTheme.typography.bodySmall,
-                            color = if (state.startDateHijri.isBlank()) TextSecondary
-                            else MaterialTheme.colorScheme.onBackground,
+                            color = if (state.startDateHijri.isBlank()) TextSecondary else MaterialTheme.colorScheme.onBackground,
                         )
                     }
                 }
@@ -434,7 +422,70 @@ fun AddSessionScreen(
         }
     }
 }
+fun showHijriDatePickerDialog(
+    context: android.content.Context,
+    currentHijri: String,
+    onDateSelected: (String) -> Unit,
+) {
+    val today = java.time.chrono.HijrahDate.from(java.time.LocalDate.now())
+    val currentYear = today.get(java.time.temporal.ChronoField.YEAR)
+    val currentMonth = today.get(java.time.temporal.ChronoField.MONTH_OF_YEAR)
+    val currentDay = today.get(java.time.temporal.ChronoField.DAY_OF_MONTH)
 
+    val parts = currentHijri.split("-")
+    val initYear = parts.getOrNull(0)?.toIntOrNull() ?: currentYear
+    val initMonth = (parts.getOrNull(1)?.toIntOrNull() ?: currentMonth) - 1
+    val initDay = parts.getOrNull(2)?.toIntOrNull() ?: currentDay
+
+    val monthNames = arrayOf(
+        "محرم", "صفر", "ربيع الأول", "ربيع الثاني",
+        "جمادى الأولى", "جمادى الآخرة", "رجب", "شعبان",
+        "رمضان", "شوال", "ذو القعدة", "ذو الحجة"
+    )
+
+    val dialogView = android.widget.LinearLayout(context).apply {
+        orientation = android.widget.LinearLayout.HORIZONTAL
+        gravity = android.view.Gravity.CENTER
+        setPadding(32, 32, 32, 32)
+    }
+
+    val dayPicker = android.widget.NumberPicker(context).apply {
+        minValue = 1; maxValue = 30; value = initDay
+    }
+    val monthPicker = android.widget.NumberPicker(context).apply {
+        minValue = 1; maxValue = 12; value = initMonth + 1
+        displayedValues = monthNames
+    }
+    val yearPicker = android.widget.NumberPicker(context).apply {
+        minValue = currentYear - 1; maxValue = currentYear + 10; value = initYear
+    }
+
+    // Update day max based on month/year
+    fun updateDayMax() {
+        try {
+            val hd = java.time.chrono.HijrahDate.of(yearPicker.value, monthPicker.value, 1)
+            dayPicker.maxValue = hd.lengthOfMonth()
+            if (dayPicker.value > dayPicker.maxValue) dayPicker.value = dayPicker.maxValue
+        } catch (_: Exception) { dayPicker.maxValue = 30 }
+    }
+    monthPicker.setOnValueChangedListener { _, _, _ -> updateDayMax() }
+    yearPicker.setOnValueChangedListener { _, _, _ -> updateDayMax() }
+    updateDayMax()
+
+    dialogView.addView(dayPicker)
+    dialogView.addView(monthPicker)
+    dialogView.addView(yearPicker)
+
+    android.app.AlertDialog.Builder(context)
+        .setTitle("اختر التاريخ الهجري")
+        .setView(dialogView)
+        .setPositiveButton("تأكيد") { _, _ ->
+            val h = "${yearPicker.value}-${monthPicker.value.toString().padStart(2, '0')}-${dayPicker.value.toString().padStart(2, '0')}"
+            onDateSelected(h)
+        }
+        .setNegativeButton("إلغاء", null)
+        .show()
+}
 // ─────────────────────── Shared small composables ─────────────────────────────
 
 @Composable

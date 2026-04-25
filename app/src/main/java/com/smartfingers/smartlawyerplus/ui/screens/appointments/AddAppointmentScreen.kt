@@ -35,6 +35,7 @@ import com.smartfingers.smartlawyerplus.ui.components.SmartLawyerButton
 import com.smartfingers.smartlawyerplus.ui.components.SmartLawyerOutlinedButton
 import com.smartfingers.smartlawyerplus.ui.screens.sessions.AddNameDialog
 import com.smartfingers.smartlawyerplus.ui.screens.sessions.getRealPathFromUri
+import com.smartfingers.smartlawyerplus.ui.screens.sessions.showHijriDatePickerDialog
 import com.smartfingers.smartlawyerplus.ui.theme.*
 import java.util.Calendar
 
@@ -239,14 +240,15 @@ fun AddAppointmentScreen(
                         )
                     }
                 }
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(48.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .border(1.dp, Divider, RoundedCornerShape(8.dp))
-                        .padding(horizontal = 12.dp),
-                    contentAlignment = Alignment.Center,
+                OutlinedButton(
+                    onClick = {
+                        showHijriDatePickerDialog(context, state.startDateHijri) { hijriDate ->
+                            viewModel.onHijriDateSelected(hijriDate)
+                        }
+                    },
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(8.dp),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, Divider),
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text("تاريخ الموعد (هـ)", style = MaterialTheme.typography.labelSmall, color = TextSecondary, fontSize = 10.sp)

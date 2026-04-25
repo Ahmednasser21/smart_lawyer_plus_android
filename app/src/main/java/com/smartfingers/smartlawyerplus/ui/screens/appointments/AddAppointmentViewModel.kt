@@ -209,4 +209,18 @@ class AddAppointmentViewModel @Inject constructor(
             }-${hijri.get(java.time.temporal.ChronoField.DAY_OF_MONTH).toString().padStart(2, '0')}"
         } catch (_: Exception) { "" }
     }
+    fun onHijriDateSelected(hijri: String) {
+        val greg = fromHijri(hijri)
+        _state.update { it.copy(startDate = greg, startDateHijri = hijri) }
+    }
+
+    private fun fromHijri(hijri: String): String {
+        return try {
+            val parts = hijri.split("-")
+            if (parts.size != 3) return ""
+            val hd = java.time.chrono.HijrahDate.of(parts[0].toInt(), parts[1].toInt(), parts[2].toInt())
+            val ld = java.time.LocalDate.from(java.time.chrono.HijrahChronology.INSTANCE.date(hd))
+            "${ld.year}-${ld.monthValue.toString().padStart(2, '0')}-${ld.dayOfMonth.toString().padStart(2, '0')}"
+        } catch (_: Exception) { "" }
+    }
 }
