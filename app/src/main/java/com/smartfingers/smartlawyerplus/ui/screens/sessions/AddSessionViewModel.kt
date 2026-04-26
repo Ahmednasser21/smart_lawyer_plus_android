@@ -27,11 +27,12 @@ class AddSessionViewModel @Inject constructor(
     private val getActionSamples: GetHearingActionSamplesUseCase,
     private val addActionSample: AddHearingActionSampleUseCase,
     private val uploadAttachmentUseCase: UploadReportAttachmentUseCase,
+    private val getTaskCategories: GetTaskCategoriesUseCase,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(AddSessionUiState())
     val state: StateFlow<AddSessionUiState> = _state
-
+    private var _pendingTaskResult: SessionActionTaskResult? = null
     init {
         loadData()
     }
@@ -324,9 +325,13 @@ class AddSessionViewModel @Inject constructor(
                 judgeOfficeNumber = s.judgeOfficeNumber.ifBlank { null },
                 hearingDesc = s.hearingDesc.ifBlank { null },
                 requiredDocs = s.requiredDocs.ifBlank { null },
-                hearingDescs = s.actionsRequired.map {
-                    HearingDescRequest(text = it.text, checked = it.isChecked)
-                },
+                hearingDescs = s.actionsRequired.map { action ->
+                           val taskResult = if (action.isSelected) _pendingTaskResult else null
+                           HearingDescRequest(
+                               text = action.text,
+                               checked = taskResult?.checked ?: action.isChecked,
+                           )
+                       }
             )
             when (val r = addSession(request)) {
                 is Result.Success -> _state.update { it.copy(isLoading = false, success = true) }
@@ -440,13 +445,31 @@ class AddSessionViewModel @Inject constructor(
         _state.update { it.copy(attachments = it.attachments.filter { a -> a.id != id }) }
     }
 
-    // ── Add selected actions to task (placeholder — navigate handled by screen) ─
-
     fun openAddToTaskDialog() {
-        // The iOS version opens a task-picker sheet; for now just a no-op stub
-        // that can be wired to navigation later
+        val hasSelected = _state.value.actionsRequired.any { it.isSelected }
+        if (!hasSelected) {
+            _state.update { it.copy(error = "لم يتم تحديد أي إجراء") }
+            return
+        }
+        _state.update { it.copy(showAddToTaskScreen = true) }
+        if (_state.value.taskCategories.isEmpty()) loadTaskCategories()
     }
 
+    fun dismissAddToTaskScreen() {
+        _state.update { it.copy(showAddToTaskScreen = false) }
+    }
+
+    private fun loadTaskCategories() {
+        viewModelScope.launch {
+            _state.update { it.copy(isLoadingTaskCategories = true) }
+            when (val r = getTaskCategories()) {
+                is Result.Success -> _state.update {
+                    it.copy(taskCategories = r.data, isLoadingTaskCategories = false)
+                }
+                else -> _state.update { it.copy(isLoadingTaskCategories = false) }
+            }
+        }
+    }
     fun onStartHijriDateSelected(hijri: String) {
         val greg = fromHijri(hijri)
         _state.update { it.copy(startDate = greg, startDateHijri = hijri) }
@@ -460,5 +483,25 @@ class AddSessionViewModel @Inject constructor(
             val ld = java.time.LocalDate.from(java.time.chrono.HijrahChronology.INSTANCE.date(hd))
             "${ld.year}-${ld.monthValue.toString().padStart(2, '0')}-${ld.dayOfMonth.toString().padStart(2, '0')}"
         } catch (_: Exception) { "" }
+    }
+
+    fun applyActionTaskResult(result: com.smartfingers.smartlawyerplus.ui.screens.sessions.SessionActionTaskResult) {
+        _state.update { s ->
+            s.copy(
+                actionsRequired = s.actionsRequired.map { action ->
+                    if (action.isSelected) {
+                        action.copy(
+                            isChecked = result.checked,
+                            // store extra task data in the text field is not right;
+                            // the DTO already carries these via HearingDescRequest.
+                            // We keep isSelected=true so the UI shows them as "assigned".
+                        )
+                    } else action
+                },
+                showAddToTaskScreen = false,
+            )
+        }
+        // Keep the result so save() can attach it to the matching descs:
+        _pendingTaskResult = result
     }
 }

@@ -12,6 +12,7 @@ data class AddAppointmentRequest(
     val executiveCaseId: String?,
     val projectGeneralId: String?,
     val clientRequestId: String?,
+    val appointmentFormTemplate: List<AppointmentFormTemplate>? = null,
 )
 
 data class Party(val id: Int, val name: String)

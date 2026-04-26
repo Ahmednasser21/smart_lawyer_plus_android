@@ -5,7 +5,6 @@ import android.app.TimePickerDialog
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -51,6 +50,14 @@ fun AddAppointmentScreen(
     val context = LocalContext.current
 
     LaunchedEffect(state.success) { if (state.success) onSaved() }
+    if (state.showAddTemplateDialog) {
+        AddAppointmentFormTemplateScreen(
+            existing = state.editingTemplate,
+            onSave = viewModel::saveTemplate,
+            onDismiss = viewModel::dismissTemplateDialog,
+        )
+    }
+
 
     if (state.showAddClientDialog) {
         AddClientDialog(
@@ -311,7 +318,22 @@ fun AddAppointmentScreen(
                     unfocusedBorderColor = Divider,
                 ),
             )
+            SectionHeaderRow(
+                title = "النماذج",
+                onAdd = viewModel::openAddTemplateDialog,
+            )
 
+            if (state.formTemplates.isNotEmpty()) {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    state.formTemplates.forEach { template ->
+                        FormTemplateCard(
+                            template = template,
+                            onEdit = { viewModel.openEditTemplateDialog(template) },
+                            onDelete = { viewModel.removeTemplate(template.id) },
+                        )
+                    }
+                }
+            }
             // ── 11. Attachments ───────────────────────────────────────────────
             Text("المرفقات", style = MaterialTheme.typography.labelMedium, color = Primary, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.End)
             OutlinedButton(
@@ -635,6 +657,115 @@ private fun AddClientDialog(onConfirm: (String, String, String) -> Unit, onDismi
                     OutlinedButton(onClick = onDismiss, modifier = Modifier.weight(1f), shape = RoundedCornerShape(8.dp)) { Text("إلغاء") }
                 }
             }
+        }
+    }
+}
+@Composable
+private fun SectionHeaderRow(title: String, onAdd: () -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        OutlinedButton(
+            onClick = onAdd,
+            shape = RoundedCornerShape(8.dp),
+            border = androidx.compose.foundation.BorderStroke(1.dp, Primary),
+            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
+            modifier = Modifier.height(32.dp),
+        ) {
+            Text(
+                "إضافة نموذج",
+                style = MaterialTheme.typography.labelSmall,
+                color = Primary,
+            )
+        }
+        Text(
+            title,
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.Medium,
+            color = MaterialTheme.colorScheme.onBackground,
+        )
+    }
+}
+
+@Composable
+private fun FormTemplateCard(
+    template: com.smartfingers.smartlawyerplus.domain.model.AppointmentFormTemplate,
+    onEdit: () -> Unit,
+    onDelete: () -> Unit,
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(8.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface,
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            // Delete button
+            IconButton(
+                onClick = onDelete,
+                modifier = Modifier.size(32.dp),
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "حذف",
+                    tint = ColorError,
+                    modifier = Modifier.size(18.dp),
+                )
+            }
+            // Edit button
+            IconButton(
+                onClick = onEdit,
+                modifier = Modifier.size(32.dp),
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Edit,
+                    contentDescription = "تعديل",
+                    tint = Primary,
+                    modifier = Modifier.size(18.dp),
+                )
+            }
+            // Template info
+            Column(
+                modifier = Modifier.weight(1f),
+                horizontalAlignment = Alignment.End,
+            ) {
+                Text(
+                    text = template.name,
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    textAlign = TextAlign.End,
+                    maxLines = 1,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                )
+                if (template.body.isNotBlank()) {
+                    Text(
+                        text = template.body.take(60) + if (template.body.length > 60) "…" else "",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = TextSecondary,
+                        textAlign = TextAlign.End,
+                        maxLines = 2,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                    )
+                }
+            }
+            // Doc icon
+            Icon(
+                imageVector = Icons.Default.Description,
+                contentDescription = null,
+                tint = Primary,
+                modifier = Modifier.size(24.dp),
+            )
         }
     }
 }

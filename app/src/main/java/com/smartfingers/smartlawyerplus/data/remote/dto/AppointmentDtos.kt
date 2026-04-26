@@ -65,12 +65,6 @@ data class AppointmentAttachmentDto(
     @SerializedName("size") val size: Int?,
 )
 
-data class AppointmentFormTemplateDto(
-    @SerializedName("id") val id: Int?,
-    @SerializedName("name") val name: String?,
-    @SerializedName("body") val body: String?,
-    @SerializedName("printSettingsTemplateId") val printSettingsTemplateId: Int?,
-)
 
 data class AppointmentTypesResponseDto(
     @SerializedName("totalItems") val totalItems: Int?,
@@ -80,4 +74,10 @@ data class AppointmentTypesResponseDto(
 data class AppointmentTypeItemDto(
     @SerializedName("id") val id: Int?,
     @SerializedName("name") val name: String?,
+)
+
+data class AppointmentFormTemplateDto(
+    @SerializedName("name") val name: String?,
+    @SerializedName("body") val body: String?,
+    @SerializedName("printSettingsTemplateId") val printSettingsTemplateId: String?,
 )

@@ -170,6 +170,7 @@ data class AddAppointmentDto(
     @SerializedName("executiveCaseId") val executiveCaseId: String?,
     @SerializedName("projectGeneralId") val projectGeneralId: String?,
     @SerializedName("clientRequestId") val clientRequestId: String?,
+    @SerializedName("appointmentFormTemplates") val appointmentFormTemplates: List<AppointmentFormTemplateDto>? = null,
 )
 data class CloseTaskBody(
     @SerializedName("taskId") val taskId: String,

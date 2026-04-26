@@ -48,4 +48,8 @@ data class AddSessionUiState(
     val isAutoFilling: Boolean = false,
     val success: Boolean = false,
     val error: String = "",
+
+    val showAddToTaskScreen: Boolean = false,
+    val taskCategories: List<com.smartfingers.smartlawyerplus.domain.model.TaskCategory> = emptyList(),
+    val isLoadingTaskCategories: Boolean = false,
 )

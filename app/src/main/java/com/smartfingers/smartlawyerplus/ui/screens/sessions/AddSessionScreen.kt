@@ -90,6 +90,33 @@ fun AddSessionScreen(
             onDismiss = viewModel::dismissAddCourtDialog,
         )
     }
+    if (state.showAddToTaskScreen) {
+        androidx.compose.ui.window.Dialog(
+            onDismissRequest = viewModel::dismissAddToTaskScreen,
+            properties = androidx.compose.ui.window.DialogProperties(
+                usePlatformDefaultWidth = false,
+                dismissOnClickOutside = false,
+            ),
+        ) {
+            Surface(
+                modifier = Modifier.fillMaxSize(),
+                color = MaterialTheme.colorScheme.background,
+            ) {
+                AddSessionActionTaskScreen(
+                    employees = state.employees,
+                    categories = state.taskCategories,
+                    isLoadingEmployees = false,
+                    isLoadingCategories = state.isLoadingTaskCategories,
+                    onLoadEmployees = { /* already loaded */ },
+                    onLoadCategories = { /* triggered inside VM */ },
+                    onBack = viewModel::dismissAddToTaskScreen,
+                    onSave = { result ->
+                        viewModel.applyActionTaskResult(result)
+                    },
+                )
+            }
+        }
+    }
 
     // File picker
     val filePickerLauncher = rememberLauncherForActivityResult(
@@ -331,7 +358,7 @@ fun AddSessionScreen(
                 onAdd = viewModel::addActionRequired,
                 onRemove = viewModel::removeActionRequired,
                 onTextChange = viewModel::updateActionText,
-                onToggleChecked = viewModel::toggleActionChecked,
+                onToggleChecked = viewModel::toggleActionSelected,
                 onChooseSample = { index -> viewModel.openActionSamplesDialog(index) },
                 onAddNew = { index -> viewModel.openAddActionDialog(index) },
                 onAddSelectedToTask = viewModel::openAddToTaskDialog,
@@ -890,7 +917,7 @@ private fun ActionRequiredRow(
         // Checkbox
         IconButton(onClick = onToggleChecked, modifier = Modifier.size(28.dp)) {
             Icon(
-                imageVector = if (action.isChecked) Icons.Default.CheckBox
+                imageVector = if (action.isSelected) Icons.Default.CheckBox
                 else Icons.Default.CheckBoxOutlineBlank,
                 contentDescription = null,
                 tint = Primary,

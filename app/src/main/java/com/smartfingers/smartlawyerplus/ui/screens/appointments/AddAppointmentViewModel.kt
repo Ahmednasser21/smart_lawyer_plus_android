@@ -185,6 +185,7 @@ class AddAppointmentViewModel @Inject constructor(
                 executiveCaseId = null,
                 projectGeneralId = projectGeneralId,
                 clientRequestId = clientRequestId,
+                appointmentFormTemplate = s.formTemplates
             )
             when (val r = addAppointment(request)) {
                 is Result.Success -> _state.update { it.copy(isLoading = false, success = true) }
@@ -223,4 +224,25 @@ class AddAppointmentViewModel @Inject constructor(
             "${ld.year}-${ld.monthValue.toString().padStart(2, '0')}-${ld.dayOfMonth.toString().padStart(2, '0')}"
         } catch (_: Exception) { "" }
     }
+    fun openAddTemplateDialog() =
+        _state.update { it.copy(showAddTemplateDialog = true, editingTemplate = null) }
+
+    fun openEditTemplateDialog(template: com.smartfingers.smartlawyerplus.domain.model.AppointmentFormTemplate) =
+        _state.update { it.copy(showAddTemplateDialog = true, editingTemplate = template) }
+
+    fun dismissTemplateDialog() =
+        _state.update { it.copy(showAddTemplateDialog = false, editingTemplate = null) }
+
+    fun saveTemplate(template: com.smartfingers.smartlawyerplus.domain.model.AppointmentFormTemplate) {
+        _state.update { s ->
+            val list = s.formTemplates.toMutableList()
+            val existingIndex = list.indexOfFirst { it.id == template.id }
+            if (existingIndex >= 0) list[existingIndex] = template
+            else list.add(template)
+            s.copy(formTemplates = list, showAddTemplateDialog = false, editingTemplate = null)
+        }
+    }
+
+    fun removeTemplate(id: String) =
+        _state.update { it.copy(formTemplates = it.formTemplates.filter { t -> t.id != id }) }
 }
