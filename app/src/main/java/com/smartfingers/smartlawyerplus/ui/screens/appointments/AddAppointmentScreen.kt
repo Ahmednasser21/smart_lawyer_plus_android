@@ -1,5 +1,6 @@
 package com.smartfingers.smartlawyerplus.ui.screens.appointments
 
+import com.smartfingers.smartlawyerplus.R
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -231,6 +232,7 @@ fun AddAppointmentScreen(
                     onClick = {
                         val dpd = DatePickerDialog(
                             context,
+                            R.style.SmartLawyerDatePickerDialog,
                             { _, y, m, d ->
                                 viewModel.onDateSelected(
                                     "$y-${(m + 1).toString().padStart(2, '0')}-${
@@ -299,6 +301,7 @@ fun AddAppointmentScreen(
                     onClick = {
                         TimePickerDialog(
                             context,
+                            R.style.SmartLawyerDatePickerDialog,
                             { _, h, m ->
                                 viewModel.onTimeSelected(
                                     "${h.toString().padStart(2, '0')}:${

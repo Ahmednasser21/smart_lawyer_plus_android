@@ -1,5 +1,6 @@
 package com.smartfingers.smartlawyerplus.ui.screens.sessions
 
+import com.smartfingers.smartlawyerplus.R
 import android.app.DatePickerDialog
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -248,6 +249,7 @@ fun AddReportScreen(
                                             val cal = Calendar.getInstance()
                                             DatePickerDialog(
                                                 context,
+                                                R.style.SmartLawyerDatePickerDialog,
                                                 { _, y, m, d ->
                                                     viewModel.onJudgmentDateSelected(
                                                         "$y-${

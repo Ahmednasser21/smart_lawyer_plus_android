@@ -1,11 +1,11 @@
 package com.smartfingers.smartlawyerplus.ui.screens.sessions
 
+import com.smartfingers.smartlawyerplus.R
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -242,6 +242,7 @@ fun AddSessionScreen(
                         val cal = Calendar.getInstance()
                         val picker = DatePickerDialog(
                             context,
+                            R.style.SmartLawyerDatePickerDialog,
                             { _, y, m, d ->
                                 viewModel.onStartDateSelected(
                                     "$y-${(m + 1).toString().padStart(2, '0')}-${d.toString().padStart(2, '0')}"
@@ -299,6 +300,7 @@ fun AddSessionScreen(
                         val cal = Calendar.getInstance()
                         TimePickerDialog(
                             context,
+                            R.style.SmartLawyerDatePickerDialog,
                             { _, h, m ->
                                 viewModel.onStartTimeSelected(
                                     "${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}"

@@ -1,5 +1,6 @@
 package com.smartfingers.smartlawyerplus.ui.screens.sessions
 
+import com.smartfingers.smartlawyerplus.R
 import android.app.DatePickerDialog
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -191,6 +192,7 @@ fun AddSessionActionTaskScreen(
                             val cal = Calendar.getInstance()
                             val picker = DatePickerDialog(
                                 context,
+                                R.style.SmartLawyerDatePickerDialog,
                                 { _, y, m, d ->
                                     val formatted =
                                         "$y-${(m + 1).toString().padStart(2, '0')}-${d.toString().padStart(2, '0')}"
@@ -297,6 +299,7 @@ fun AddSessionActionTaskScreen(
                                 val cal = Calendar.getInstance()
                                 val picker = DatePickerDialog(
                                     context,
+                                    R.style.SmartLawyerDatePickerDialog,
                                     { _, y, m, d ->
                                         val formatted =
                                             "$y-${

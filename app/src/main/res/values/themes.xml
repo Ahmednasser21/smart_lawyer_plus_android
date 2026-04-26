@@ -8,4 +8,12 @@
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:windowLightStatusBar">true</item>
     </style>
+
+    <style name="SmartLawyerDatePickerDialog" parent="Theme.MaterialComponents.Light.Dialog">
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorAccent">@color/primary</item>
+        <item name="android:colorBackground">@color/background</item>
+        <item name="colorControlActivated">@color/primary</item>
+        <item name="colorControlHighlight">@color/primary_light</item>
+    </style>
 </resources>
