@@ -110,7 +110,7 @@ fun AddReportScreen(
                             fontWeight = FontWeight.SemiBold,
                         )
                     },
-                    navigationIcon ={
+                    navigationIcon = {
                         IconButton(onClick = onBack) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
@@ -239,83 +239,80 @@ fun AddReportScreen(
 
                                 // Judgment date picker
                                 SectionLabel("تاريخ استلام الحكم")
-                                OutlinedButton(
-                                    onClick = {
-                                        val cal = Calendar.getInstance()
-                                        DatePickerDialog(
-                                            context,
-                                            { _, y, m, d ->
-                                                viewModel.onJudgmentDateSelected(
-                                                    "$y-${(m + 1).toString().padStart(2, '0')}-${
-                                                        d.toString().padStart(2, '0')
-                                                    }"
-                                                )
-                                            },
-                                            cal.get(Calendar.YEAR),
-                                            cal.get(Calendar.MONTH),
-                                            cal.get(Calendar.DAY_OF_MONTH),
-                                        ).show()
-                                    },
+                                Row(
                                     modifier = Modifier.fillMaxWidth(),
-                                    shape = RoundedCornerShape(8.dp),
-                                    border = androidx.compose.foundation.BorderStroke(
-                                        1.dp,
-                                        Divider
-                                    ),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                                 ) {
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    OutlinedButton(
+                                        onClick = {
+                                            val cal = Calendar.getInstance()
+                                            DatePickerDialog(
+                                                context,
+                                                { _, y, m, d ->
+                                                    viewModel.onJudgmentDateSelected(
+                                                        "$y-${
+                                                            (m + 1).toString().padStart(2, '0')
+                                                        }-${d.toString().padStart(2, '0')}"
+                                                    )
+                                                },
+                                                cal.get(Calendar.YEAR),
+                                                cal.get(Calendar.MONTH),
+                                                cal.get(Calendar.DAY_OF_MONTH),
+                                            ).show()
+                                        },
+                                        modifier = Modifier.weight(1f),
+                                        shape = RoundedCornerShape(8.dp),
+                                        border = androidx.compose.foundation.BorderStroke(
+                                            1.dp,
+                                            Divider
+                                        ),
                                     ) {
-                                        OutlinedButton(
-                                            onClick = {
-                                                val cal = Calendar.getInstance()
-                                                DatePickerDialog(
-                                                    context,
-                                                    { _, y, m, d ->
-                                                        viewModel.onJudgmentDateSelected(
-                                                            "$y-${(m + 1).toString().padStart(2, '0')}-${d.toString().padStart(2, '0')}"
-                                                        )
-                                                    },
-                                                    cal.get(Calendar.YEAR),
-                                                    cal.get(Calendar.MONTH),
-                                                    cal.get(Calendar.DAY_OF_MONTH),
-                                                ).show()
-                                            },
-                                            modifier = Modifier.weight(1f),
-                                            shape = RoundedCornerShape(8.dp),
-                                            border = androidx.compose.foundation.BorderStroke(1.dp, Divider),
-                                        ) {
-                                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                                Text("تاريخ استلام الحكم (م)", style = MaterialTheme.typography.labelSmall, color = TextSecondary, fontSize = 10.sp)
-                                                Text(
-                                                    text = uiState.judgmentDate.ifBlank { "--/--/----" },
-                                                    color = if (uiState.judgmentDate.isBlank()) TextSecondary else MaterialTheme.colorScheme.onBackground,
-                                                    style = MaterialTheme.typography.bodySmall,
-                                                )
-                                            }
+                                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                            Text(
+                                                "تاريخ استلام الحكم (م)",
+                                                style = MaterialTheme.typography.labelSmall,
+                                                color = TextSecondary,
+                                                fontSize = 10.sp
+                                            )
+                                            Text(
+                                                text = uiState.judgmentDate.ifBlank { "--/--/----" },
+                                                color = if (uiState.judgmentDate.isBlank()) TextSecondary else MaterialTheme.colorScheme.onBackground,
+                                                style = MaterialTheme.typography.bodySmall,
+                                            )
                                         }
-                                        OutlinedButton(
-                                            onClick = {
-                                                showHijriDatePickerDialog(context, uiState.judgmentDateHijri) { hijriDate ->
-                                                    viewModel.onJudgmentHijriDateSelected(hijriDate)
-                                                }
-                                            },
-                                            modifier = Modifier.weight(1f),
-                                            shape = RoundedCornerShape(8.dp),
-                                            border = androidx.compose.foundation.BorderStroke(1.dp, Divider),
-                                        ) {
-                                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                                Text("تاريخ استلام الحكم (هـ)", style = MaterialTheme.typography.labelSmall, color = TextSecondary, fontSize = 10.sp)
-                                                Text(
-                                                    text = uiState.judgmentDateHijri.ifBlank { "--/--/----" },
-                                                    color = if (uiState.judgmentDateHijri.isBlank()) TextSecondary else MaterialTheme.colorScheme.onBackground,
-                                                    style = MaterialTheme.typography.bodySmall,
-                                                )
+                                    }
+                                    OutlinedButton(
+                                        onClick = {
+                                            showHijriDatePickerDialog(
+                                                context,
+                                                uiState.judgmentDateHijri
+                                            ) { hijriDate ->
+                                                viewModel.onJudgmentHijriDateSelected(hijriDate)
                                             }
+                                        },
+                                        modifier = Modifier.weight(1f),
+                                        shape = RoundedCornerShape(8.dp),
+                                        border = androidx.compose.foundation.BorderStroke(
+                                            1.dp,
+                                            Divider
+                                        ),
+                                    ) {
+                                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                            Text(
+                                                "تاريخ استلام الحكم (هـ)",
+                                                style = MaterialTheme.typography.labelSmall,
+                                                color = TextSecondary,
+                                                fontSize = 10.sp
+                                            )
+                                            Text(
+                                                text = uiState.judgmentDateHijri.ifBlank { "--/--/----" },
+                                                color = if (uiState.judgmentDateHijri.isBlank()) TextSecondary else MaterialTheme.colorScheme.onBackground,
+                                                style = MaterialTheme.typography.bodySmall,
+                                            )
                                         }
                                     }
                                 }
+
 
                                 // Judgment summary text
                                 SectionLabel("ملخص نطق الحكم")
