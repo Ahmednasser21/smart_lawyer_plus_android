@@ -507,8 +507,18 @@ fun showHijriDatePickerDialog(
         .setTitle("اختر التاريخ الهجري")
         .setView(dialogView)
         .setPositiveButton("تأكيد") { _, _ ->
-            val h = "${yearPicker.value}-${monthPicker.value.toString().padStart(2, '0')}-${dayPicker.value.toString().padStart(2, '0')}"
-            onDateSelected(h)
+            val selectedYear = yearPicker.value
+            val selectedMonth = monthPicker.value
+            val selectedDay = dayPicker.value
+            if (selectedYear < currentYear ||
+                (selectedYear == currentYear && selectedMonth < currentMonth) ||
+                (selectedYear == currentYear && selectedMonth == currentMonth && selectedDay < currentDay)
+            ) {
+                android.widget.Toast.makeText(context, "لا يمكن اختيار تاريخ في الماضي", android.widget.Toast.LENGTH_SHORT).show()
+            } else {
+                val h = "$selectedYear-${selectedMonth.toString().padStart(2, '0')}-${selectedDay.toString().padStart(2, '0')}"
+                onDateSelected(h)
+            }
         }
         .setNegativeButton("إلغاء", null)
         .show()

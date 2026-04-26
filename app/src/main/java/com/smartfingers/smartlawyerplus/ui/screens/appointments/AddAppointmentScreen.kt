@@ -135,7 +135,10 @@ fun AddAppointmentScreen(
                 horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                ProjectTypeRadio("طلبات عملاء", state.projectType == ProjectType.CUSTOMER_REQUESTS) {
+                ProjectTypeRadio(
+                    "طلبات عملاء",
+                    state.projectType == ProjectType.CUSTOMER_REQUESTS
+                ) {
                     viewModel.onProjectTypeSelected(ProjectType.CUSTOMER_REQUESTS)
                 }
                 Spacer(Modifier.width(16.dp))
@@ -159,7 +162,10 @@ fun AddAppointmentScreen(
                 }
 
                 Spacer(Modifier.width(16.dp))
-                ProjectTypeRadio("طلبات عملاء", state.projectType == ProjectType.CUSTOMER_REQUESTS) {
+                ProjectTypeRadio(
+                    "طلبات عملاء",
+                    state.projectType == ProjectType.CUSTOMER_REQUESTS
+                ) {
                     viewModel.onProjectTypeSelected(ProjectType.CUSTOMER_REQUESTS)
                 }
                 Spacer(Modifier.width(16.dp))
@@ -182,7 +188,8 @@ fun AddAppointmentScreen(
                     selected = state.selectedProjectName,
                     options = state.projectOptions.map { it.name },
                     onSelect = { name ->
-                        val id = state.projectOptions.firstOrNull { it.name == name }?.id?.toString()
+                        val id =
+                            state.projectOptions.firstOrNull { it.name == name }?.id?.toString()
                         viewModel.onProjectSelected(id, name)
                     },
                 )
@@ -222,24 +229,33 @@ fun AddAppointmentScreen(
                 val cal = Calendar.getInstance()
                 OutlinedButton(
                     onClick = {
-                        DatePickerDialog(
+                        val dpd = DatePickerDialog(
                             context,
                             { _, y, m, d ->
                                 viewModel.onDateSelected(
-                                    "$y-${(m + 1).toString().padStart(2, '0')}-${d.toString().padStart(2, '0')}"
+                                    "$y-${(m + 1).toString().padStart(2, '0')}-${
+                                        d.toString().padStart(2, '0')
+                                    }"
                                 )
                             },
                             cal.get(Calendar.YEAR),
                             cal.get(Calendar.MONTH),
                             cal.get(Calendar.DAY_OF_MONTH),
-                        ).show()
+                        )
+                        dpd.datePicker.minDate = cal.timeInMillis
+                        dpd.show()
                     },
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(8.dp),
                     border = androidx.compose.foundation.BorderStroke(1.dp, Divider),
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("تاريخ الموعد (م)", style = MaterialTheme.typography.labelSmall, color = TextSecondary, fontSize = 10.sp)
+                        Text(
+                            "تاريخ الموعد (م)",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = TextSecondary,
+                            fontSize = 10.sp
+                        )
                         Text(
                             state.startDate.ifBlank { "--/--/----" },
                             style = MaterialTheme.typography.bodySmall,
@@ -258,7 +274,12 @@ fun AddAppointmentScreen(
                     border = androidx.compose.foundation.BorderStroke(1.dp, Divider),
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("تاريخ الموعد (هـ)", style = MaterialTheme.typography.labelSmall, color = TextSecondary, fontSize = 10.sp)
+                        Text(
+                            "تاريخ الموعد (هـ)",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = TextSecondary,
+                            fontSize = 10.sp
+                        )
                         Text(
                             state.startDateHijri.ifBlank { "--/--/----" },
                             style = MaterialTheme.typography.bodySmall,
@@ -280,7 +301,9 @@ fun AddAppointmentScreen(
                             context,
                             { _, h, m ->
                                 viewModel.onTimeSelected(
-                                    "${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}"
+                                    "${h.toString().padStart(2, '0')}:${
+                                        m.toString().padStart(2, '0')
+                                    }"
                                 )
                             },
                             cal.get(Calendar.HOUR_OF_DAY),
@@ -293,7 +316,12 @@ fun AddAppointmentScreen(
                     border = androidx.compose.foundation.BorderStroke(1.dp, Divider),
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("الوقت", style = MaterialTheme.typography.labelSmall, color = TextSecondary, fontSize = 10.sp)
+                        Text(
+                            "الوقت",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = TextSecondary,
+                            fontSize = 10.sp
+                        )
                         Text(
                             state.startTime.ifBlank { "--:--" },
                             style = MaterialTheme.typography.bodySmall,
@@ -308,8 +336,16 @@ fun AddAppointmentScreen(
             OutlinedTextField(
                 value = state.subject,
                 onValueChange = viewModel::onSubjectChange,
-                label = { Text("الموضوع", textAlign = TextAlign.End, modifier = Modifier.fillMaxWidth()) },
-                modifier = Modifier.fillMaxWidth().height(120.dp),
+                label = {
+                    Text(
+                        "الموضوع",
+                        textAlign = TextAlign.End,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(120.dp),
                 maxLines = 5,
                 shape = RoundedCornerShape(8.dp),
                 textStyle = MaterialTheme.typography.bodyMedium.copy(textAlign = TextAlign.End),
@@ -335,16 +371,29 @@ fun AddAppointmentScreen(
                 }
             }
             // ── 11. Attachments ───────────────────────────────────────────────
-            Text("المرفقات", style = MaterialTheme.typography.labelMedium, color = Primary, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.End)
+            Text(
+                "المرفقات",
+                style = MaterialTheme.typography.labelMedium,
+                color = Primary,
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.End
+            )
             OutlinedButton(
                 onClick = { filePickerLauncher.launch("*/*") },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(8.dp),
-                border = androidx.compose.foundation.BorderStroke(1.dp, if (state.isUploadingAttachment) Primary else Divider),
+                border = androidx.compose.foundation.BorderStroke(
+                    1.dp,
+                    if (state.isUploadingAttachment) Primary else Divider
+                ),
                 enabled = !state.isUploadingAttachment,
             ) {
                 if (state.isUploadingAttachment) {
-                    CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp, color = Primary)
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(18.dp),
+                        strokeWidth = 2.dp,
+                        color = Primary
+                    )
                     Spacer(Modifier.width(8.dp))
                     Text("جاري الرفع...", color = TextSecondary)
                 } else {
@@ -362,13 +411,28 @@ fun AddAppointmentScreen(
 
             // ── Error ─────────────────────────────────────────────────────────
             if (state.error.isNotEmpty()) {
-                Text(state.error, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.End)
+                Text(
+                    state.error,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.End
+                )
             }
 
             // ── Buttons ───────────────────────────────────────────────────────
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                SmartLawyerButton(text = "حفظ", onClick = viewModel::save, isLoading = state.isLoading, modifier = Modifier.weight(1f))
-                SmartLawyerOutlinedButton(text = "إلغاء", onClick = onBack, modifier = Modifier.weight(1f))
+                SmartLawyerButton(
+                    text = "حفظ",
+                    onClick = viewModel::save,
+                    isLoading = state.isLoading,
+                    modifier = Modifier.weight(1f)
+                )
+                SmartLawyerOutlinedButton(
+                    text = "إلغاء",
+                    onClick = onBack,
+                    modifier = Modifier.weight(1f)
+                )
             }
 
             Spacer(Modifier.height(24.dp))
@@ -382,7 +446,11 @@ private fun ProjectTypeRadio(label: String, isSelected: Boolean, onClick: () -> 
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.clickable { onClick() },
     ) {
-        Text(label, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onBackground)
+        Text(
+            label,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onBackground
+        )
         Spacer(Modifier.width(4.dp))
         Icon(
             imageVector = if (isSelected) Icons.Default.RadioButtonChecked else Icons.Default.RadioButtonUnchecked,
@@ -394,7 +462,12 @@ private fun ProjectTypeRadio(label: String, isSelected: Boolean, onClick: () -> 
 }
 
 @Composable
-private fun AppointmentDropdown(label: String, selected: String, options: List<String>, onSelect: (String) -> Unit) {
+private fun AppointmentDropdown(
+    label: String,
+    selected: String,
+    options: List<String>,
+    onSelect: (String) -> Unit
+) {
     var expanded by remember { mutableStateOf(false) }
     Box(Modifier.fillMaxWidth()) {
         OutlinedTextField(
@@ -404,20 +477,49 @@ private fun AppointmentDropdown(label: String, selected: String, options: List<S
             label = { Text(label, textAlign = TextAlign.End, modifier = Modifier.fillMaxWidth()) },
             trailingIcon = {
                 Box(
-                    Modifier.size(36.dp).clip(RoundedCornerShape(6.dp)).background(Primary).clickable { expanded = !expanded },
+                    Modifier
+                        .size(36.dp)
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(Primary)
+                        .clickable { expanded = !expanded },
                     contentAlignment = Alignment.Center,
-                ) { Icon(if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown, null, tint = Color.White, modifier = Modifier.size(20.dp)) }
+                ) {
+                    Icon(
+                        if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                        null,
+                        tint = Color.White,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
             },
-            modifier = Modifier.fillMaxWidth().clickable { expanded = !expanded },
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { expanded = !expanded },
             singleLine = true,
             shape = RoundedCornerShape(8.dp),
             textStyle = MaterialTheme.typography.bodyMedium.copy(textAlign = TextAlign.End),
-            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Primary, unfocusedBorderColor = Divider),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = Primary,
+                unfocusedBorderColor = Divider
+            ),
         )
-        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }, modifier = Modifier.background(MaterialTheme.colorScheme.background).heightIn(max = 220.dp)) {
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            modifier = Modifier
+                .background(MaterialTheme.colorScheme.background)
+                .heightIn(max = 220.dp)
+        ) {
             options.forEach { option ->
                 DropdownMenuItem(
-                    text = { Text(option, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.End) },
+                    text = {
+                        Text(
+                            option,
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.End
+                        )
+                    },
                     onClick = { onSelect(option); expanded = false },
                 )
             }
@@ -434,8 +536,18 @@ private fun AppointmentDropdownWithAdd(
     onAddNew: () -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-        Box(Modifier.size(48.dp).clip(RoundedCornerShape(8.dp)).background(Primary).clickable { onAddNew() }, contentAlignment = Alignment.Center) {
+    Row(
+        Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            Modifier
+                .size(48.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .background(Primary)
+                .clickable { onAddNew() }, contentAlignment = Alignment.Center
+        ) {
             Icon(Icons.Default.Add, null, tint = Color.White)
         }
         Box(Modifier.weight(1f)) {
@@ -443,22 +555,59 @@ private fun AppointmentDropdownWithAdd(
                 value = selected,
                 onValueChange = {},
                 readOnly = true,
-                label = { Text(label, textAlign = TextAlign.End, modifier = Modifier.fillMaxWidth(), maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                label = {
+                    Text(
+                        label,
+                        textAlign = TextAlign.End,
+                        modifier = Modifier.fillMaxWidth(),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                },
                 trailingIcon = {
-                    Box(Modifier.size(36.dp).clip(RoundedCornerShape(6.dp)).background(Primary).clickable { expanded = !expanded }, contentAlignment = Alignment.Center) {
-                        Icon(if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown, null, tint = Color.White, modifier = Modifier.size(20.dp))
+                    Box(
+                        Modifier
+                            .size(36.dp)
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(Primary)
+                            .clickable { expanded = !expanded }, contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                            null,
+                            tint = Color.White,
+                            modifier = Modifier.size(20.dp)
+                        )
                     }
                 },
-                modifier = Modifier.fillMaxWidth().clickable { expanded = !expanded },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { expanded = !expanded },
                 singleLine = true,
                 shape = RoundedCornerShape(8.dp),
                 textStyle = MaterialTheme.typography.bodyMedium.copy(textAlign = TextAlign.End),
-                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Primary, unfocusedBorderColor = Divider),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Primary,
+                    unfocusedBorderColor = Divider
+                ),
             )
-            DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }, modifier = Modifier.background(MaterialTheme.colorScheme.background).heightIn(max = 220.dp)) {
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                modifier = Modifier
+                    .background(MaterialTheme.colorScheme.background)
+                    .heightIn(max = 220.dp)
+            ) {
                 options.forEach { option ->
                     DropdownMenuItem(
-                        text = { Text(option.name, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.End) },
+                        text = {
+                            Text(
+                                option.name,
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.fillMaxWidth(),
+                                textAlign = TextAlign.End
+                            )
+                        },
                         onClick = { onSelect(option); expanded = false },
                     )
                 }
@@ -487,25 +636,61 @@ private fun AppointmentMultiSelectDropdown(
             readOnly = true,
             label = { Text(label, textAlign = TextAlign.End, modifier = Modifier.fillMaxWidth()) },
             trailingIcon = {
-                Box(Modifier.size(36.dp).clip(RoundedCornerShape(6.dp)).background(Primary).clickable { expanded = !expanded }, contentAlignment = Alignment.Center) {
-                    Icon(if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown, null, tint = Color.White, modifier = Modifier.size(20.dp))
+                Box(
+                    Modifier
+                        .size(36.dp)
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(Primary)
+                        .clickable { expanded = !expanded }, contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                        null,
+                        tint = Color.White,
+                        modifier = Modifier.size(20.dp)
+                    )
                 }
             },
-            modifier = Modifier.fillMaxWidth().clickable { expanded = !expanded },
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { expanded = !expanded },
             singleLine = true,
             shape = RoundedCornerShape(8.dp),
             textStyle = MaterialTheme.typography.bodyMedium.copy(textAlign = TextAlign.End),
-            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Primary, unfocusedBorderColor = Divider),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = Primary,
+                unfocusedBorderColor = Divider
+            ),
         )
-        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }, modifier = Modifier.background(MaterialTheme.colorScheme.background).heightIn(max = 220.dp)) {
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            modifier = Modifier
+                .background(MaterialTheme.colorScheme.background)
+                .heightIn(max = 220.dp)
+        ) {
             allOptions.forEach { emp ->
                 val isChecked = selected.any { it.id == emp.id }
                 DropdownMenuItem(
                     text = {
-                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
-                            Text(emp.name, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f), textAlign = TextAlign.End)
+                        Row(
+                            Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.End,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                emp.name,
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.weight(1f),
+                                textAlign = TextAlign.End
+                            )
                             Spacer(Modifier.width(8.dp))
-                            Icon(if (isChecked) Icons.Default.CheckBox else Icons.Default.CheckBoxOutlineBlank, null, tint = Primary, modifier = Modifier.size(20.dp))
+                            Icon(
+                                if (isChecked) Icons.Default.CheckBox else Icons.Default.CheckBoxOutlineBlank,
+                                null,
+                                tint = Primary,
+                                modifier = Modifier.size(20.dp)
+                            )
                         }
                     },
                     onClick = { onToggle(emp) },
@@ -529,8 +714,18 @@ private fun AppointmentPartiesDropdownWithAdd(
         selected.size == 1 -> selected[0].name
         else -> "${selected[0].name} (+${selected.size - 1})"
     }
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-        Box(Modifier.size(48.dp).clip(RoundedCornerShape(8.dp)).background(Primary).clickable { onAddNew() }, contentAlignment = Alignment.Center) {
+    Row(
+        Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            Modifier
+                .size(48.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .background(Primary)
+                .clickable { onAddNew() }, contentAlignment = Alignment.Center
+        ) {
             Icon(Icons.Default.Add, null, tint = Color.White)
         }
         Box(Modifier.weight(1f)) {
@@ -538,27 +733,69 @@ private fun AppointmentPartiesDropdownWithAdd(
                 value = displayText,
                 onValueChange = {},
                 readOnly = true,
-                label = { Text(label, textAlign = TextAlign.End, modifier = Modifier.fillMaxWidth()) },
+                label = {
+                    Text(
+                        label,
+                        textAlign = TextAlign.End,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                },
                 trailingIcon = {
-                    Box(Modifier.size(36.dp).clip(RoundedCornerShape(6.dp)).background(Primary).clickable { expanded = !expanded }, contentAlignment = Alignment.Center) {
-                        Icon(if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown, null, tint = Color.White, modifier = Modifier.size(20.dp))
+                    Box(
+                        Modifier
+                            .size(36.dp)
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(Primary)
+                            .clickable { expanded = !expanded }, contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                            null,
+                            tint = Color.White,
+                            modifier = Modifier.size(20.dp)
+                        )
                     }
                 },
-                modifier = Modifier.fillMaxWidth().clickable { expanded = !expanded },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { expanded = !expanded },
                 singleLine = true,
                 shape = RoundedCornerShape(8.dp),
                 textStyle = MaterialTheme.typography.bodyMedium.copy(textAlign = TextAlign.End),
-                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Primary, unfocusedBorderColor = Divider),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Primary,
+                    unfocusedBorderColor = Divider
+                ),
             )
-            DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }, modifier = Modifier.background(MaterialTheme.colorScheme.background).heightIn(max = 220.dp)) {
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                modifier = Modifier
+                    .background(MaterialTheme.colorScheme.background)
+                    .heightIn(max = 220.dp)
+            ) {
                 options.forEach { party ->
                     val isChecked = selected.any { it.id == party.id }
                     DropdownMenuItem(
                         text = {
-                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
-                                Text(party.name, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f), textAlign = TextAlign.End)
+                            Row(
+                                Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.End,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    party.name,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    modifier = Modifier.weight(1f),
+                                    textAlign = TextAlign.End
+                                )
                                 Spacer(Modifier.width(8.dp))
-                                Icon(if (isChecked) Icons.Default.CheckBox else Icons.Default.CheckBoxOutlineBlank, null, tint = Primary, modifier = Modifier.size(20.dp))
+                                Icon(
+                                    if (isChecked) Icons.Default.CheckBox else Icons.Default.CheckBoxOutlineBlank,
+                                    null,
+                                    tint = Primary,
+                                    modifier = Modifier.size(20.dp)
+                                )
                             }
                         },
                         onClick = { onToggle(party) },
@@ -578,15 +815,29 @@ private fun AppointmentAttachmentRow(name: String, onRemove: () -> Unit) {
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 8.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 10.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             IconButton(onClick = onRemove, modifier = Modifier.size(28.dp)) {
                 Icon(Icons.Default.Close, null, tint = ColorError, modifier = Modifier.size(18.dp))
             }
-            Icon(Icons.Default.InsertDriveFile, null, tint = Primary, modifier = Modifier.size(24.dp))
-            Text(name, style = MaterialTheme.typography.bodySmall, modifier = Modifier.weight(1f), textAlign = TextAlign.End, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Icon(
+                Icons.Default.InsertDriveFile,
+                null,
+                tint = Primary,
+                modifier = Modifier.size(24.dp)
+            )
+            Text(
+                name,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.weight(1f),
+                textAlign = TextAlign.End,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
         }
     }
 }
@@ -605,61 +856,114 @@ private fun AddClientDialog(onConfirm: (String, String, String) -> Unit, onDismi
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background),
             modifier = Modifier.fillMaxWidth(),
         ) {
-            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text("إضافة عميل جديد", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text(
+                    "إضافة عميل جديد",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center
+                )
 
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it; nameError = "" },
-                    label = { Text("الاسم", modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.End) },
+                    label = {
+                        Text(
+                            "الاسم",
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.End
+                        )
+                    },
                     isError = nameError.isNotEmpty(),
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(8.dp),
                     textStyle = MaterialTheme.typography.bodyMedium.copy(textAlign = TextAlign.End),
-                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Primary, unfocusedBorderColor = Divider),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Primary,
+                        unfocusedBorderColor = Divider
+                    ),
                 )
-                if (nameError.isNotEmpty()) Text(nameError, color = ColorError, style = MaterialTheme.typography.labelSmall)
+                if (nameError.isNotEmpty()) Text(
+                    nameError,
+                    color = ColorError,
+                    style = MaterialTheme.typography.labelSmall
+                )
 
                 OutlinedTextField(
                     value = phone,
                     onValueChange = { phone = it; phoneError = "" },
-                    label = { Text("رقم الجوال", modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.End) },
+                    label = {
+                        Text(
+                            "رقم الجوال",
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.End
+                        )
+                    },
                     isError = phoneError.isNotEmpty(),
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(8.dp),
                     textStyle = MaterialTheme.typography.bodyMedium.copy(textAlign = TextAlign.End),
-                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Primary, unfocusedBorderColor = Divider),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Primary,
+                        unfocusedBorderColor = Divider
+                    ),
                 )
-                if (phoneError.isNotEmpty()) Text(phoneError, color = ColorError, style = MaterialTheme.typography.labelSmall)
+                if (phoneError.isNotEmpty()) Text(
+                    phoneError,
+                    color = ColorError,
+                    style = MaterialTheme.typography.labelSmall
+                )
 
                 OutlinedTextField(
                     value = tax,
                     onValueChange = { tax = it },
-                    label = { Text("الرقم الضريبي", modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.End) },
+                    label = {
+                        Text(
+                            "الرقم الضريبي",
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.End
+                        )
+                    },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(8.dp),
                     textStyle = MaterialTheme.typography.bodyMedium.copy(textAlign = TextAlign.End),
-                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Primary, unfocusedBorderColor = Divider),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Primary,
+                        unfocusedBorderColor = Divider
+                    ),
                 )
 
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Button(
                         onClick = {
                             var valid = true
-                            if (name.isBlank()) { nameError = "الاسم مطلوب"; valid = false }
-                            if (phone.isBlank()) { phoneError = "رقم الجوال مطلوب"; valid = false }
+                            if (name.isBlank()) {
+                                nameError = "الاسم مطلوب"; valid = false
+                            }
+                            if (phone.isBlank()) {
+                                phoneError = "رقم الجوال مطلوب"; valid = false
+                            }
                             if (valid) onConfirm(name.trim(), phone.trim(), tax.trim())
                         },
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(8.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = Primary),
                     ) { Text("إضافة") }
-                    OutlinedButton(onClick = onDismiss, modifier = Modifier.weight(1f), shape = RoundedCornerShape(8.dp)) { Text("إلغاء") }
+                    OutlinedButton(
+                        onClick = onDismiss,
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(8.dp)
+                    ) { Text("إلغاء") }
                 }
             }
         }
     }
 }
+
 @Composable
 private fun SectionHeaderRow(title: String, onAdd: () -> Unit) {
     Row(

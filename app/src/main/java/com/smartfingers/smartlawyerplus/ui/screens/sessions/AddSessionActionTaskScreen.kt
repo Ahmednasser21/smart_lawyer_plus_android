@@ -86,6 +86,16 @@ fun AddSessionActionTaskScreen(
         }
     } catch (_: Exception) { "" }
 
+    fun fromHijri(hijri: String): String = try {
+        val parts = hijri.split("-")
+        if (parts.size != 3) ""
+        else {
+            val hd = java.time.chrono.HijrahDate.of(parts[0].toInt(), parts[1].toInt(), parts[2].toInt())
+            val ld = java.time.LocalDate.from(java.time.chrono.HijrahChronology.INSTANCE.date(hd))
+            "${ld.year}-${ld.monthValue.toString().padStart(2, '0')}-${ld.dayOfMonth.toString().padStart(2, '0')}"
+        }
+    } catch (_: Exception) { "" }
+
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -179,7 +189,7 @@ fun AddSessionActionTaskScreen(
                         modifier = Modifier.weight(1f),
                         onClick = {
                             val cal = Calendar.getInstance()
-                            DatePickerDialog(
+                            val picker = DatePickerDialog(
                                 context,
                                 { _, y, m, d ->
                                     val formatted =
@@ -191,38 +201,25 @@ fun AddSessionActionTaskScreen(
                                 cal.get(Calendar.YEAR),
                                 cal.get(Calendar.MONTH),
                                 cal.get(Calendar.DAY_OF_MONTH),
-                            ).show()
+                            )
+                            picker.datePicker.minDate = cal.timeInMillis
+                            picker.show()
                         },
                     )
-                    // Hijri read-only
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(56.dp)
-                            .clip(RoundedCornerShape(8.dp))
-                            .border(
-                                1.dp,
-                                if (startDateError) ColorError else Divider,
-                                RoundedCornerShape(8.dp),
-                            )
-                            .padding(horizontal = 12.dp),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(
-                                "تاريخ الجلسة (هـ)",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = TextSecondary,
-                                fontSize = 10.sp,
-                            )
-                            Text(
-                                text = startDateHijri.ifBlank { "--/--/----" },
-                                style = MaterialTheme.typography.bodySmall,
-                                color = if (startDateHijri.isBlank()) TextSecondary
-                                else MaterialTheme.colorScheme.onBackground,
-                            )
-                        }
-                    }
+                    // Hijri picker (interactive)
+                    DatePickerButton(
+                        label = "تاريخ الجلسة (هـ)",
+                        value = startDateHijri,
+                        isError = startDateError,
+                        modifier = Modifier.weight(1f),
+                        onClick = {
+                            showHijriDatePickerDialog(context, startDateHijri) { hijriDate ->
+                                startDateHijri = hijriDate
+                                startDate = fromHijri(hijriDate)
+                                startDateError = false
+                            }
+                        },
+                    )
                 }
                 if (startDateError) {
                     Text(
@@ -298,11 +295,13 @@ fun AddSessionActionTaskScreen(
                             modifier = Modifier.weight(1f),
                             onClick = {
                                 val cal = Calendar.getInstance()
-                                DatePickerDialog(
+                                val picker = DatePickerDialog(
                                     context,
                                     { _, y, m, d ->
                                         val formatted =
-                                            "$y-${(m + 1).toString().padStart(2, '0')}-${d.toString().padStart(2, '0')}"
+                                            "$y-${
+                                                (m + 1).toString().padStart(2, '0')
+                                            }-${d.toString().padStart(2, '0')}"
                                         endDate = formatted
                                         endDateHijri = toHijri(formatted)
                                         endDateError = false
@@ -310,38 +309,25 @@ fun AddSessionActionTaskScreen(
                                     cal.get(Calendar.YEAR),
                                     cal.get(Calendar.MONTH),
                                     cal.get(Calendar.DAY_OF_MONTH),
-                                ).show()
+                                )
+                                picker.datePicker.minDate = cal.timeInMillis
+                                picker.show()
                             },
                         )
-                        // Hijri end date read-only
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(56.dp)
-                                .clip(RoundedCornerShape(8.dp))
-                                .border(
-                                    1.dp,
-                                    if (endDateError) ColorError else Divider,
-                                    RoundedCornerShape(8.dp),
-                                )
-                                .padding(horizontal = 12.dp),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text(
-                                    "تاريخ الانتهاء (هـ)",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = TextSecondary,
-                                    fontSize = 10.sp,
-                                )
-                                Text(
-                                    text = endDateHijri.ifBlank { "--/--/----" },
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = if (endDateHijri.isBlank()) TextSecondary
-                                    else MaterialTheme.colorScheme.onBackground,
-                                )
-                            }
-                        }
+                        // Hijri end date picker (interactive)
+                        DatePickerButton(
+                            label = "تاريخ الانتهاء (هـ)",
+                            value = endDateHijri,
+                            isError = endDateError,
+                            modifier = Modifier.weight(1f),
+                            onClick = {
+                                showHijriDatePickerDialog(context, endDateHijri) { hijriDate ->
+                                    endDateHijri = hijriDate
+                                    endDate = fromHijri(hijriDate)
+                                    endDateError = false
+                                }
+                            },
+                        )
                     }
                     if (endDateError) {
                         Text(
