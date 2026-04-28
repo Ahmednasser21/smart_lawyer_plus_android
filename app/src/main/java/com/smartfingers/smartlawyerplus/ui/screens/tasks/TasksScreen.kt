@@ -349,7 +349,7 @@ fun TaskCard(task: Task, onClick: () -> Unit) {
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     Text(
-                        text = task.name.ifBlank { "-" },
+                        text = task.name.ifBlank {"لم يتم تسجيل أسم المهمة"},
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurface,
                         textAlign = TextAlign.End,

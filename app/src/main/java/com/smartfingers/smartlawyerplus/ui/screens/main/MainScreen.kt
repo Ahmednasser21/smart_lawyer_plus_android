@@ -67,7 +67,7 @@ fun MainScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(bottom = 64.dp)
+                .padding(bottom = 88.dp)
                 .background(MaterialTheme.colorScheme.background),
         ) {
             SharedTopBar(
