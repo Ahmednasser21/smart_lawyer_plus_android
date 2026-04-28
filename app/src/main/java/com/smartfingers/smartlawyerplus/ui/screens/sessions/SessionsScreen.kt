@@ -558,6 +558,7 @@ private fun FilterDropdownField(
             value = selectedOption?.name ?: "",
             onValueChange = {},
             readOnly = true,
+            textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.End),
             placeholder = {
                 Text(
                     label,
@@ -565,9 +566,11 @@ private fun FilterDropdownField(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     color = TextSecondary,
+                    textAlign = TextAlign.End,
+                    modifier = Modifier.fillMaxWidth(),
                 )
             },
-            trailingIcon = {
+            leadingIcon = {
                 Box(
                     modifier = Modifier
                         .size(36.dp)
